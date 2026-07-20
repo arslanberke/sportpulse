@@ -27,7 +27,7 @@ export function formatCountdown(startsAt: string, t: Translate, now = new Date()
 
 /**
  * One event in the week list: poster (when available), title, local time,
- * channel and countdown. Spoiler-free by design — no scores, ever.
+ * channel and countdown.
  */
 export function EventCard({ event }: { event: SportEvent }) {
   const { t } = useI18n();

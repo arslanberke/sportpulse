@@ -1,10 +1,9 @@
 /**
  * Core domain types shared across the app.
  *
- * SportPulse is a spoiler-free sports event reminder: it never shows scores
- * or live results — only what event happens when, on which channel, plus
- * local reminders. All timestamps are stored in UTC and rendered in the
- * user's device timezone.
+ * SportPulse is a sports event reminder: it shows what event happens when,
+ * on which channel, plus local reminders. All timestamps are stored in UTC
+ * and rendered in the user's device timezone.
  */
 
 export interface Profile {

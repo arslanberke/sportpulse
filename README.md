@@ -1,8 +1,7 @@
 # SportPulse
 
-Spoiler-free sports event reminders. SportPulse never shows scores or live
-results — only **which event, when, and on which channel**, plus local
-reminders so you never miss kickoff (and never see the score first).
+Sports event reminders. SportPulse shows **which event, when, and on which
+channel**, plus local reminders so you never miss kickoff.
 
 iOS-first, built with Expo / React Native.
 

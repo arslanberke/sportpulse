@@ -52,7 +52,7 @@ const en = {
   'tabs.profile': 'Profile',
 
   // Auth
-  'auth.tagline': 'Never miss kickoff. Never see the score.',
+  'auth.tagline': 'Never miss the events you love.',
   'auth.email': 'Email',
   'auth.password': 'Password',
   'auth.passwordPlaceholder': 'At least 6 characters',
@@ -61,7 +61,7 @@ const en = {
   'auth.noAccount': 'No account yet? ',
   'auth.signUp': 'Sign up',
   'auth.createAccount': 'Create account',
-  'auth.joinTagline': 'Spoiler-free reminders for the sports you love.',
+  'auth.joinTagline': 'Reminders for the sports you love.',
   'auth.fullName': 'Full name',
   'auth.checkInbox': 'Check your inbox',
   'auth.checkInboxBody': 'We sent you a confirmation email. Confirm it, then log in.',
@@ -75,9 +75,9 @@ const en = {
   'onboarding.skip': 'Skip',
   'onboarding.next': 'Next',
   'onboarding.getStarted': 'Get started',
-  'onboarding.slide1Title': 'No spoilers, ever',
+  'onboarding.slide1Title': 'All your events in one place',
   'onboarding.slide1Body':
-    'SportPulse never shows scores or results — only which event, when, and on which channel.',
+    'SportPulse shows which event, when it starts, and on which channel — across all your sports.',
   'onboarding.slide2Title': 'Follow what you love',
   'onboarding.slide2Body':
     'Pick your sports, leagues and teams. Your week fills with just their fixtures.',
@@ -192,7 +192,7 @@ const tr: Record<TranslationKey, string> = {
   'tabs.explore': 'Takip Et',
   'tabs.profile': 'Profil',
 
-  'auth.tagline': 'Maçı kaçırma. Skoru asla görme.',
+  'auth.tagline': 'Sevdiğin etkinlikleri asla kaçırma.',
   'auth.email': 'E-posta',
   'auth.password': 'Şifre',
   'auth.passwordPlaceholder': 'En az 6 karakter',
@@ -201,7 +201,7 @@ const tr: Record<TranslationKey, string> = {
   'auth.noAccount': 'Hesabın yok mu? ',
   'auth.signUp': 'Kayıt ol',
   'auth.createAccount': 'Hesap oluştur',
-  'auth.joinTagline': 'Sevdiğin sporlar için spoiler içermeyen hatırlatmalar.',
+  'auth.joinTagline': 'Sevdiğin sporlar için hatırlatmalar.',
   'auth.fullName': 'Ad soyad',
   'auth.checkInbox': 'E-postanı kontrol et',
   'auth.checkInboxBody': 'Sana bir onay e-postası gönderdik. Onayla, sonra giriş yap.',
@@ -214,9 +214,9 @@ const tr: Record<TranslationKey, string> = {
   'onboarding.skip': 'Atla',
   'onboarding.next': 'İleri',
   'onboarding.getStarted': 'Başla',
-  'onboarding.slide1Title': 'Asla spoiler yok',
+  'onboarding.slide1Title': 'Tüm etkinlikler tek yerde',
   'onboarding.slide1Body':
-    'SportPulse skor veya sonuç göstermez — sadece hangi etkinlik, ne zaman ve hangi kanalda.',
+    'SportPulse hangi etkinlik, ne zaman ve hangi kanalda gösterir — tüm sporların tek uygulamada.',
   'onboarding.slide2Title': 'Sevdiklerini takip et',
   'onboarding.slide2Body':
     'Branşlarını, liglerini ve takımlarını seç. Haftan sadece onların fikstürüyle dolsun.',

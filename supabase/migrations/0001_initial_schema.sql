@@ -1,5 +1,5 @@
 -- SportPulse initial schema.
--- Spoiler-free sports event reminders: catalog tables (sports, leagues,
+-- Sports event reminders: catalog tables (sports, leagues,
 -- teams, channels, events) are world-readable and written only by the
 -- service role (Edge Function sync job). User tables are RLS-protected.
 -- All timestamps are stored in UTC (timestamptz).
