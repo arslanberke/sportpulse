@@ -15,11 +15,84 @@ import { fetchUpcomingEvents } from '../../../src/services/providers/index.ts';
 import type { LeagueRef } from '../../../src/services/providers/types.ts';
 
 const SYNC_DAYS = 14;
+const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
+const EXPO_PUSH_BATCH = 100;
 
 interface LeagueRow {
   id: string;
   sport_id: string;
   external_ids: Record<string, string>;
+}
+
+interface UpsertResult {
+  event_id: string;
+  change_type: 'time' | 'status' | null;
+}
+
+interface ChangedEvent {
+  eventId: string;
+  title: string;
+  startsAtUtc: string;
+  changeType: 'time' | 'status';
+}
+
+function pushText(event: ChangedEvent, countryCode: string) {
+  const local = new Date(event.startsAtUtc);
+  if (countryCode === 'TR') {
+    const time = local.toLocaleString('tr-TR', { timeZone: 'Europe/Istanbul' });
+    return event.changeType === 'time'
+      ? { title: 'Fikstür değişti', body: `${event.title} yeni saati: ${time}` }
+      : { title: 'Etkinlik güncellendi', body: `${event.title} durumu değişti.` };
+  }
+  const time = local.toISOString().replace('T', ' ').slice(0, 16) + ' UTC';
+  return event.changeType === 'time'
+    ? { title: 'Fixture changed', body: `${event.title} new time: ${time}` }
+    : { title: 'Event updated', body: `${event.title} status changed.` };
+}
+
+/** Insert in-app notifications and send Expo pushes to followers. */
+// deno-lint-ignore no-explicit-any
+async function notifyFollowers(supabase: any, event: ChangedEvent, failures: string[]) {
+  const { error: notifyError } = await supabase.rpc('notify_event_change', {
+    p_event_id: event.eventId,
+    p_change_type: event.changeType,
+  });
+  if (notifyError) failures.push(`notify ${event.title}: ${notifyError.message}`);
+
+  const { data: followers, error: followersError } = await supabase.rpc('event_followers', {
+    p_event_id: event.eventId,
+  });
+  if (followersError || !followers?.length) return;
+  const userIds = followers.map((row: { event_followers?: string } | string) =>
+    typeof row === 'string' ? row : Object.values(row)[0],
+  );
+
+  const [{ data: tokens }, { data: profiles }] = await Promise.all([
+    supabase.from('push_tokens').select('user_id, token').in('user_id', userIds),
+    supabase.from('profiles').select('id, country_code').in('id', userIds),
+  ]);
+  if (!tokens?.length) return;
+  const countryByUser = new Map<string, string>(
+    (profiles ?? []).map((p: { id: string; country_code: string }) => [p.id, p.country_code]),
+  );
+
+  const messages = tokens.map((row: { user_id: string; token: string }) => ({
+    to: row.token,
+    sound: 'default',
+    ...pushText(event, countryByUser.get(row.user_id) ?? 'TR'),
+    data: { eventId: event.eventId, type: `event_${event.changeType}_changed` },
+  }));
+
+  for (let i = 0; i < messages.length; i += EXPO_PUSH_BATCH) {
+    const response = await fetch(EXPO_PUSH_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(messages.slice(i, i + EXPO_PUSH_BATCH)),
+    });
+    if (!response.ok) {
+      failures.push(`push ${event.title}: HTTP ${response.status}`);
+    }
+  }
 }
 
 Deno.serve(async (request) => {
@@ -41,6 +114,7 @@ Deno.serve(async (request) => {
 
   let upserted = 0;
   const failures: string[] = [];
+  const changed: ChangedEvent[] = [];
 
   for (const league of (leagues ?? []) as LeagueRow[]) {
     const ref: LeagueRef = {
@@ -52,7 +126,7 @@ Deno.serve(async (request) => {
     try {
       const events = await fetchUpcomingEvents(ref, SYNC_DAYS);
       for (const event of events) {
-        const { error: upsertError } = await supabase.rpc('upsert_event', {
+        const { data: result, error: upsertError } = await supabase.rpc('upsert_event', {
           p_provider: event.provider,
           p_external_id: event.externalId,
           p_sport_id: league.sport_id,
@@ -64,13 +138,29 @@ Deno.serve(async (request) => {
           p_home_team: event.homeTeam,
           p_away_team: event.awayTeam,
         });
-        if (upsertError) failures.push(`${event.title}: ${upsertError.message}`);
-        else upserted += 1;
+        if (upsertError) {
+          failures.push(`${event.title}: ${upsertError.message}`);
+          continue;
+        }
+        upserted += 1;
+        const row = (result as UpsertResult[] | null)?.[0];
+        if (row?.change_type) {
+          changed.push({
+            eventId: row.event_id,
+            title: event.title,
+            startsAtUtc: event.startsAtUtc,
+            changeType: row.change_type,
+          });
+        }
       }
     } catch (fetchError) {
       failures.push(`league ${league.id}: ${String(fetchError)}`);
     }
   }
 
-  return Response.json({ upserted, failures });
+  for (const event of changed) {
+    await notifyFollowers(supabase, event, failures);
+  }
+
+  return Response.json({ upserted, changed: changed.length, failures });
 });
