@@ -47,8 +47,26 @@ function normalize(event: TsdbEvent): ProviderEvent | null {
   };
 }
 
+const THROTTLE_MS = 2_050; // free tier allows 30 requests/min
+const RETRY_AFTER_MS = 10_000;
+
+let lastRequestAt = 0;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function getJson(url: string): Promise<{ events: TsdbEvent[] | null } | null> {
-  const response = await fetch(url);
+  const wait = lastRequestAt + THROTTLE_MS - Date.now();
+  if (wait > 0) await sleep(wait);
+  lastRequestAt = Date.now();
+
+  let response = await fetch(url);
+  if (response.status === 429) {
+    await sleep(RETRY_AFTER_MS);
+    lastRequestAt = Date.now();
+    response = await fetch(url);
+  }
   if (!response.ok) return null;
   return (await response.json()) as { events: TsdbEvent[] | null };
 }
@@ -64,14 +82,9 @@ export const theSportsDbProvider: FixtureProvider = {
     const leagueId = league.externalIds.thesportsdb;
     const results: ProviderEvent[] = [];
 
-    // The free "next events" endpoint is truncated but cheap — take it first.
-    const next = await getJson(`${BASE}/eventsnextleague.php?id=${leagueId}`);
-    for (const raw of next?.events ?? []) {
-      const normalized = normalize(raw);
-      if (normalized) results.push(normalized);
-    }
-
-    // Then scan day by day for full coverage of the window.
+    // Scan day by day: the free-tier list endpoints (eventsnextleague,
+    // eventsseason) are truncated to a handful of rows, but the per-league
+    // daily endpoint is not.
     const today = new Date();
     for (let offset = 0; offset < days; offset += 1) {
       const day = new Date(today.getTime() + offset * 86_400_000);
@@ -84,7 +97,7 @@ export const theSportsDbProvider: FixtureProvider = {
       }
     }
 
-    // De-duplicate (the two endpoints overlap).
+    // De-duplicate.
     const byId = new Map<string, ProviderEvent>();
     for (const event of results) byId.set(event.externalId, event);
     return [...byId.values()];

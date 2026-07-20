@@ -15,6 +15,12 @@ import { fetchUpcomingEvents } from '../../../src/services/providers/index.ts';
 import type { LeagueRef } from '../../../src/services/providers/types.ts';
 
 const SYNC_DAYS = 14;
+// TheSportsDB's free tier allows 30 requests/min and the function has a ~150s
+// wall clock budget, so a full catalog scan doesn't fit in one invocation.
+// Leagues are split into chunks; each run (cron every 30 min) processes one
+// chunk, cycling through the whole catalog every LEAGUE_CHUNKS half-hours.
+const LEAGUE_CHUNKS = 8;
+const CHUNK_SLOT_MS = 1_800_000; // 30 min, must match the cron cadence
 const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
 const EXPO_PUSH_BATCH = 100;
 
@@ -109,14 +115,22 @@ Deno.serve(async (request) => {
 
   const { data: leagues, error } = await supabase
     .from('leagues')
-    .select('id, sport_id, external_ids');
+    .select('id, sport_id, external_ids')
+    .order('id');
   if (error) return new Response(error.message, { status: 500 });
+
+  const chunkParam = new URL(request.url).searchParams.get('chunk');
+  const chunk =
+    chunkParam !== null
+      ? Number(chunkParam) % LEAGUE_CHUNKS
+      : Math.floor(Date.now() / CHUNK_SLOT_MS) % LEAGUE_CHUNKS;
+  const selected = (leagues ?? []).filter((_, index) => index % LEAGUE_CHUNKS === chunk);
 
   let upserted = 0;
   const failures: string[] = [];
   const changed: ChangedEvent[] = [];
 
-  for (const league of (leagues ?? []) as LeagueRow[]) {
+  for (const league of selected as LeagueRow[]) {
     const ref: LeagueRef = {
       leagueId: league.id,
       sportId: league.sport_id,
@@ -162,5 +176,5 @@ Deno.serve(async (request) => {
     await notifyFollowers(supabase, event, failures);
   }
 
-  return Response.json({ upserted, changed: changed.length, failures });
+  return Response.json({ chunk, leagues: selected.length, upserted, changed: changed.length, failures });
 });
