@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Theme tokens as CSS variables (RGB channels, consumed by tailwind.config.js).
+ * The dark palette activates automatically from the device's system theme.
+ */
+@layer base {
+  :root {
+    --color-background: 238 247 241;
+    --color-surface: 250 254 252;
+    --color-ink: 26 46 36;
+    --color-ink-secondary: 96 125 108;
+    --color-ink-tertiary: 148 168 156;
+    --color-primary-light: 209 250 229;
+    --color-success-light: 228 248 234;
+    --color-warning-light: 255 243 224;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-background: 9 16 12;
+      --color-surface: 22 33 27;
+      --color-ink: 235 245 239;
+      --color-ink-secondary: 156 178 165;
+      --color-ink-tertiary: 104 122 111;
+      --color-primary-light: 4 61 47;
+      --color-success-light: 16 61 32;
+      --color-warning-light: 66 45 10;
+    }
+  }
+}
