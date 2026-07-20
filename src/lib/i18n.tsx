@@ -126,6 +126,8 @@ const en = {
   'event.remindersBody': 'Reminder times follow your settings and your quiet hours.',
   'event.noReminders': 'No reminders will fire — the event is too soon or reminders are off.',
   'event.notFound': 'Event not found.',
+  'event.startLiveActivity': 'Live countdown (Dynamic Island)',
+  'event.liveActivityStarted': 'Live countdown started',
 
   // Settings
   'settings.language': 'Language',
@@ -262,6 +264,8 @@ const tr: Record<TranslationKey, string> = {
   'event.remindersBody': 'Hatırlatma saatleri ayarlarına ve sessiz saatlerine göre belirlenir.',
   'event.noReminders': 'Hatırlatma kurulmayacak — etkinlik çok yakın veya hatırlatmalar kapalı.',
   'event.notFound': 'Etkinlik bulunamadı.',
+  'event.startLiveActivity': 'Canlı geri sayım (Dynamic Island)',
+  'event.liveActivityStarted': 'Canlı geri sayım başlatıldı',
 
   'settings.language': 'Dil',
   'settings.theme': 'Tema',

@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useLocalSearchParams } from 'expo-router';
-import { Text, View } from 'react-native';
+import { Platform, Text, View } from 'react-native';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -16,6 +16,7 @@ import { showAlert } from '@/lib/alert';
 import { formatDateTime } from '@/lib/dates';
 import { useI18n } from '@/lib/i18n';
 import { shareEventIcs } from '@/lib/ics';
+import { areLiveActivitiesEnabled, startEventActivity } from '../../../../modules/live-activity';
 
 /** Event detail: when, where to watch, calendar export, reminder times. */
 export default function EventDetailScreen() {
@@ -53,6 +54,22 @@ export default function EventDetailScreen() {
       await shareEventIcs(event, channels.map((c) => c.name));
     } catch {
       showAlert(t('event.couldNotShare'), t('common.tryAgain'));
+    }
+  };
+
+  const showLiveActivity =
+    Platform.OS === 'ios' && event.status === 'scheduled' && areLiveActivitiesEnabled();
+  const handleLiveActivity = async () => {
+    try {
+      await startEventActivity({
+        title: event.title,
+        leagueName: event.leagueName ?? null,
+        channels: channels.map((c) => c.name).join(', ') || null,
+        startsAtIso: event.startsAt,
+      });
+      showAlert(t('event.liveActivityStarted'), '');
+    } catch {
+      showAlert(t('common.somethingWentWrong'), t('common.tryAgain'));
     }
   };
 
@@ -116,6 +133,15 @@ export default function EventDetailScreen() {
         </Card>
 
         <Button title={t('event.addToCalendar')} onPress={handleShareIcs} />
+        {showLiveActivity && (
+          <View className="mt-3">
+            <Button
+              title={t('event.startLiveActivity')}
+              onPress={handleLiveActivity}
+              variant="secondary"
+            />
+          </View>
+        )}
       </View>
     </Screen>
   );

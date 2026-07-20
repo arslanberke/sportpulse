@@ -4,6 +4,7 @@ import type { ColorValue } from 'react-native';
 
 import { useThemeColors } from '@/constants/theme';
 import { useEventReminders } from '@/features/events/hooks/use-event-reminders';
+import { useNextEventWidget } from '@/features/events/hooks/use-next-event-widget';
 import { usePushNotifications } from '@/features/notifications/hooks/use-push-notifications';
 import { useRealtimeUpdates } from '@/features/notifications/hooks/use-realtime-updates';
 import { useI18n } from '@/lib/i18n';
@@ -23,6 +24,7 @@ export default function TabsLayout() {
   useRealtimeUpdates();
   usePushNotifications();
   useEventReminders();
+  useNextEventWidget();
 
   return (
     <Tabs

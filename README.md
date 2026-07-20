@@ -59,6 +59,10 @@ src/
 supabase/
   migrations/     Schema, RLS, seeds (sports/leagues/channels), upsert_event
   functions/      sync-events Edge Function (scheduled fixture sync)
+targets/
+  widget/         iOS WidgetKit extension (next-event widget + Live Activity UI)
+modules/
+  live-activity/  Local Expo module to start/stop the countdown Live Activity
 ```
 
 ## Getting started
@@ -77,10 +81,28 @@ npm run lint
 npx tsc --noEmit
 ```
 
+## iOS widget & Live Activity
+
+The home-screen widget (next followed event + countdown) and the Dynamic
+Island / lock-screen Live Activity live in `targets/widget` (Swift, via
+`@bacons/apple-targets`) and `modules/live-activity`. They only work in an
+iOS **dev build** — not in Expo Go or on web/Android, where all calls no-op.
+
+To build:
+
+1. Add your Apple Team ID to `app.json` → `ios.appleTeamId`.
+2. `npx expo prebuild -p ios` (the widget target is generated automatically).
+3. Build with EAS (`eas build -p ios`) or Xcode. The App Group
+   `group.com.sportpulse.app` must be enabled for the bundle id in your Apple
+   Developer account.
+
+The app mirrors the next upcoming event into the App Group
+(`src/features/events/hooks/use-next-event-widget.ts`); the event detail
+screen offers a "Live countdown" button that starts the Live Activity.
+
+> Not yet verified on a real device/simulator — written on Linux where iOS
+> builds are unavailable.
+
 ## Roadmap
 
-- iOS home-screen widget ("next event + countdown") and Live Activity /
-  Dynamic Island countdown (requires a dev build + config plugins).
-- Country-specific channel mappings beyond Turkey.
-- Push notifications on fixture changes from the server (Expo push via
-  `push_tokens`).
+- Verify the widget + Live Activity on a real iOS dev build.

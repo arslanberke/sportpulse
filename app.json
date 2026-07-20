@@ -8,7 +8,14 @@
     "scheme": "sportpulse",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/images/icon.png"
+      "icon": "./assets/images/icon.png",
+      "bundleIdentifier": "com.sportpulse.app",
+      "entitlements": {
+        "com.apple.security.application-groups": ["group.com.sportpulse.app"]
+      },
+      "infoPlist": {
+        "NSSupportsLiveActivities": true
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -32,7 +39,8 @@
         }
       ],
       "expo-notifications",
-      "expo-image-picker"
+      "expo-image-picker",
+      "@bacons/apple-targets"
     ],
     "experiments": {
       "typedRoutes": true,
