@@ -8,26 +8,30 @@
  */
 @layer base {
   :root {
-    --color-background: 238 247 241;
-    --color-surface: 250 254 252;
-    --color-ink: 26 46 36;
-    --color-ink-secondary: 96 125 108;
-    --color-ink-tertiary: 148 168 156;
+    --color-background: 243 246 244;
+    --color-surface: 255 255 255;
+    --color-surface-raised: 249 251 250;
+    --color-ink: 15 26 20;
+    --color-ink-secondary: 90 112 100;
+    --color-ink-tertiary: 143 161 151;
     --color-primary-light: 209 250 229;
     --color-success-light: 228 248 234;
     --color-warning-light: 255 243 224;
+    --color-border: 226 233 229;
   }
 
   @media (prefers-color-scheme: dark) {
     :root {
-      --color-background: 9 16 12;
-      --color-surface: 22 33 27;
-      --color-ink: 235 245 239;
-      --color-ink-secondary: 156 178 165;
-      --color-ink-tertiary: 104 122 111;
-      --color-primary-light: 4 61 47;
+      --color-background: 8 12 10;
+      --color-surface: 18 26 22;
+      --color-surface-raised: 26 36 30;
+      --color-ink: 240 247 243;
+      --color-ink-secondary: 158 179 167;
+      --color-ink-tertiary: 106 124 113;
+      --color-primary-light: 6 51 38;
       --color-success-light: 16 61 32;
       --color-warning-light: 66 45 10;
+      --color-border: 34 46 39;
     }
   }
 }

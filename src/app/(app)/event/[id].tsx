@@ -3,8 +3,11 @@ import { Image } from 'expo-image';
 import { useLocalSearchParams } from 'expo-router';
 import { Platform, Text, View } from 'react-native';
 
+import { LinearGradient } from 'expo-linear-gradient';
+
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Chip } from '@/components/ui/chip';
 import { Screen } from '@/components/ui/screen';
 import { EmptyCard, LoadingCard } from '@/components/ui/states';
 import { useThemeColors } from '@/constants/theme';
@@ -76,33 +79,62 @@ export default function EventDetailScreen() {
   return (
     <Screen>
       <View className="pt-4">
-        {event.imageUrl && (
-          <Image
-            source={{ uri: event.imageUrl }}
-            style={{ width: '100%', height: 180, borderRadius: 16, marginBottom: 16 }}
-            contentFit="cover"
-            transition={150}
-          />
-        )}
-
-        {event.leagueName && (
-          <Text className="mb-1 text-sm font-semibold uppercase text-ink-tertiary">
-            {event.leagueName}
-          </Text>
-        )}
-        <Text className="mb-2 text-2xl font-bold text-ink">{event.title}</Text>
-        <View className="mb-4 flex-row items-center gap-2">
-          <Ionicons name="time-outline" size={16} color={colors.inkSecondary} />
-          <Text className="text-base text-ink-secondary">{formatDateTime(event.startsAt)}</Text>
-          {event.status === 'scheduled' ? (
-            <Text className="text-base font-semibold text-primary">
-              {formatCountdown(event.startsAt, t)}
-            </Text>
-          ) : (
-            <Text className="text-base font-semibold text-danger">
-              {t(event.status === 'postponed' ? 'home.postponed' : 'home.cancelled')}
-            </Text>
-          )}
+        <View className="mb-4 overflow-hidden rounded-card bg-surface shadow-md">
+          <View style={{ height: 220 }}>
+            {event.imageUrl ? (
+              <Image
+                source={{ uri: event.imageUrl }}
+                style={{ width: '100%', height: '100%' }}
+                contentFit="cover"
+                transition={200}
+              />
+            ) : (
+              <LinearGradient
+                colors={[colors.primary, colors.primaryDark]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{ width: '100%', height: '100%' }}
+              />
+            )}
+            <LinearGradient
+              colors={['transparent', 'rgba(4, 14, 9, 0.55)', 'rgba(4, 14, 9, 0.92)']}
+              style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 160 }}
+            />
+            <View className="absolute inset-x-0 bottom-0 p-5">
+              {event.leagueName && (
+                <Text className="mb-1 text-xs font-bold uppercase tracking-wider text-white/70">
+                  {event.leagueName}
+                </Text>
+              )}
+              <Text className="mb-2 text-2xl font-bold text-white">{event.title}</Text>
+              <View className="flex-row flex-wrap items-center gap-2">
+                {event.status === 'scheduled' ? (
+                  <Chip
+                    label={formatCountdown(event.startsAt, t)}
+                    icon="hourglass-outline"
+                    iconColor="#FFFFFF"
+                    className="bg-primary"
+                    textClassName="text-white"
+                  />
+                ) : (
+                  <Chip
+                    label={t(event.status === 'postponed' ? 'home.postponed' : 'home.cancelled')}
+                    icon="alert-circle-outline"
+                    iconColor="#FFFFFF"
+                    className="bg-danger"
+                    textClassName="text-white"
+                  />
+                )}
+                <Chip
+                  label={formatDateTime(event.startsAt)}
+                  icon="time-outline"
+                  iconColor="#FFFFFF"
+                  className="bg-white/20"
+                  textClassName="text-white"
+                />
+              </View>
+            </View>
+          </View>
         </View>
 
         <Card className="mb-4">

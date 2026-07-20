@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Text, View } from 'react-native';
 
 import { Button } from '@/components/ui/button';
@@ -48,9 +49,21 @@ export default function LoginScreen() {
     <Screen>
       <View className="pt-20">
         <View className="mb-8 items-center">
-          <View className="mb-4 h-20 w-20 items-center justify-center rounded-3xl bg-primary shadow-md">
-            <Ionicons name="notifications" size={40} color="#FFFFFF" />
-          </View>
+          <LinearGradient
+            colors={['#34D399', '#059669']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{
+              width: 88,
+              height: 88,
+              borderRadius: 28,
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 16,
+            }}
+          >
+            <Ionicons name="notifications" size={44} color="#FFFFFF" />
+          </LinearGradient>
           <Text className="mb-1 text-4xl font-bold text-ink">SportPulse</Text>
           <Text className="text-base text-ink-secondary">{t('auth.tagline')}</Text>
         </View>

@@ -6,11 +6,12 @@ import { useColorScheme } from 'react-native';
  */
 export const Colors = {
   primary: '#10B981',
-  background: '#EEF7F1',
-  surface: '#FAFEFC',
-  ink: '#1A2E24',
-  inkSecondary: '#607D6C',
-  inkTertiary: '#94A89C',
+  primaryDark: '#047857',
+  background: '#F3F6F4',
+  surface: '#FFFFFF',
+  ink: '#0F1A14',
+  inkSecondary: '#5A7064',
+  inkTertiary: '#8FA197',
   danger: '#FF3B30',
   success: '#34C759',
 } as const;
@@ -19,11 +20,12 @@ export type ThemeColors = Record<keyof typeof Colors, string>;
 
 export const DarkColors: ThemeColors = {
   primary: '#10B981',
-  background: '#09100C',
-  surface: '#16211B',
-  ink: '#EBF5EF',
-  inkSecondary: '#9CB2A5',
-  inkTertiary: '#687A6F',
+  primaryDark: '#047857',
+  background: '#080C0A',
+  surface: '#121A16',
+  ink: '#F0F7F3',
+  inkSecondary: '#9EB3A7',
+  inkTertiary: '#6A7C71',
   danger: '#FF3B30',
   success: '#34C759',
 };

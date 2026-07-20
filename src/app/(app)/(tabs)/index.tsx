@@ -1,11 +1,14 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Link, useRouter } from 'expo-router';
 import { useCallback, useEffect } from 'react';
-import { Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
+
+import { Ionicons } from '@expo/vector-icons';
 
 import { Screen } from '@/components/ui/screen';
 import { EmptyCard, ErrorCard, LoadingCard } from '@/components/ui/states';
-import { EventCard } from '@/features/events/components/event-card';
+import { useThemeColors } from '@/constants/theme';
+import { EventCard, FeaturedEventCard } from '@/features/events/components/event-card';
 import { useUpcomingEvents } from '@/features/events/hooks/use-events';
 import { useFollows } from '@/features/follows/hooks/use-follows';
 import { formatDay, isSameDay } from '@/lib/dates';
@@ -27,6 +30,7 @@ function groupByDay(events: SportEvent[]): { day: Date; events: SportEvent[] }[]
 /** "This week": every upcoming event for the user's follows, day by day. */
 export default function HomeScreen() {
   const { t } = useI18n();
+  const colors = useThemeColors();
   const router = useRouter();
   const queryClient = useQueryClient();
   const { data: follows, isFetched: followsFetched } = useFollows();
@@ -54,13 +58,22 @@ export default function HomeScreen() {
     return formatDay(day);
   };
 
+  const featuredId = events.find((e) => e.status === 'scheduled')?.id;
+
   return (
     <Screen onRefresh={handleRefresh} refreshing={queryClient.isFetching() > 0}>
       <View className="pt-4">
         <View className="mb-6 flex-row items-center justify-between">
-          <Text className="text-3xl font-bold text-ink">{t('home.title')}</Text>
-          <Link href="/settings" className="text-base font-semibold text-primary">
-            {t('common.settings')}
+          <View>
+            <Text className="text-sm font-semibold uppercase tracking-widest text-primary">
+              SportPulse
+            </Text>
+            <Text className="text-3xl font-bold text-ink">{t('home.title')}</Text>
+          </View>
+          <Link href="/settings" asChild>
+            <Pressable className="h-11 w-11 items-center justify-center rounded-pill border border-line bg-surface active:opacity-70">
+              <Ionicons name="settings-outline" size={20} color={colors.ink} />
+            </Pressable>
           </Link>
         </View>
 
@@ -74,10 +87,19 @@ export default function HomeScreen() {
 
         {groupByDay(events).map((group) => (
           <View key={group.day.toISOString()} className="mb-2">
-            <Text className="mb-2 text-lg font-semibold text-ink">{dayLabel(group.day)}</Text>
-            {group.events.map((event) => (
-              <EventCard key={event.id} event={event} />
-            ))}
+            <View className="mb-3 flex-row items-center gap-3">
+              <Text className="text-base font-bold uppercase tracking-wider text-ink">
+                {dayLabel(group.day)}
+              </Text>
+              <View className="h-px flex-1 bg-line" />
+            </View>
+            {group.events.map((event) =>
+              event.id === featuredId ? (
+                <FeaturedEventCard key={event.id} event={event} />
+              ) : (
+                <EventCard key={event.id} event={event} />
+              ),
+            )}
           </View>
         ))}
 

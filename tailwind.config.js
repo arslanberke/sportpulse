@@ -12,7 +12,11 @@ module.exports = {
           dark: '#047857',
           light: 'rgb(var(--color-primary-light) / <alpha-value>)',
         },
-        surface: 'rgb(var(--color-surface) / <alpha-value>)',
+        surface: {
+          DEFAULT: 'rgb(var(--color-surface) / <alpha-value>)',
+          raised: 'rgb(var(--color-surface-raised) / <alpha-value>)',
+        },
+        line: 'rgb(var(--color-border) / <alpha-value>)',
         background: 'rgb(var(--color-background) / <alpha-value>)',
         ink: {
           DEFAULT: 'rgb(var(--color-ink) / <alpha-value>)',
@@ -30,8 +34,9 @@ module.exports = {
         },
       },
       borderRadius: {
-        card: '20px',
-        button: '14px',
+        card: '24px',
+        button: '16px',
+        pill: '999px',
       },
     },
   },
