@@ -1,4 +1,4 @@
-import type { FixtureProvider, LeagueRef, ProviderEvent } from './types';
+import type { FixtureProvider, LeagueRef, ProviderEvent } from './types.ts';
 
 /**
  * ESPN hidden API (site.api.espn.com) — fallback provider.

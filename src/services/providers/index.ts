@@ -1,8 +1,8 @@
-import { espnProvider } from './espn';
-import { theSportsDbProvider } from './thesportsdb';
-import type { LeagueRef, ProviderEvent } from './types';
+import { espnProvider } from './espn.ts';
+import { theSportsDbProvider } from './thesportsdb.ts';
+import type { LeagueRef, ProviderEvent } from './types.ts';
 
-export type { FixtureProvider, LeagueRef, ProviderEvent } from './types';
+export type { FixtureProvider, LeagueRef, ProviderEvent } from './types.ts';
 
 /** Ordered by preference: primary first, fallbacks after. */
 export const providers = [theSportsDbProvider, espnProvider];

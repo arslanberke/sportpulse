@@ -1,4 +1,4 @@
-import type { FixtureProvider, LeagueRef, ProviderEvent } from './types';
+import type { FixtureProvider, LeagueRef, ProviderEvent } from './types.ts';
 
 /**
  * TheSportsDB — primary provider.
