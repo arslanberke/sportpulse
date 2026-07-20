@@ -63,7 +63,7 @@ supabase/
 
 ## Getting started
 
-1. `npm install`
+1. `npm install` (Node 22+ recommended; Node 20 lacks native WebSocket for the web build)
 2. Create a Supabase project, run the migrations (`supabase db push`).
 3. Copy `.env.example` to `.env` and fill in
    `EXPO_PUBLIC_SUPABASE_URL` / `EXPO_PUBLIC_SUPABASE_ANON_KEY`.
