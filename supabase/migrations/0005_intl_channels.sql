@@ -1,0 +1,87 @@
+-- Broadcast channel mappings for GB, DE, US and NL (2025-26 season rights,
+-- best-effort — primary rights holder per league).
+
+insert into public.channels (name, country_code) values
+  ('Sky Sports', 'GB'),
+  ('TNT Sports', 'GB'),
+  ('Premier Sports', 'GB'),
+  ('BBC', 'GB'),
+  ('Channel 4', 'GB'),
+  ('Sky Sport', 'DE'),
+  ('DAZN', 'DE'),
+  ('RTL', 'DE'),
+  ('ServusTV On', 'DE'),
+  ('NBC / Peacock', 'US'),
+  ('ESPN', 'US'),
+  ('ESPN+', 'US'),
+  ('CBS / Paramount+', 'US'),
+  ('ABC', 'US'),
+  ('Tennis Channel', 'US'),
+  ('FOX Sports', 'US'),
+  ('Ziggo Sport', 'NL'),
+  ('ESPN NL', 'NL'),
+  ('Viaplay', 'NL'),
+  ('HBO Max', 'NL');
+
+insert into public.league_channels (league_id, channel_id, country_code)
+select l.id, c.id, m.country
+from (values
+  -- United Kingdom
+  ('Süper Lig', 'GB', 'Premier Sports'),
+  ('Premier League', 'GB', 'Sky Sports'),
+  ('LaLiga', 'GB', 'Premier Sports'),
+  ('Serie A', 'GB', 'TNT Sports'),
+  ('Bundesliga', 'GB', 'Sky Sports'),
+  ('UEFA Champions League', 'GB', 'TNT Sports'),
+  ('UEFA Europa League', 'GB', 'TNT Sports'),
+  ('NBA', 'GB', 'Sky Sports'),
+  ('EuroLeague', 'GB', 'TNT Sports'),
+  ('Formula 1', 'GB', 'Sky Sports'),
+  ('MotoGP', 'GB', 'TNT Sports'),
+  ('UFC', 'GB', 'TNT Sports'),
+  ('ATP Tour', 'GB', 'Sky Sports'),
+  ('WTA Tour', 'GB', 'Sky Sports'),
+  -- Germany
+  ('Premier League', 'DE', 'Sky Sport'),
+  ('LaLiga', 'DE', 'DAZN'),
+  ('Serie A', 'DE', 'DAZN'),
+  ('Bundesliga', 'DE', 'Sky Sport'),
+  ('UEFA Champions League', 'DE', 'DAZN'),
+  ('UEFA Europa League', 'DE', 'RTL'),
+  ('NBA', 'DE', 'DAZN'),
+  ('EuroLeague', 'DE', 'DAZN'),
+  ('Formula 1', 'DE', 'Sky Sport'),
+  ('MotoGP', 'DE', 'ServusTV On'),
+  ('UFC', 'DE', 'DAZN'),
+  ('ATP Tour', 'DE', 'Sky Sport'),
+  ('WTA Tour', 'DE', 'DAZN'),
+  -- United States
+  ('Süper Lig', 'US', 'FOX Sports'),
+  ('Premier League', 'US', 'NBC / Peacock'),
+  ('LaLiga', 'US', 'ESPN+'),
+  ('Serie A', 'US', 'CBS / Paramount+'),
+  ('Bundesliga', 'US', 'ESPN+'),
+  ('UEFA Champions League', 'US', 'CBS / Paramount+'),
+  ('UEFA Europa League', 'US', 'CBS / Paramount+'),
+  ('NBA', 'US', 'ESPN'),
+  ('Formula 1', 'US', 'ESPN'),
+  ('MotoGP', 'US', 'FOX Sports'),
+  ('UFC', 'US', 'ESPN+'),
+  ('ATP Tour', 'US', 'Tennis Channel'),
+  ('WTA Tour', 'US', 'Tennis Channel'),
+  -- Netherlands
+  ('Premier League', 'NL', 'Viaplay'),
+  ('LaLiga', 'NL', 'Ziggo Sport'),
+  ('Serie A', 'NL', 'Ziggo Sport'),
+  ('Bundesliga', 'NL', 'Ziggo Sport'),
+  ('UEFA Champions League', 'NL', 'Ziggo Sport'),
+  ('UEFA Europa League', 'NL', 'HBO Max'),
+  ('NBA', 'NL', 'Ziggo Sport'),
+  ('Formula 1', 'NL', 'Viaplay'),
+  ('MotoGP', 'NL', 'Ziggo Sport'),
+  ('UFC', 'NL', 'Viaplay'),
+  ('ATP Tour', 'NL', 'Ziggo Sport'),
+  ('WTA Tour', 'NL', 'Ziggo Sport')
+) as m (league_name, country, channel_name)
+join public.leagues l on l.name = m.league_name
+join public.channels c on c.name = m.channel_name and c.country_code = m.country;
