@@ -1,5 +1,7 @@
 import { useColorScheme } from 'react-native';
 
+import { useThemeStore } from '@/lib/theme';
+
 /**
  * Design tokens used outside of Tailwind classes (e.g. navigation options).
  * Keep these values in sync with `src/global.css` and `tailwind.config.js`.
@@ -32,7 +34,9 @@ export const DarkColors: ThemeColors = {
 
 /** Theme-aware tokens for places Tailwind classes can't reach (nav bars, spinners). */
 export function useThemeColors(): ThemeColors {
-  const scheme = useColorScheme();
+  const system = useColorScheme();
+  const preference = useThemeStore((state) => state.preference);
+  const scheme = preference === 'system' ? system : preference;
   return scheme === 'dark' ? DarkColors : Colors;
 }
 

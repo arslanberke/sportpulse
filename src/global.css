@@ -4,7 +4,9 @@
 
 /*
  * Theme tokens as CSS variables (RGB channels, consumed by tailwind.config.js).
- * The dark palette activates automatically from the device's system theme.
+ * Dark mode is class-based (`darkMode: 'class'`): on web src/lib/theme.ts
+ * toggles the `dark` class on <html>; on native NativeWind derives it from the
+ * Appearance color scheme.
  */
 @layer base {
   :root {
@@ -20,18 +22,16 @@
     --color-border: 226 233 229;
   }
 
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --color-background: 8 12 10;
-      --color-surface: 18 26 22;
-      --color-surface-raised: 26 36 30;
-      --color-ink: 240 247 243;
-      --color-ink-secondary: 158 179 167;
-      --color-ink-tertiary: 106 124 113;
-      --color-primary-light: 6 51 38;
-      --color-success-light: 16 61 32;
-      --color-warning-light: 66 45 10;
-      --color-border: 34 46 39;
-    }
+  .dark:root {
+    --color-background: 8 12 10;
+    --color-surface: 18 26 22;
+    --color-surface-raised: 26 36 30;
+    --color-ink: 240 247 243;
+    --color-ink-secondary: 158 179 167;
+    --color-ink-tertiary: 106 124 113;
+    --color-primary-light: 6 51 38;
+    --color-success-light: 16 61 32;
+    --color-warning-light: 66 45 10;
+    --color-border: 34 46 39;
   }
 }
