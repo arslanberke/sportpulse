@@ -81,7 +81,11 @@ export function FeaturedEventCard({ event }: { event: SportEvent }) {
           {artwork && (
             <Image
               source={{ uri: artwork }}
-              style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+              style={
+                art.fit === 'contain'
+                  ? { position: 'absolute', top: 24, left: 24, right: 24, bottom: 64 }
+                  : { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }
+              }
               contentFit={art.fit}
               contentPosition={art.position}
               transition={200}

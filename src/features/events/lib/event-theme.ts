@@ -38,6 +38,7 @@ const LEAGUE_THEMES: Record<string, EventTheme> = {
   },
   'Premier League': { gradient: ['#4C1D95', '#1E1B4B'], overlay: '18, 14, 40', accent: '#A78BFA' },
   NBA: { gradient: ['#1D4ED8', '#7F1D1D'], overlay: '16, 12, 24', accent: '#60A5FA' },
+  'WTA Tour': { gradient: ['#C4B5FD', '#7C3AED'], overlay: '30, 15, 60', accent: '#7C3AED' },
 };
 
 const DEFAULT_THEME: EventTheme = {
@@ -71,6 +72,13 @@ const LEAGUE_ARTWORK: Record<string, ArtworkStyle> = {
   'UEFA Conference League': { fit: 'contain', position: 'center' },
   'Formula 1': { fit: 'cover', position: 'right top' },
   'Ligue 1': { fit: 'cover', position: 'left center' },
+  LaLiga: { fit: 'contain', position: 'center' },
+  MotoGP: { fit: 'contain', position: 'center' },
+  'Primeira Liga': { fit: 'contain', position: 'center' },
+  'Süper Lig': { fit: 'contain', position: 'center' },
+  'Trendyol 1. Lig': { fit: 'contain', position: 'center' },
+  'WTA Tour': { fit: 'contain', position: 'center' },
+  'Kadınlar Avrupa Şampiyonası': { fit: 'contain', position: 'center' },
 };
 
 const DEFAULT_ARTWORK: ArtworkStyle = { fit: 'cover', position: 'center' };
