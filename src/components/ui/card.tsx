@@ -1,27 +1,22 @@
-import { useEffect, useState, type ReactNode } from 'react';
-import { Animated, View } from 'react-native';
+import { type ReactNode } from 'react';
+import { View } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
 interface CardProps {
   children: ReactNode;
   className?: string;
+  /** Position in a list; staggers the entrance so cards cascade in. */
+  index?: number;
 }
 
-/** Simple rounded card used as the main content container across the app. Fades in softly on mount. */
-export function Card({ children, className = '' }: CardProps) {
-  const [progress] = useState(() => new Animated.Value(0));
-
-  useEffect(() => {
-    Animated.timing(progress, { toValue: 1, duration: 220, useNativeDriver: true }).start();
-  }, [progress]);
-
+/** Rounded content container. Cascades in on mount (staggered by `index`). */
+export function Card({ children, className = '', index = 0 }: CardProps) {
   return (
     <Animated.View
-      style={{
-        opacity: progress,
-        transform: [
-          { translateY: progress.interpolate({ inputRange: [0, 1], outputRange: [8, 0] }) },
-        ],
-      }}
+      entering={FadeInDown.delay(index * 70)
+        .duration(420)
+        .springify()
+        .damping(18)}
     >
       <View
         className={`rounded-card border border-line bg-surface p-5 ${className}`}

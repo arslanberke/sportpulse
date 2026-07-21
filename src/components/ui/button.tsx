@@ -1,9 +1,12 @@
 import * as Haptics from 'expo-haptics';
-import { ActivityIndicator, Platform, Pressable, StyleSheet, Text } from 'react-native';
+import { useState } from 'react';
+import { Animated, ActivityIndicator, Platform, Pressable, StyleSheet, Text } from 'react-native';
 
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { Colors } from '@/constants/theme';
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 type ButtonVariant = 'primary' | 'secondary' | 'danger';
 
@@ -42,18 +45,31 @@ export function Button({
   loading = false,
 }: ButtonProps) {
   const isDisabled = disabled || loading;
+  const [scale] = useState(() => new Animated.Value(1));
+  const spring = (toValue: number) =>
+    Animated.spring(scale, {
+      toValue,
+      useNativeDriver: true,
+      speed: 40,
+      bounciness: 6,
+    }).start();
 
   return (
-    <Pressable
+    <AnimatedPressable
+      onPressIn={() => spring(0.96)}
+      onPressOut={() => spring(1)}
       onPress={() => {
         if (Platform.OS !== 'web') {
-          void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         }
         onPress();
       }}
       disabled={isDisabled}
-      className={`h-14 items-center justify-center overflow-hidden rounded-button shadow-md active:scale-[0.97] active:opacity-85 ${containerStyles[variant]} ${isDisabled ? 'opacity-50' : ''}`}
-      style={{ borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)' }}
+      className={`h-14 items-center justify-center overflow-hidden rounded-button shadow-md ${containerStyles[variant]} ${isDisabled ? 'opacity-50' : ''}`}
+      style={[
+        { borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)' },
+        { transform: [{ scale }] },
+      ]}
     >
       <LinearGradient
         colors={sheenColors[variant]}
@@ -65,6 +81,6 @@ export function Button({
       ) : (
         <Text className={`text-base font-semibold ${labelStyles[variant]}`}>{title}</Text>
       )}
-    </Pressable>
+    </AnimatedPressable>
   );
 }

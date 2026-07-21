@@ -1,36 +1,62 @@
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
-import { Animated, Pressable, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated';
 
 import { useThemeColors } from '@/constants/theme';
 import { useI18n } from '@/lib/i18n';
 
-/** Skeleton placeholder: pulsing grey bars shaped like a typical card. */
+/** Skeleton placeholder: grey bars with a light sweep gliding across them. */
 export function LoadingCard({ label }: { label?: string }) {
   const { t } = useI18n();
-  const [pulse] = useState(() => new Animated.Value(0.4));
+  const [width, setWidth] = useState(0);
+  const progress = useSharedValue(0);
 
   useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulse, { toValue: 1, duration: 700, useNativeDriver: true }),
-        Animated.timing(pulse, { toValue: 0.4, duration: 700, useNativeDriver: true }),
-      ]),
+    progress.value = withRepeat(
+      withTiming(1, { duration: 1150, easing: Easing.inOut(Easing.ease) }),
+      -1,
+      false,
     );
-    loop.start();
-    return () => loop.stop();
-  }, [pulse]);
+  }, [progress]);
+
+  const sweepStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: -width + progress.value * (width * 2) }],
+  }));
 
   return (
     <View
-      className="rounded-card bg-surface p-5 shadow-sm"
+      className="overflow-hidden rounded-card bg-surface p-5 shadow-sm"
       accessibilityLabel={label ?? t('common.loading')}
+      onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
     >
-      <Animated.View style={{ opacity: pulse }}>
-        <View className="mb-3 h-4 w-1/3 rounded-full bg-ink-tertiary/30" />
-        <View className="mb-2 h-3 w-3/4 rounded-full bg-ink-tertiary/20" />
-        <View className="h-3 w-1/2 rounded-full bg-ink-tertiary/20" />
-      </Animated.View>
+      <View className="mb-3 h-4 w-1/3 rounded-full bg-ink-tertiary/25" />
+      <View className="mb-2 h-3 w-3/4 rounded-full bg-ink-tertiary/15" />
+      <View className="h-3 w-1/2 rounded-full bg-ink-tertiary/15" />
+      {width > 0 && (
+        <Animated.View
+          style={[StyleSheet.absoluteFill, sweepStyle]}
+          pointerEvents="none"
+        >
+          <LinearGradient
+            colors={[
+              'rgba(255,255,255,0)',
+              'rgba(255,255,255,0.35)',
+              'rgba(255,255,255,0)',
+            ]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={StyleSheet.absoluteFill}
+          />
+        </Animated.View>
+      )}
     </View>
   );
 }

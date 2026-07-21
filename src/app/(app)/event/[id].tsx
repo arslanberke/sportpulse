@@ -276,7 +276,7 @@ export default function EventDetailScreen() {
           </View>
         </View>
 
-        <Card className="mb-4">
+        <Card className="mb-4" index={0}>
           <SectionHeader
             icon="calendar"
             label={t("event.details")}
@@ -356,7 +356,7 @@ export default function EventDetailScreen() {
           )}
         </Card>
 
-        <Card className="mb-4">
+        <Card className="mb-4" index={1}>
           <SectionHeader
             icon="tv"
             label={t("event.channel")}
@@ -396,7 +396,7 @@ export default function EventDetailScreen() {
           </View>
         </Card>
 
-        <Card className="mb-4">
+        <Card className="mb-4" index={2}>
           <SectionHeader
             icon="notifications"
             label={t("event.reminders")}
