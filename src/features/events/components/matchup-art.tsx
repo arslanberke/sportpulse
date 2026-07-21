@@ -1,11 +1,13 @@
 import { Image } from 'expo-image';
 import { Text, View } from 'react-native';
-import type { ImageSourcePropType } from 'react-native';
+import type { LeagueBanner } from '@/features/events/lib/league-banner';
 
 /**
- * Hero artwork for a two-team fixture: a full-bleed league banner backdrop with
- * the home and away transparent badges laid over it, "VS" between. Badges use
- * `contain` and sit inside a padded safe area so no crest is ever clipped.
+ * Hero artwork for a two-team fixture: a league banner backdrop with the home
+ * and away transparent badges laid over it, "VS" between. Badges use `contain`
+ * and sit inside a padded safe area so no crest is ever clipped. The backdrop
+ * honours the banner's own `fit` (full-bleed `cover` vs. fully-visible
+ * `contain` with a matching fill).
  */
 export function MatchupArt({
   banner,
@@ -13,7 +15,7 @@ export function MatchupArt({
   awayLogoUrl,
   badgeSize,
 }: {
-  banner: ImageSourcePropType | null;
+  banner: LeagueBanner | null;
   homeLogoUrl: string;
   awayLogoUrl: string;
   /** Rendered width/height of each badge box. */
@@ -26,9 +28,16 @@ export function MatchupArt({
     >
       {banner && (
         <Image
-          source={banner}
-          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
-          contentFit="cover"
+          source={banner.source}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: banner.backgroundColor,
+          }}
+          contentFit={banner.fit}
           contentPosition="center"
           transition={200}
         />
