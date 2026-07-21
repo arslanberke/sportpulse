@@ -170,7 +170,7 @@ export default function EventDetailScreen() {
                 banner={banner}
                 homeLogoUrl={event.homeTeamLogoUrl!}
                 awayLogoUrl={event.awayTeamLogoUrl!}
-                badgeSize={116}
+                badgeSize={150}
               />
             ) : (
               artwork && (
