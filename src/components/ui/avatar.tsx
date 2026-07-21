@@ -3,7 +3,7 @@ import { Image, Text, View } from 'react-native';
 interface AvatarProps {
   name: string;
   imageUrl?: string | null;
-  size?: 'sm' | 'md';
+  size?: 'sm' | 'md' | 'lg';
 }
 
 function initials(name: string): string {
@@ -17,8 +17,8 @@ function initials(name: string): string {
 
 /** Circular avatar: photo when available, otherwise initials on an accent tint. */
 export function Avatar({ name, imageUrl, size = 'md' }: AvatarProps) {
-  const box = size === 'sm' ? 'h-9 w-9' : 'h-12 w-12';
-  const label = size === 'sm' ? 'text-xs' : 'text-base';
+  const box = size === 'sm' ? 'h-9 w-9' : size === 'lg' ? 'h-16 w-16' : 'h-12 w-12';
+  const label = size === 'sm' ? 'text-xs' : size === 'lg' ? 'text-xl' : 'text-base';
   if (imageUrl) {
     return <Image source={{ uri: imageUrl }} className={`${box} rounded-full`} />;
   }
