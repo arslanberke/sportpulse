@@ -236,16 +236,18 @@ export default function EventDetailScreen() {
                 theme={theme}
               />
             )}
-            <LinearGradient
-              colors={overlayColors(theme)}
-              style={{
-                position: "absolute",
-                left: 0,
-                right: 0,
-                bottom: 0,
-                height: 160,
-              }}
-            />
+            {!hasMatchup && (
+              <LinearGradient
+                colors={overlayColors(theme)}
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  height: 160,
+                }}
+              />
+            )}
             <View className="absolute inset-x-0 bottom-0 px-5 pb-3 pt-5">
               <View className="mb-1 flex-row items-center gap-1.5">
                 {event.leagueBadgeUrl && (

@@ -1,4 +1,5 @@
 import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Text, View } from 'react-native';
 import type { LeagueBanner } from '@/features/events/lib/league-banner';
 
@@ -42,6 +43,13 @@ export function MatchupArt({
           transition={200}
         />
       )}
+      {/* Scrim beneath the badges: keeps the overlaid title/label readable
+          without dimming the crests (which render above it). */}
+      <LinearGradient
+        colors={['transparent', 'rgba(0,0,0,0.55)']}
+        style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '55%' }}
+        pointerEvents="none"
+      />
       <View
         style={{
           position: 'absolute',

@@ -194,16 +194,18 @@ export function FeaturedEventCard({ event }: { event: SportEvent }) {
               theme={theme}
             />
           )}
-          <LinearGradient
-            colors={overlayColors(theme)}
-            style={{
-              position: "absolute",
-              left: 0,
-              right: 0,
-              bottom: 0,
-              height: 150,
-            }}
-          />
+          {!hasMatchup && (
+            <LinearGradient
+              colors={overlayColors(theme)}
+              style={{
+                position: "absolute",
+                left: 0,
+                right: 0,
+                bottom: 0,
+                height: 150,
+              }}
+            />
+          )}
           <View className="absolute inset-x-0 bottom-0 p-4">
             <View className="mb-1 flex-row items-center gap-1.5">
               {event.leagueBadgeUrl && (
