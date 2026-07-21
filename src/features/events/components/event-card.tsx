@@ -64,8 +64,12 @@ export function FeaturedEventCard({ event }: { event: SportEvent }) {
   const channelNames = (event.channels ?? []).map((c) => c.name).join(', ');
   const theme = eventTheme(event.sportId, event.leagueName);
   const artwork = event.imageUrl ?? event.leagueArtworkUrl;
+  // Football event thumbs are badge collages: crop chops the crests, so fit them.
   const art = event.imageUrl
-    ? { fit: 'cover' as const, position: 'center' as const }
+    ? {
+        fit: event.sportId === 'football' ? ('contain' as const) : ('cover' as const),
+        position: 'center' as const,
+      }
     : artworkStyle(event.leagueName);
   const circuit = event.sportId === 'f1' ? findCircuitPath(event.venue, event.title) : null;
   const ufc = event.sportId === 'ufc' ? splitUfcTitle(event.title) : null;
