@@ -20,6 +20,7 @@ import { Screen } from "@/components/ui/screen";
 import { EmptyCard, LoadingCard } from "@/components/ui/states";
 import { useThemeColors } from "@/constants/theme";
 import { formatCountdown } from "@/features/events/components/event-card";
+import { channelLogo } from "@/features/events/lib/channel-logo";
 import {
   CircuitOutline,
   findCircuitPath,
@@ -407,11 +408,15 @@ export default function EventDetailScreen() {
                 key={channel.id}
                 className="flex-row items-center gap-3 rounded-2xl bg-surface-raised px-3 py-2.5"
               >
-                <View className="h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-surface">
-                  {channel.logoUrl ? (
+                <View className="h-10 w-16 items-center justify-center overflow-hidden rounded-xl border border-line bg-white">
+                  {channel.logoUrl || channelLogo(channel.name) ? (
                     <Image
-                      source={{ uri: channel.logoUrl }}
-                      style={{ width: 40, height: 40 }}
+                      source={
+                        channel.logoUrl
+                          ? { uri: channel.logoUrl }
+                          : channelLogo(channel.name)!
+                      }
+                      style={{ width: 56, height: 32 }}
                       contentFit="contain"
                     />
                   ) : (
