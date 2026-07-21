@@ -6,8 +6,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { Colors } from '@/constants/theme';
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-
 type ButtonVariant = 'primary' | 'secondary' | 'danger';
 
 interface ButtonProps {
@@ -55,32 +53,31 @@ export function Button({
     }).start();
 
   return (
-    <AnimatedPressable
-      onPressIn={() => spring(0.96)}
-      onPressOut={() => spring(1)}
-      onPress={() => {
-        if (Platform.OS !== 'web') {
-          void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-        }
-        onPress();
-      }}
-      disabled={isDisabled}
-      className={`h-14 items-center justify-center overflow-hidden rounded-button shadow-md ${containerStyles[variant]} ${isDisabled ? 'opacity-50' : ''}`}
-      style={[
-        { borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)' },
-        { transform: [{ scale }] },
-      ]}
-    >
-      <LinearGradient
-        colors={sheenColors[variant]}
-        style={StyleSheet.absoluteFill}
-        pointerEvents="none"
-      />
-      {loading ? (
-        <ActivityIndicator color={variant === 'secondary' ? Colors.primary : '#FFFFFF'} />
-      ) : (
-        <Text className={`text-base font-semibold ${labelStyles[variant]}`}>{title}</Text>
-      )}
-    </AnimatedPressable>
+    <Animated.View style={{ transform: [{ scale }] }}>
+      <Pressable
+        onPressIn={() => spring(0.96)}
+        onPressOut={() => spring(1)}
+        onPress={() => {
+          if (Platform.OS !== 'web') {
+            void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          }
+          onPress();
+        }}
+        disabled={isDisabled}
+        className={`h-14 items-center justify-center overflow-hidden rounded-button shadow-md ${containerStyles[variant]} ${isDisabled ? 'opacity-50' : ''}`}
+        style={{ borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)' }}
+      >
+        <LinearGradient
+          colors={sheenColors[variant]}
+          style={StyleSheet.absoluteFill}
+          pointerEvents="none"
+        />
+        {loading ? (
+          <ActivityIndicator color={variant === 'secondary' ? Colors.primary : '#FFFFFF'} />
+        ) : (
+          <Text className={`text-base font-semibold ${labelStyles[variant]}`}>{title}</Text>
+        )}
+      </Pressable>
+    </Animated.View>
   );
 }
