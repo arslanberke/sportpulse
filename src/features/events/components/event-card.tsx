@@ -92,6 +92,7 @@ export function FeaturedEventCard({
   index?: number;
 }) {
   const { t } = useI18n();
+  const colors = useThemeColors();
   const channelNames = (event.channels ?? []).map((c) => c.name).join(", ");
   const theme = eventTheme(event.sportId, event.leagueName);
   const artwork = event.imageUrl ?? event.leagueArtworkUrl;
@@ -238,32 +239,75 @@ export function FeaturedEventCard({
               </Text>
             )}
             <Text
-              className="mb-2 text-xl font-bold text-white"
+              className={`text-xl font-bold text-white ${hasMatchup ? "" : "mb-2"}`}
               numberOfLines={2}
             >
               {ufc ? ufc.bout : event.title}
             </Text>
-            <View className="flex-row flex-wrap items-center gap-2">
-              <StatusChip event={event} t={t} accent={theme.accent} />
+            {!hasMatchup && (
+              <View className="flex-row flex-wrap items-center gap-2">
+                <StatusChip event={event} t={t} accent={theme.accent} />
+                <Chip
+                  label={formatDayTime(event.startsAt)}
+                  icon="time-outline"
+                  iconColor="#FFFFFF"
+                  className="bg-white/20"
+                  textClassName="text-white"
+                />
+                {channelNames.length > 0 && (
+                  <Chip
+                    label={channelNames}
+                    icon="tv-outline"
+                    iconColor="#FFFFFF"
+                    className="bg-white/20"
+                    textClassName="text-white"
+                  />
+                )}
+              </View>
+            )}
+            </View>
+          </View>
+          {hasMatchup && (
+            <View className="flex-row flex-wrap items-center gap-2 px-4 pb-4 pt-3">
+              {event.status === "scheduled" ? (
+                <Chip
+                  label={formatCountdown(event.startsAt, t)}
+                  icon="hourglass-outline"
+                  iconColor={theme.accent}
+                  className="bg-surface-raised border border-line"
+                  textStyle={{ color: theme.accent }}
+                />
+              ) : (
+                <Chip
+                  label={t(
+                    event.status === "postponed"
+                      ? "home.postponed"
+                      : "home.cancelled",
+                  )}
+                  icon="alert-circle-outline"
+                  iconColor={colors.danger}
+                  className="bg-danger/10"
+                  textClassName="text-danger"
+                />
+              )}
               <Chip
                 label={formatDayTime(event.startsAt)}
                 icon="time-outline"
-                iconColor="#FFFFFF"
-                className="bg-white/20"
-                textClassName="text-white"
+                iconColor={colors.inkSecondary}
+                className="bg-surface-raised border border-line"
+                textClassName="text-ink-secondary"
               />
               {channelNames.length > 0 && (
                 <Chip
                   label={channelNames}
                   icon="tv-outline"
-                  iconColor="#FFFFFF"
-                  className="bg-white/20"
-                  textClassName="text-white"
+                  iconColor={colors.inkSecondary}
+                  className="bg-surface-raised border border-line"
+                  textClassName="text-ink-secondary"
                 />
               )}
-              </View>
             </View>
-          </View>
+          )}
         </Pressable>
       </Link>
     </Animated.View>
