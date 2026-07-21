@@ -7,6 +7,8 @@ import type { ImageSourcePropType } from 'react-native';
  */
 const LEAGUE_BANNER: Record<string, ImageSourcePropType> = {
   'UEFA Champions League': require('../../../../assets/images/cl-hero-banner.jpg'),
+  'UEFA Europa League': require('../../../../assets/images/el-hero-banner.jpg'),
+  'UEFA Conference League': require('../../../../assets/images/conf-hero-banner.jpg'),
 };
 
 export function leagueBanner(leagueName?: string | null): ImageSourcePropType | null {
