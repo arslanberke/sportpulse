@@ -2,6 +2,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useLocalSearchParams } from "expo-router";
 import { Platform, Text, View } from "react-native";
+import Animated, {
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+} from "react-native-reanimated";
 
 import { LinearGradient } from "expo-linear-gradient";
 
@@ -66,6 +71,21 @@ export default function EventDetailScreen() {
   const colors = useThemeColors();
   const { event, isLoading } = useEvent(id);
   const { data: prefs } = useReminderPrefs();
+
+  const scrollY = useSharedValue(0);
+  const onScroll = useAnimatedScrollHandler((e) => {
+    scrollY.value = e.contentOffset.y;
+  });
+  // Parallax: the hero drifts up at half speed and stretches on overscroll pull.
+  const heroStyle = useAnimatedStyle(() => {
+    const y = scrollY.value;
+    return {
+      transform: [
+        { translateY: y < 0 ? y * 0.4 : y * 0.25 },
+        { scale: y < 0 ? 1 + -y / 500 : 1 },
+      ],
+    };
+  });
 
   if (isLoading) {
     return (
@@ -148,9 +168,12 @@ export default function EventDetailScreen() {
   const banner = leagueBanner(event.leagueName);
 
   return (
-    <Screen>
+    <Screen onScroll={onScroll}>
       <View className="pt-4">
-        <View className="mb-4 overflow-hidden rounded-card bg-surface shadow-md">
+        <Animated.View
+          className="mb-4 overflow-hidden rounded-card bg-surface shadow-md"
+          style={heroStyle}
+        >
           <View style={{ height: 220 }}>
             <LinearGradient
               colors={theme.gradient}
@@ -276,7 +299,7 @@ export default function EventDetailScreen() {
               </Text>
             </View>
           </View>
-        </View>
+        </Animated.View>
 
         <Card className="mb-4" index={0}>
           <SectionHeader

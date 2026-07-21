@@ -1,7 +1,8 @@
 import * as Haptics from 'expo-haptics';
 import type { ReactNode } from 'react';
 import { useCallback } from 'react';
-import { Platform, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { Platform, RefreshControl, StyleSheet, View } from 'react-native';
+import Animated, { type AnimatedScrollViewProps } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { LinearGradient } from 'expo-linear-gradient';
@@ -16,6 +17,8 @@ interface ScreenProps {
   onRefresh?: () => void;
   /** Whether a refresh is currently in progress. */
   refreshing?: boolean;
+  /** Reanimated scroll handler (enables e.g. hero parallax on the screen). */
+  onScroll?: AnimatedScrollViewProps['onScroll'];
 }
 
 /** In dark mode the flat background is replaced with a subtle vertical fade. */
@@ -29,7 +32,13 @@ function Backdrop() {
  * Base wrapper for every screen: safe area + background + consistent padding.
  * Supports optional pull-to-refresh via React Query's refetch.
  */
-export function Screen({ children, scrollable = true, onRefresh, refreshing = false }: ScreenProps) {
+export function Screen({
+  children,
+  scrollable = true,
+  onRefresh,
+  refreshing = false,
+  onScroll,
+}: ScreenProps) {
   const colors = useThemeColors();
 
   const handleRefresh = useCallback(() => {
@@ -51,10 +60,12 @@ export function Screen({ children, scrollable = true, onRefresh, refreshing = fa
   return (
     <SafeAreaView className="flex-1 bg-background">
       <Backdrop />
-      <ScrollView
+      <Animated.ScrollView
         className="flex-1"
         contentContainerClassName="px-6 pb-12"
         keyboardShouldPersistTaps="handled"
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         refreshControl={
           onRefresh ? (
             <RefreshControl
@@ -67,7 +78,7 @@ export function Screen({ children, scrollable = true, onRefresh, refreshing = fa
         }
       >
         {children}
-      </ScrollView>
+      </Animated.ScrollView>
     </SafeAreaView>
   );
 }
