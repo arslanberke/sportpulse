@@ -34,11 +34,18 @@ export const DarkColors: ThemeColors = {
 
 /** Theme-aware tokens for places Tailwind classes can't reach (nav bars, spinners). */
 export function useThemeColors(): ThemeColors {
+  return useIsDark() ? DarkColors : Colors;
+}
+
+export function useIsDark(): boolean {
   const system = useColorScheme();
   const preference = useThemeStore((state) => state.preference);
   const scheme = preference === 'system' ? system : preference;
-  return scheme === 'dark' ? DarkColors : Colors;
+  return scheme === 'dark';
 }
+
+/** Dark screens fade from a green-tinted top into near-black for depth. */
+export const DarkBackdrop = ['#10231A', '#0A1410', '#060A08'] as const;
 
 export const Spacing = {
   xs: 4,

@@ -1,8 +1,10 @@
 import type { ReactNode } from 'react';
-import { RefreshControl, ScrollView, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { useThemeColors } from '@/constants/theme';
+import { LinearGradient } from 'expo-linear-gradient';
+
+import { DarkBackdrop, useIsDark, useThemeColors } from '@/constants/theme';
 
 interface ScreenProps {
   children: ReactNode;
@@ -12,6 +14,13 @@ interface ScreenProps {
   onRefresh?: () => void;
   /** Whether a refresh is currently in progress. */
   refreshing?: boolean;
+}
+
+/** In dark mode the flat background is replaced with a subtle vertical fade. */
+function Backdrop() {
+  const isDark = useIsDark();
+  if (!isDark) return null;
+  return <LinearGradient colors={[...DarkBackdrop]} style={StyleSheet.absoluteFill} />;
 }
 
 /**
@@ -24,6 +33,7 @@ export function Screen({ children, scrollable = true, onRefresh, refreshing = fa
   if (!scrollable) {
     return (
       <SafeAreaView className="flex-1 bg-background">
+        <Backdrop />
         <View className="flex-1 px-6">{children}</View>
       </SafeAreaView>
     );
@@ -31,6 +41,7 @@ export function Screen({ children, scrollable = true, onRefresh, refreshing = fa
 
   return (
     <SafeAreaView className="flex-1 bg-background">
+      <Backdrop />
       <ScrollView
         className="flex-1"
         contentContainerClassName="px-6 pb-12"

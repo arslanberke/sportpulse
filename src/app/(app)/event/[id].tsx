@@ -113,7 +113,12 @@ export default function EventDetailScreen() {
                 transition={200}
               />
             )}
-            <EventEffect sportId={event.sportId} leagueName={event.leagueName} theme={theme} />
+            <EventEffect
+              sportId={event.sportId}
+              leagueName={event.leagueName}
+              theme={theme}
+              hasEventImage={!!event.imageUrl}
+            />
             <LinearGradient
               colors={overlayColors(theme)}
               style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 160 }}
