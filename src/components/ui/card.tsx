@@ -23,7 +23,18 @@ export function Card({ children, className = '' }: CardProps) {
         ],
       }}
     >
-      <View className={`rounded-card border border-line bg-surface p-5 shadow-sm ${className}`}>{children}</View>
+      <View
+        className={`rounded-card border border-line bg-surface p-5 ${className}`}
+        style={{
+          shadowColor: '#0F1A14',
+          shadowOpacity: 0.06,
+          shadowRadius: 16,
+          shadowOffset: { width: 0, height: 8 },
+          elevation: 2,
+        }}
+      >
+        {children}
+      </View>
     </Animated.View>
   );
 }

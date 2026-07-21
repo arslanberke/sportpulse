@@ -37,6 +37,29 @@ import {
   startEventActivity,
 } from "../../../../modules/live-activity";
 
+/** Card section header: a tinted icon tile next to the section title. */
+function SectionHeader({
+  icon,
+  label,
+  tint,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  tint: string;
+}) {
+  return (
+    <View className="mb-3 flex-row items-center gap-3">
+      <View
+        className="h-9 w-9 items-center justify-center rounded-xl"
+        style={{ backgroundColor: `${tint}1F` }}
+      >
+        <Ionicons name={icon} size={18} color={tint} />
+      </View>
+      <Text className="text-base font-semibold text-ink">{label}</Text>
+    </View>
+  );
+}
+
 /** Event detail: when, where to watch, calendar export, reminder times. */
 export default function EventDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -286,78 +309,99 @@ export default function EventDetailScreen() {
 
         {event.venue && (
           <Card className="mb-4">
-            <Text className="mb-2 text-lg font-semibold text-ink">
-              {t("event.venue")}
-            </Text>
+            <SectionHeader
+              icon="location"
+              label={t("event.venue")}
+              tint={colors.primary}
+            />
             {event.venueImageUrl && (
-              <View className="mb-2 overflow-hidden rounded-xl">
+              <View className="mb-3 overflow-hidden rounded-2xl">
                 <Image
                   source={{ uri: event.venueImageUrl }}
-                  style={{ width: "100%", height: 140 }}
+                  style={{ width: "100%", height: 150 }}
                   contentFit="cover"
                   transition={200}
                 />
               </View>
             )}
-            <View className="flex-row items-center gap-2">
-              <Ionicons
-                name="location-outline"
-                size={16}
-                color={colors.inkSecondary}
-              />
-              <Text className="text-base text-ink">{event.venue}</Text>
-            </View>
+            <Text className="text-base font-medium text-ink">
+              {event.venue}
+            </Text>
           </Card>
         )}
 
         <Card className="mb-4">
-          <Text className="mb-2 text-lg font-semibold text-ink">
-            {t("event.channel")}
-          </Text>
+          <SectionHeader
+            icon="tv"
+            label={t("event.channel")}
+            tint={colors.primary}
+          />
           {channels.length === 0 && (
             <Text className="text-sm text-ink-secondary">
               {t("event.noChannel")}
             </Text>
           )}
-          {channels.map((channel) => (
-            <View key={channel.id} className="flex-row items-center gap-2 py-1">
-              <Ionicons
-                name="tv-outline"
-                size={16}
-                color={colors.inkSecondary}
-              />
-              <Text className="text-base text-ink">{channel.name}</Text>
-            </View>
-          ))}
+          <View className="gap-2">
+            {channels.map((channel) => (
+              <View
+                key={channel.id}
+                className="flex-row items-center gap-3 rounded-2xl bg-surface-raised px-3 py-2.5"
+              >
+                <View className="h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-surface">
+                  {channel.logoUrl ? (
+                    <Image
+                      source={{ uri: channel.logoUrl }}
+                      style={{ width: 40, height: 40 }}
+                      contentFit="contain"
+                    />
+                  ) : (
+                    <Ionicons
+                      name="tv-outline"
+                      size={18}
+                      color={colors.inkSecondary}
+                    />
+                  )}
+                </View>
+                <Text className="text-base font-medium text-ink">
+                  {channel.name}
+                </Text>
+              </View>
+            ))}
+          </View>
         </Card>
 
         <Card className="mb-4">
-          <Text className="mb-1 text-lg font-semibold text-ink">
-            {t("event.reminders")}
-          </Text>
-          <Text className="mb-2 text-sm text-ink-secondary">
+          <SectionHeader
+            icon="notifications"
+            label={t("event.reminders")}
+            tint={colors.primary}
+          />
+          <Text className="mb-3 text-sm text-ink-secondary">
             {t("event.remindersBody")}
           </Text>
-          {triggers.length === 0 && (
+          {triggers.length === 0 ? (
             <Text className="text-sm text-ink-secondary">
               {t("event.noReminders")}
             </Text>
-          )}
-          {triggers.map((trigger) => (
-            <View
-              key={trigger.toISOString()}
-              className="flex-row items-center gap-2 py-1"
-            >
-              <Ionicons
-                name="notifications-outline"
-                size={16}
-                color={colors.inkSecondary}
-              />
-              <Text className="text-base text-ink">
-                {formatDateTime(trigger.toISOString())}
-              </Text>
+          ) : (
+            <View className="flex-row flex-wrap gap-2">
+              {triggers.map((trigger) => (
+                <View
+                  key={trigger.toISOString()}
+                  className="flex-row items-center gap-1.5 rounded-pill bg-surface-raised px-3 py-2"
+                >
+                  <Ionicons
+                    name="notifications-outline"
+                    size={14}
+                    color={colors.primary}
+                  />
+                  <Text className="text-sm font-medium text-ink">
+                    {formatDateTime(trigger.toISOString())}
+                  </Text>
+                </View>
+              ))}
             </View>
-          ))}
+          )}
         </Card>
 
         <Button title={t("event.addToCalendar")} onPress={handleShareIcs} />
