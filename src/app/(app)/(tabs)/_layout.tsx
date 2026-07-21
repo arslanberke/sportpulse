@@ -1,5 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { Animated, Easing } from 'react-native';
 import type { ColorValue } from 'react-native';
 
 import { useThemeColors } from '@/constants/theme';
@@ -12,8 +14,23 @@ import { useI18n } from '@/lib/i18n';
 type IconName = keyof typeof Ionicons.glyphMap;
 
 function tabIcon(name: IconName) {
-  function TabIcon({ color, size }: { color: ColorValue; size: number }) {
-    return <Ionicons name={name} color={color} size={size} />;
+  function TabIcon({ color, size, focused }: { color: ColorValue; size: number; focused: boolean }) {
+    const [scale] = useState(() => new Animated.Value(focused ? 1 : 0));
+    useEffect(() => {
+      Animated.timing(scale, {
+        toValue: focused ? 1 : 0,
+        duration: 220,
+        easing: Easing.out(Easing.back(2.2)),
+        useNativeDriver: false,
+      }).start();
+    }, [scale, focused]);
+    const iconScale = scale.interpolate({ inputRange: [0, 1], outputRange: [1, 1.18] });
+    const translateY = scale.interpolate({ inputRange: [0, 1], outputRange: [0, -2] });
+    return (
+      <Animated.View style={{ transform: [{ scale: iconScale }, { translateY }] }}>
+        <Ionicons name={name} color={color} size={size} />
+      </Animated.View>
+    );
   }
   return TabIcon;
 }

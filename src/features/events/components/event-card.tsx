@@ -6,7 +6,8 @@ import { Pressable, Text, View } from 'react-native';
 
 import { Chip } from '@/components/ui/chip';
 import { useThemeColors } from '@/constants/theme';
-import { EventEffect, TrackGlow } from '@/features/events/components/event-effects';
+import { CircuitOutline, findCircuitPath } from '@/features/events/components/circuit-outline';
+import { EventEffect } from '@/features/events/components/event-effects';
 import { artworkStyle, eventTheme, overlayColors } from '@/features/events/lib/event-theme';
 import { splitUfcTitle } from '@/features/events/lib/ufc-title';
 import { formatDayTime, formatTime } from '@/lib/dates';
@@ -63,12 +64,10 @@ export function FeaturedEventCard({ event }: { event: SportEvent }) {
   const channelNames = (event.channels ?? []).map((c) => c.name).join(', ');
   const theme = eventTheme(event.sportId, event.leagueName);
   const artwork = event.imageUrl ?? event.leagueArtworkUrl;
-  // Motorsport event images are circuit outlines: shrink to fit, never crop.
-  const isTrackArt = !!event.imageUrl && (event.sportId === 'f1' || event.sportId === 'motogp');
   const art = event.imageUrl
-    ? { fit: isTrackArt ? ('contain' as const) : ('cover' as const), position: 'center' as const }
+    ? { fit: 'cover' as const, position: 'center' as const }
     : artworkStyle(event.leagueName);
-  const artInsets = { position: 'absolute', top: 16, left: 16, right: 16, bottom: 60 } as const;
+  const circuit = event.sportId === 'f1' ? findCircuitPath(event.venue, event.title) : null;
   const ufc = event.sportId === 'ufc' ? splitUfcTitle(event.title) : null;
 
   return (
@@ -81,22 +80,26 @@ export function FeaturedEventCard({ event }: { event: SportEvent }) {
             end={{ x: 1, y: 1 }}
             style={{ width: '100%', height: '100%' }}
           />
-          {artwork && (
-            <Image
-              source={{ uri: artwork }}
-              style={
-                art.fit === 'contain'
-                  ? artInsets
-                  : { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }
-              }
-              contentFit={art.fit}
-              contentPosition={art.position}
-              transition={200}
-            />
-          )}
-          {isTrackArt && artwork ? (
-            <TrackGlow uri={artwork} style={artInsets} />
+          {circuit ? (
+            <View style={{ position: 'absolute', top: 12, left: 16, right: 16, bottom: 56 }}>
+              <CircuitOutline path={circuit} />
+            </View>
           ) : (
+            artwork && (
+              <Image
+                source={{ uri: artwork }}
+                style={
+                  art.fit === 'contain'
+                    ? { position: 'absolute', top: 24, left: 24, right: 24, bottom: 64 }
+                    : { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }
+                }
+                contentFit={art.fit}
+                contentPosition={art.position}
+                transition={200}
+              />
+            )
+          )}
+          {!circuit && (
             <EventEffect sportId={event.sportId} leagueName={event.leagueName} theme={theme} />
           )}
           <LinearGradient

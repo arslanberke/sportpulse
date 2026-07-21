@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
+import { type PropsWithChildren, useEffect, useState } from 'react';
 import { Animated, Easing, StyleSheet, View } from 'react-native';
 
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { useIsDark } from '@/constants/theme';
 
-function useDrift(duration: number, delay = 0) {
+function useBreath(duration: number, delay = 0) {
   const [value] = useState(() => new Animated.Value(0));
   useEffect(() => {
     const loop = Animated.loop(
@@ -31,22 +31,20 @@ function useDrift(duration: number, delay = 0) {
   return value;
 }
 
-const ORBS = [
-  { size: 260, top: -60, left: -80, drift: 40, duration: 9000, delay: 0 },
-  { size: 200, top: 140, right: -70, drift: -30, duration: 11000, delay: 1500 },
-  { size: 180, bottom: -40, left: 40, drift: 24, duration: 13000, delay: 3000 },
+const BLOBS = [
+  { size: 420, top: -160, left: -140, duration: 7000, delay: 0 },
+  { size: 360, bottom: -140, right: -120, duration: 9000, delay: 2000 },
 ] as const;
 
-function Orb({
+function Blob({
   size,
-  drift,
   duration,
   delay,
   opacity,
   ...position
-}: (typeof ORBS)[number] & { opacity: number }) {
-  const progress = useDrift(duration, delay);
-  const translateY = progress.interpolate({ inputRange: [0, 1], outputRange: [0, drift] });
+}: (typeof BLOBS)[number] & { opacity: number }) {
+  const progress = useBreath(duration, delay);
+  const scale = progress.interpolate({ inputRange: [0, 1], outputRange: [1, 1.12] });
   return (
     <Animated.View
       style={{
@@ -56,13 +54,13 @@ function Orb({
         borderRadius: size / 2,
         overflow: 'hidden',
         opacity,
-        transform: [{ translateY }],
+        transform: [{ scale }],
         ...position,
       }}
     >
       <LinearGradient
         colors={['#34D399', 'rgba(16,185,129,0)']}
-        start={{ x: 0.5, y: 0.2 }}
+        start={{ x: 0.5, y: 0.25 }}
         end={{ x: 0.5, y: 1 }}
         style={StyleSheet.absoluteFill}
       />
@@ -70,15 +68,37 @@ function Orb({
   );
 }
 
-/** Slowly drifting soft green orbs behind the auth forms. */
+/** Large soft color washes slowly breathing in the screen corners. */
 export function AuthBackdrop() {
   const isDark = useIsDark();
-  const opacity = isDark ? 0.16 : 0.22;
+  const opacity = isDark ? 0.14 : 0.18;
   return (
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-      {ORBS.map((orb) => (
-        <Orb key={orb.size} {...orb} opacity={opacity} />
+      {BLOBS.map((blob) => (
+        <Blob key={blob.size} {...blob} opacity={opacity} />
       ))}
     </View>
+  );
+}
+
+/** Card-style entrance: fade in while springing up from below. */
+export function AuthEntrance({ children, delay = 0 }: PropsWithChildren<{ delay?: number }>) {
+  const [progress] = useState(() => new Animated.Value(0));
+  useEffect(() => {
+    Animated.sequence([
+      Animated.delay(delay),
+      Animated.spring(progress, {
+        toValue: 1,
+        friction: 8,
+        tension: 50,
+        useNativeDriver: false,
+      }),
+    ]).start();
+  }, [progress, delay]);
+  const translateY = progress.interpolate({ inputRange: [0, 1], outputRange: [36, 0] });
+  return (
+    <Animated.View style={{ opacity: progress, transform: [{ translateY }] }}>
+      {children}
+    </Animated.View>
   );
 }

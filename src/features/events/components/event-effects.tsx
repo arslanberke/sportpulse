@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Animated, Easing, StyleSheet, View } from 'react-native';
 
-import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import type { EventTheme } from '@/features/events/lib/event-theme';
@@ -118,30 +117,7 @@ function Stars() {
   );
 }
 
-/**
- * Neon pulse for circuit outline artwork: a white-tinted copy of the track
- * image breathes on top of it, making the whole circuit glow.
- */
-export function TrackGlow({
-  uri,
-  style,
-}: {
-  uri: string;
-  style: { position: 'absolute'; top: number; left: number; right: number; bottom: number };
-}) {
-  const progress = useLoop(3000);
-  const opacity = progress.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0, 0.22, 0] });
-  return (
-    <Animated.View pointerEvents="none" style={[style, { opacity }]}>
-      <Image
-        source={{ uri }}
-        style={StyleSheet.absoluteFill}
-        contentFit="contain"
-        tintColor="#FFFFFF"
-      />
-    </Animated.View>
-  );
-}
+
 
 const LINES = [
   { top: '18%', height: 2, width: 90, duration: 1600, delay: 0 },
