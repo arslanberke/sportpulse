@@ -70,6 +70,10 @@ export interface SportEvent {
   leagueName?: string | null;
   leagueArtworkUrl?: string | null;
   leagueBadgeUrl?: string | null;
+  homeTeamName?: string | null;
+  awayTeamName?: string | null;
+  homeTeamLogoUrl?: string | null; // transparent badge (PNG with alpha)
+  awayTeamLogoUrl?: string | null;
   sport?: Sport | null;
   channels?: Channel[];
 }

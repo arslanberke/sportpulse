@@ -20,6 +20,10 @@ interface TsdbEvent {
   strTime: string | null;
   strHomeTeam: string | null;
   strAwayTeam: string | null;
+  idHomeTeam: string | null;
+  idAwayTeam: string | null;
+  strHomeTeamBadge: string | null;
+  strAwayTeamBadge: string | null;
   strThumb: string | null;
   strPoster: string | null;
   strStatus: string | null;
@@ -48,6 +52,10 @@ function normalize(event: TsdbEvent, venueImageUrl: string | null): ProviderEven
     startsAtUtc,
     homeTeam: event.strHomeTeam,
     awayTeam: event.strAwayTeam,
+    homeTeamExternalId: event.idHomeTeam || null,
+    awayTeamExternalId: event.idAwayTeam || null,
+    homeTeamLogoUrl: event.strHomeTeamBadge || null,
+    awayTeamLogoUrl: event.strAwayTeamBadge || null,
     imageUrl: event.strThumb || event.strPoster || null,
     venue: event.strVenue || null,
     venueImageUrl,

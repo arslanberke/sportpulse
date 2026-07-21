@@ -17,12 +17,14 @@ import {
   findCircuitPath,
 } from "@/features/events/components/circuit-outline";
 import { EventEffect } from "@/features/events/components/event-effects";
+import { MatchupArt } from "@/features/events/components/matchup-art";
 import { useEvent } from "@/features/events/hooks/use-events";
 import {
   artworkStyle,
   eventTheme,
   overlayColors,
 } from "@/features/events/lib/event-theme";
+import { leagueBanner } from "@/features/events/lib/league-banner";
 import { reminderTimes } from "@/features/events/lib/reminder-times";
 import { splitUfcTitle } from "@/features/events/lib/ufc-title";
 import { useReminderPrefs } from "@/features/settings/hooks/use-reminder-prefs";
@@ -120,6 +122,8 @@ export default function EventDetailScreen() {
   const circuit =
     event.sportId === "f1" ? findCircuitPath(event.venue, event.title) : null;
   const ufc = event.sportId === "ufc" ? splitUfcTitle(event.title) : null;
+  const hasMatchup = Boolean(event.homeTeamLogoUrl && event.awayTeamLogoUrl);
+  const banner = leagueBanner(event.leagueName);
 
   return (
     <Screen>
@@ -161,6 +165,13 @@ export default function EventDetailScreen() {
                   <CircuitOutline path={circuit} />
                 </View>
               </>
+            ) : hasMatchup ? (
+              <MatchupArt
+                banner={banner}
+                homeLogoUrl={event.homeTeamLogoUrl!}
+                awayLogoUrl={event.awayTeamLogoUrl!}
+                badgeSize={116}
+              />
             ) : (
               artwork && (
                 <>

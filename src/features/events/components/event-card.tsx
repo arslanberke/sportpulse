@@ -11,11 +11,13 @@ import {
   findCircuitPath,
 } from "@/features/events/components/circuit-outline";
 import { EventEffect } from "@/features/events/components/event-effects";
+import { MatchupArt } from "@/features/events/components/matchup-art";
 import {
   artworkStyle,
   eventTheme,
   overlayColors,
 } from "@/features/events/lib/event-theme";
+import { leagueBanner } from "@/features/events/lib/league-banner";
 import { splitUfcTitle } from "@/features/events/lib/ufc-title";
 import { formatDayTime, formatTime } from "@/lib/dates";
 import { useI18n, type Translate } from "@/lib/i18n";
@@ -99,6 +101,10 @@ export function FeaturedEventCard({ event }: { event: SportEvent }) {
   const circuit =
     event.sportId === "f1" ? findCircuitPath(event.venue, event.title) : null;
   const ufc = event.sportId === "ufc" ? splitUfcTitle(event.title) : null;
+  const hasMatchup = Boolean(
+    event.homeTeamLogoUrl && event.awayTeamLogoUrl,
+  );
+  const banner = leagueBanner(event.leagueName);
 
   return (
     <Link href={`/event/${event.id}`} asChild>
@@ -139,6 +145,13 @@ export function FeaturedEventCard({ event }: { event: SportEvent }) {
                 <CircuitOutline path={circuit} />
               </View>
             </>
+          ) : hasMatchup ? (
+            <MatchupArt
+              banner={banner}
+              homeLogoUrl={event.homeTeamLogoUrl!}
+              awayLogoUrl={event.awayTeamLogoUrl!}
+              badgeSize={100}
+            />
           ) : (
             artwork && (
               <>
