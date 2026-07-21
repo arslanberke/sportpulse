@@ -11,6 +11,8 @@ interface EventRow {
   starts_at: string;
   status: SportEvent['status'];
   image_url: string | null;
+  venue: string | null;
+  venue_image_url: string | null;
   importance: number;
   external_ids: Record<string, string>;
   leagues: { name: string; artwork_url: string | null; logo_url: string | null } | null;
@@ -32,6 +34,8 @@ function mapRow(row: EventRow): SportEvent {
     startsAt: row.starts_at,
     status: row.status,
     imageUrl: row.image_url,
+    venue: row.venue,
+    venueImageUrl: row.venue_image_url,
     importance: row.importance,
     externalIds: row.external_ids,
     leagueName: row.leagues?.name ?? null,
@@ -64,7 +68,7 @@ export async function fetchEvents(params: {
   const { data, error } = await supabase
     .from('events')
     .select(
-      'id, sport_id, league_id, home_team_id, away_team_id, title, starts_at, status, image_url, importance, external_ids, leagues (name, artwork_url, logo_url)',
+      'id, sport_id, league_id, home_team_id, away_team_id, title, starts_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url)',
     )
     .gte('starts_at', from.toISOString())
     .lt('starts_at', to.toISOString())
@@ -78,7 +82,7 @@ export async function fetchEvent(id: string): Promise<SportEvent | null> {
   const { data, error } = await supabase
     .from('events')
     .select(
-      'id, sport_id, league_id, home_team_id, away_team_id, title, starts_at, status, image_url, importance, external_ids, leagues (name, artwork_url, logo_url)',
+      'id, sport_id, league_id, home_team_id, away_team_id, title, starts_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url)',
     )
     .eq('id', id)
     .maybeSingle();

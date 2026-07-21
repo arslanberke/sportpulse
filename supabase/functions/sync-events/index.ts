@@ -151,6 +151,8 @@ Deno.serve(async (request) => {
           p_image_url: event.imageUrl,
           p_home_team: event.homeTeam,
           p_away_team: event.awayTeam,
+          p_venue: event.venue,
+          p_venue_image_url: event.venueImageUrl,
         });
         if (upsertError) {
           failures.push(`${event.title}: ${upsertError.message}`);

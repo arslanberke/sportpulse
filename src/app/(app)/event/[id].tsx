@@ -151,6 +151,26 @@ export default function EventDetailScreen() {
           </View>
         </View>
 
+        {event.venue && (
+          <Card className="mb-4">
+            <Text className="mb-2 text-lg font-semibold text-ink">{t('event.venue')}</Text>
+            {event.venueImageUrl && (
+              <View className="mb-2 overflow-hidden rounded-xl">
+                <Image
+                  source={{ uri: event.venueImageUrl }}
+                  style={{ width: '100%', height: 140 }}
+                  contentFit="cover"
+                  transition={200}
+                />
+              </View>
+            )}
+            <View className="flex-row items-center gap-2">
+              <Ionicons name="location-outline" size={16} color={colors.inkSecondary} />
+              <Text className="text-base text-ink">{event.venue}</Text>
+            </View>
+          </Card>
+        )}
+
         <Card className="mb-4">
           <Text className="mb-2 text-lg font-semibold text-ink">{t('event.channel')}</Text>
           {channels.length === 0 && (

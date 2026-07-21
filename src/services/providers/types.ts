@@ -16,6 +16,8 @@ export interface ProviderEvent {
   homeTeam: string | null;
   awayTeam: string | null;
   imageUrl: string | null;
+  venue: string | null;
+  venueImageUrl: string | null;
   postponed: boolean;
 }
 

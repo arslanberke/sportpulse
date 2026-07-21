@@ -119,6 +119,7 @@ const en = {
   // Event detail
   'event.title': 'Event',
   'event.channel': 'Where to watch',
+  'event.venue': 'Venue',
   'event.noChannel': 'No channel info for your country yet.',
   'event.addToCalendar': 'Add to calendar (.ics)',
   'event.couldNotShare': 'Could not share the calendar file',
@@ -257,6 +258,7 @@ const tr: Record<TranslationKey, string> = {
 
   'event.title': 'Etkinlik',
   'event.channel': 'Nereden izlenir',
+  'event.venue': 'Mekan',
   'event.noChannel': 'Ülken için henüz kanal bilgisi yok.',
   'event.addToCalendar': 'Takvime ekle (.ics)',
   'event.couldNotShare': 'Takvim dosyası paylaşılamadı',

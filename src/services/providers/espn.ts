@@ -54,6 +54,8 @@ function normalize(event: EspnEvent): ProviderEvent {
     homeTeam: home,
     awayTeam: away,
     imageUrl: null,
+    venue: null,
+    venueImageUrl: null,
     postponed: event.status?.type?.name === 'STATUS_POSTPONED',
   };
 }

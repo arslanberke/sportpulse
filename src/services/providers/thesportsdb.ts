@@ -24,6 +24,12 @@ interface TsdbEvent {
   strPoster: string | null;
   strStatus: string | null;
   idLeague: string;
+  idVenue: string | null;
+  strVenue: string | null;
+}
+
+interface TsdbVenue {
+  strThumb: string | null;
 }
 
 function toUtcIso(event: TsdbEvent): string | null {
@@ -32,7 +38,7 @@ function toUtcIso(event: TsdbEvent): string | null {
   return null;
 }
 
-function normalize(event: TsdbEvent): ProviderEvent | null {
+function normalize(event: TsdbEvent, venueImageUrl: string | null): ProviderEvent | null {
   const startsAtUtc = toUtcIso(event);
   if (!startsAtUtc) return null;
   return {
@@ -43,8 +49,27 @@ function normalize(event: TsdbEvent): ProviderEvent | null {
     homeTeam: event.strHomeTeam,
     awayTeam: event.strAwayTeam,
     imageUrl: event.strThumb || event.strPoster || null,
+    venue: event.strVenue || null,
+    venueImageUrl,
     postponed: (event.strStatus ?? '').toLowerCase().includes('postponed'),
   };
+}
+
+/** Sports where the venue (circuit) image is worth an extra lookup. */
+const VENUE_IMAGE_SPORTS = new Set(['f1', 'motogp']);
+
+const venueImageCache = new Map<string, string | null>();
+
+async function venueImage(venueId: string | null): Promise<string | null> {
+  if (!venueId) return null;
+  const cached = venueImageCache.get(venueId);
+  if (cached !== undefined) return cached;
+  const data = (await getJson(`${BASE}/lookupvenue.php?id=${venueId}`)) as {
+    venues: TsdbVenue[] | null;
+  } | null;
+  const image = data?.venues?.[0]?.strThumb ?? null;
+  venueImageCache.set(venueId, image);
+  return image;
 }
 
 const THROTTLE_MS = 2_050; // free tier allows 30 requests/min
@@ -56,7 +81,7 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function getJson(url: string): Promise<{ events: TsdbEvent[] | null } | null> {
+async function getJson(url: string): Promise<unknown> {
   const wait = lastRequestAt + THROTTLE_MS - Date.now();
   if (wait > 0) await sleep(wait);
   lastRequestAt = Date.now();
@@ -68,7 +93,7 @@ async function getJson(url: string): Promise<{ events: TsdbEvent[] | null } | nu
     response = await fetch(url);
   }
   if (!response.ok) return null;
-  return (await response.json()) as { events: TsdbEvent[] | null };
+  return await response.json();
 }
 
 export const theSportsDbProvider: FixtureProvider = {
@@ -89,10 +114,15 @@ export const theSportsDbProvider: FixtureProvider = {
     for (let offset = 0; offset < days; offset += 1) {
       const day = new Date(today.getTime() + offset * 86_400_000);
       const dateStr = day.toISOString().slice(0, 10);
-      const daily = await getJson(`${BASE}/eventsday.php?d=${dateStr}&l=${leagueId}`);
+      const daily = (await getJson(`${BASE}/eventsday.php?d=${dateStr}&l=${leagueId}`)) as {
+        events: TsdbEvent[] | null;
+      } | null;
       for (const raw of daily?.events ?? []) {
         if (raw.idLeague !== leagueId) continue;
-        const normalized = normalize(raw);
+        const image = VENUE_IMAGE_SPORTS.has(league.sportId)
+          ? await venueImage(raw.idVenue)
+          : null;
+        const normalized = normalize(raw, image);
         if (normalized) results.push(normalized);
       }
     }

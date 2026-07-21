@@ -62,6 +62,8 @@ export interface SportEvent {
   startsAt: string; // UTC ISO timestamp
   status: EventStatus;
   imageUrl: string | null;
+  venue: string | null; // circuit/arena name, when known
+  venueImageUrl: string | null;
   importance: number; // 0 = normal, higher = more prominent
   externalIds: Record<string, string>;
   // Joined data (present when fetched via the events service):

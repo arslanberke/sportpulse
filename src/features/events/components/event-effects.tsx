@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { Animated, Easing, StyleSheet, View } from 'react-native';
 
 import type { EventTheme } from '@/features/events/lib/event-theme';
@@ -14,7 +14,7 @@ export function effectKind(sportId: string, leagueName?: string | null): EffectK
 }
 
 function useLoop(duration: number, delay = 0) {
-  const value = useRef(new Animated.Value(0)).current;
+  const [value] = useState(() => new Animated.Value(0));
   useEffect(() => {
     const loop = Animated.loop(
       Animated.sequence([
