@@ -184,10 +184,10 @@ export default function EventDetailScreen() {
                     source={{ uri: artwork }}
                     style={{
                       position: "absolute",
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
+                      top: art.fit === "contain" ? 22 : 0,
+                      left: art.fit === "contain" ? 16 : 0,
+                      right: art.fit === "contain" ? 16 : 0,
+                      bottom: art.fit === "contain" ? 22 : 0,
                     }}
                     contentFit={art.fit}
                     contentPosition={art.position}
