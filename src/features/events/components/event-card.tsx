@@ -150,7 +150,7 @@ export function FeaturedEventCard({ event }: { event: SportEvent }) {
               banner={banner}
               homeLogoUrl={event.homeTeamLogoUrl!}
               awayLogoUrl={event.awayTeamLogoUrl!}
-              badgeSize={132}
+              badgeSize={100}
             />
           ) : (
             artwork && (
