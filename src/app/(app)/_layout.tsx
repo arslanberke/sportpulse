@@ -13,6 +13,8 @@ export default function AppLayout() {
         headerStyle: { backgroundColor: colors.surface },
         headerTitleStyle: { color: colors.ink },
         contentStyle: { backgroundColor: colors.background },
+        animation: 'slide_from_right',
+        animationDuration: 260,
       }}
     >
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

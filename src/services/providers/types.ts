@@ -15,6 +15,12 @@ export interface ProviderEvent {
   startsAtUtc: string; // ISO timestamp, always UTC
   homeTeam: string | null;
   awayTeam: string | null;
+  /** Provider-scoped team ids, used to key the team catalog. */
+  homeTeamExternalId: string | null;
+  awayTeamExternalId: string | null;
+  /** Transparent team badge URLs (PNG with alpha), when the provider has them. */
+  homeTeamLogoUrl: string | null;
+  awayTeamLogoUrl: string | null;
   imageUrl: string | null;
   venue: string | null;
   venueImageUrl: string | null;

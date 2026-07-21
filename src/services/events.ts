@@ -16,6 +16,8 @@ interface EventRow {
   importance: number;
   external_ids: Record<string, string>;
   leagues: { name: string; artwork_url: string | null; logo_url: string | null } | null;
+  home_team: { name: string; logo_url: string | null } | null;
+  away_team: { name: string; logo_url: string | null } | null;
 }
 
 interface BroadcastRow {
@@ -41,6 +43,10 @@ function mapRow(row: EventRow): SportEvent {
     leagueName: row.leagues?.name ?? null,
     leagueArtworkUrl: row.leagues?.artwork_url ?? null,
     leagueBadgeUrl: row.leagues?.logo_url ?? null,
+    homeTeamName: row.home_team?.name ?? null,
+    awayTeamName: row.away_team?.name ?? null,
+    homeTeamLogoUrl: row.home_team?.logo_url ?? null,
+    awayTeamLogoUrl: row.away_team?.logo_url ?? null,
   };
 }
 
@@ -68,7 +74,7 @@ export async function fetchEvents(params: {
   const { data, error } = await supabase
     .from('events')
     .select(
-      'id, sport_id, league_id, home_team_id, away_team_id, title, starts_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url)',
+      'id, sport_id, league_id, home_team_id, away_team_id, title, starts_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url)',
     )
     .gte('starts_at', from.toISOString())
     .lt('starts_at', to.toISOString())
@@ -82,7 +88,7 @@ export async function fetchEvent(id: string): Promise<SportEvent | null> {
   const { data, error } = await supabase
     .from('events')
     .select(
-      'id, sport_id, league_id, home_team_id, away_team_id, title, starts_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url)',
+      'id, sport_id, league_id, home_team_id, away_team_id, title, starts_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url)',
     )
     .eq('id', id)
     .maybeSingle();

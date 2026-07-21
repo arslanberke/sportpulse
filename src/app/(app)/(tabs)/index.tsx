@@ -59,6 +59,7 @@ export default function HomeScreen() {
   };
 
   const featuredId = events.find((e) => e.status === 'scheduled')?.id;
+  const orderIndex = new Map(events.map((e, i) => [e.id, i]));
 
   return (
     <Screen onRefresh={handleRefresh} refreshing={queryClient.isFetching() > 0}>
@@ -95,9 +96,17 @@ export default function HomeScreen() {
             </View>
             {group.events.map((event) =>
               event.id === featuredId ? (
-                <FeaturedEventCard key={event.id} event={event} />
+                <FeaturedEventCard
+                  key={event.id}
+                  event={event}
+                  index={orderIndex.get(event.id) ?? 0}
+                />
               ) : (
-                <EventCard key={event.id} event={event} />
+                <EventCard
+                  key={event.id}
+                  event={event}
+                  index={orderIndex.get(event.id) ?? 0}
+                />
               ),
             )}
           </View>

@@ -118,10 +118,12 @@ const en = {
 
   // Event detail
   'event.title': 'Event',
+  'event.details': 'Details',
   'event.channel': 'Where to watch',
   'event.venue': 'Venue',
   'event.noChannel': 'No channel info for your country yet.',
   'event.addToCalendar': 'Add to calendar (.ics)',
+  'event.addedToCalendar': 'Added to calendar',
   'event.couldNotShare': 'Could not share the calendar file',
   'event.reminders': 'Your reminders',
   'event.remindersBody': 'Reminder times follow your settings and your quiet hours.',
@@ -257,10 +259,12 @@ const tr: Record<TranslationKey, string> = {
   'home.cancelled': 'İptal edildi',
 
   'event.title': 'Etkinlik',
+  'event.details': 'Detaylar',
   'event.channel': 'Nereden izlenir',
   'event.venue': 'Mekan',
   'event.noChannel': 'Ülken için henüz kanal bilgisi yok.',
   'event.addToCalendar': 'Takvime ekle (.ics)',
+  'event.addedToCalendar': 'Takvime eklendi',
   'event.couldNotShare': 'Takvim dosyası paylaşılamadı',
   'event.reminders': 'Hatırlatmaların',
   'event.remindersBody': 'Hatırlatma saatleri ayarlarına ve sessiz saatlerine göre belirlenir.',

@@ -3,6 +3,7 @@ import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Link } from "expo-router";
 import { Pressable, Text, View } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
 
 import { Chip } from "@/components/ui/chip";
 import { useThemeColors } from "@/constants/theme";
@@ -11,11 +12,13 @@ import {
   findCircuitPath,
 } from "@/features/events/components/circuit-outline";
 import { EventEffect } from "@/features/events/components/event-effects";
+import { MatchupArt } from "@/features/events/components/matchup-art";
 import {
   artworkStyle,
   eventTheme,
   overlayColors,
 } from "@/features/events/lib/event-theme";
+import { leagueBanner } from "@/features/events/lib/league-banner";
 import { splitUfcTitle } from "@/features/events/lib/ufc-title";
 import { formatDayTime, formatTime } from "@/lib/dates";
 import { useI18n, type Translate } from "@/lib/i18n";
@@ -81,8 +84,15 @@ function StatusChip({
  * Hero card for the next upcoming event: full-width poster with a gradient
  * overlay, big title, countdown pill and channel chips.
  */
-export function FeaturedEventCard({ event }: { event: SportEvent }) {
+export function FeaturedEventCard({
+  event,
+  index = 0,
+}: {
+  event: SportEvent;
+  index?: number;
+}) {
   const { t } = useI18n();
+  const colors = useThemeColors();
   const channelNames = (event.channels ?? []).map((c) => c.name).join(", ");
   const theme = eventTheme(event.sportId, event.leagueName);
   const artwork = event.imageUrl ?? event.leagueArtworkUrl;
@@ -99,11 +109,16 @@ export function FeaturedEventCard({ event }: { event: SportEvent }) {
   const circuit =
     event.sportId === "f1" ? findCircuitPath(event.venue, event.title) : null;
   const ufc = event.sportId === "ufc" ? splitUfcTitle(event.title) : null;
+  const hasMatchup = Boolean(
+    event.homeTeamLogoUrl && event.awayTeamLogoUrl,
+  );
+  const banner = leagueBanner(event.leagueName);
 
   return (
-    <Link href={`/event/${event.id}`} asChild>
-      <Pressable className="mb-4 overflow-hidden rounded-card bg-surface shadow-md active:scale-[0.99] active:opacity-90">
-        <View style={{ height: 200 }}>
+    <Animated.View entering={FadeInDown.delay(Math.min(index, 8) * 60).duration(400).springify().damping(18)}>
+      <Link href={`/event/${event.id}`} asChild>
+        <Pressable className="mb-4 overflow-hidden rounded-card bg-surface shadow-md active:scale-[0.99] active:opacity-90">
+          <View style={{ height: 200 }}>
           <LinearGradient
             colors={theme.gradient}
             start={{ x: 0, y: 0 }}
@@ -139,6 +154,13 @@ export function FeaturedEventCard({ event }: { event: SportEvent }) {
                 <CircuitOutline path={circuit} />
               </View>
             </>
+          ) : hasMatchup ? (
+            <MatchupArt
+              banner={banner}
+              homeLogoUrl={event.homeTeamLogoUrl!}
+              awayLogoUrl={event.awayTeamLogoUrl!}
+              badgeSize={100}
+            />
           ) : (
             artwork && (
               <>
@@ -162,10 +184,10 @@ export function FeaturedEventCard({ event }: { event: SportEvent }) {
                   source={{ uri: artwork }}
                   style={{
                     position: "absolute",
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
+                    top: art.fit === "contain" ? 20 : 0,
+                    left: art.fit === "contain" ? 16 : 0,
+                    right: art.fit === "contain" ? 16 : 0,
+                    bottom: art.fit === "contain" ? 20 : 0,
                   }}
                   contentFit={art.fit}
                   contentPosition={art.position}
@@ -181,16 +203,18 @@ export function FeaturedEventCard({ event }: { event: SportEvent }) {
               theme={theme}
             />
           )}
-          <LinearGradient
-            colors={overlayColors(theme)}
-            style={{
-              position: "absolute",
-              left: 0,
-              right: 0,
-              bottom: 0,
-              height: 150,
-            }}
-          />
+          {!hasMatchup && (
+            <LinearGradient
+              colors={overlayColors(theme)}
+              style={{
+                position: "absolute",
+                left: 0,
+                right: 0,
+                bottom: 0,
+                height: 150,
+              }}
+            />
+          )}
           <View className="absolute inset-x-0 bottom-0 p-4">
             <View className="mb-1 flex-row items-center gap-1.5">
               {event.leagueBadgeUrl && (
@@ -215,34 +239,78 @@ export function FeaturedEventCard({ event }: { event: SportEvent }) {
               </Text>
             )}
             <Text
-              className="mb-2 text-xl font-bold text-white"
+              className={`text-xl font-bold text-white ${hasMatchup ? "" : "mb-2"}`}
               numberOfLines={2}
             >
               {ufc ? ufc.bout : event.title}
             </Text>
-            <View className="flex-row flex-wrap items-center gap-2">
-              <StatusChip event={event} t={t} accent={theme.accent} />
+            {!hasMatchup && (
+              <View className="flex-row flex-wrap items-center gap-2">
+                <StatusChip event={event} t={t} accent={theme.accent} />
+                <Chip
+                  label={formatDayTime(event.startsAt)}
+                  icon="time-outline"
+                  iconColor="#FFFFFF"
+                  className="bg-white/20"
+                  textClassName="text-white"
+                />
+                {channelNames.length > 0 && (
+                  <Chip
+                    label={channelNames}
+                    icon="tv-outline"
+                    iconColor="#FFFFFF"
+                    className="bg-white/20"
+                    textClassName="text-white"
+                  />
+                )}
+              </View>
+            )}
+            </View>
+          </View>
+          {hasMatchup && (
+            <View className="flex-row flex-wrap items-center gap-2 px-4 pb-4 pt-3">
+              {event.status === "scheduled" ? (
+                <Chip
+                  label={formatCountdown(event.startsAt, t)}
+                  icon="hourglass-outline"
+                  iconColor={theme.accent}
+                  className="bg-surface-raised border border-line"
+                  textStyle={{ color: theme.accent }}
+                />
+              ) : (
+                <Chip
+                  label={t(
+                    event.status === "postponed"
+                      ? "home.postponed"
+                      : "home.cancelled",
+                  )}
+                  icon="alert-circle-outline"
+                  iconColor={colors.danger}
+                  className="bg-danger/10"
+                  textClassName="text-danger"
+                />
+              )}
               <Chip
                 label={formatDayTime(event.startsAt)}
                 icon="time-outline"
-                iconColor="#FFFFFF"
-                className="bg-white/20"
-                textClassName="text-white"
+                iconColor={colors.inkSecondary}
+                className="bg-surface-raised border border-line"
+                textClassName="text-ink-secondary"
               />
               {channelNames.length > 0 && (
                 <Chip
                   label={channelNames}
                   icon="tv-outline"
-                  iconColor="#FFFFFF"
-                  className="bg-white/20"
-                  textClassName="text-white"
+                  iconColor={colors.inkSecondary}
+                  className="bg-surface-raised border border-line"
+                  textClassName="text-ink-secondary"
                 />
               )}
             </View>
-          </View>
-        </View>
-      </Pressable>
-    </Link>
+          )}
+        </Pressable>
+      </Link>
+    </Animated.View>
   );
 }
 
@@ -250,15 +318,22 @@ export function FeaturedEventCard({ event }: { event: SportEvent }) {
  * One event in the week list: time column, title, channel chips and a
  * countdown pill.
  */
-export function EventCard({ event }: { event: SportEvent }) {
+export function EventCard({
+  event,
+  index = 0,
+}: {
+  event: SportEvent;
+  index?: number;
+}) {
   const { t } = useI18n();
   const colors = useThemeColors();
   const channelNames = (event.channels ?? []).map((c) => c.name).join(", ");
   const theme = eventTheme(event.sportId, event.leagueName);
 
   return (
-    <Link href={`/event/${event.id}`} asChild>
-      <Pressable className="mb-3 flex-row overflow-hidden rounded-card border border-line bg-surface active:scale-[0.99] active:opacity-90">
+    <Animated.View entering={FadeInDown.delay(Math.min(index, 8) * 60).duration(400).springify().damping(18)}>
+      <Link href={`/event/${event.id}`} asChild>
+        <Pressable className="mb-3 flex-row overflow-hidden rounded-card border border-line bg-surface active:scale-[0.99] active:opacity-90">
         <View
           className="w-16 items-center justify-center py-4"
           style={{ backgroundColor: theme.gradient[theme.gradient.length - 1] }}
@@ -328,7 +403,8 @@ export function EventCard({ event }: { event: SportEvent }) {
             color={colors.inkTertiary}
           />
         </View>
-      </Pressable>
-    </Link>
+        </Pressable>
+      </Link>
+    </Animated.View>
   );
 }
