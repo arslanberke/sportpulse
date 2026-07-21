@@ -1,5 +1,7 @@
 import * as Haptics from 'expo-haptics';
-import { ActivityIndicator, Platform, Pressable, Text } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, StyleSheet, Text } from 'react-native';
+
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { Colors } from '@/constants/theme';
 
@@ -25,6 +27,13 @@ const labelStyles: Record<ButtonVariant, string> = {
   danger: 'text-white',
 };
 
+/** Lighter top edge over a darker base makes filled buttons read as raised. */
+const sheenColors: Record<ButtonVariant, [string, string]> = {
+  primary: ['rgba(255,255,255,0.28)', 'rgba(0,0,0,0.16)'],
+  secondary: ['rgba(255,255,255,0.45)', 'rgba(16,185,129,0.10)'],
+  danger: ['rgba(255,255,255,0.25)', 'rgba(0,0,0,0.18)'],
+};
+
 export function Button({
   title,
   onPress,
@@ -43,8 +52,14 @@ export function Button({
         onPress();
       }}
       disabled={isDisabled}
-      className={`h-14 items-center justify-center rounded-button shadow-sm active:scale-[0.98] active:opacity-80 ${containerStyles[variant]} ${isDisabled ? 'opacity-50' : ''}`}
+      className={`h-14 items-center justify-center overflow-hidden rounded-button shadow-md active:scale-[0.97] active:opacity-85 ${containerStyles[variant]} ${isDisabled ? 'opacity-50' : ''}`}
+      style={{ borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)' }}
     >
+      <LinearGradient
+        colors={sheenColors[variant]}
+        style={StyleSheet.absoluteFill}
+        pointerEvents="none"
+      />
       {loading ? (
         <ActivityIndicator color={variant === 'secondary' ? Colors.primary : '#FFFFFF'} />
       ) : (

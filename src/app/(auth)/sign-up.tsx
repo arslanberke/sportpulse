@@ -8,6 +8,7 @@ import { Text, View } from 'react-native';
 import { Button } from '@/components/ui/button';
 import { Screen } from '@/components/ui/screen';
 import { TextField } from '@/components/ui/text-field';
+import { AuthBackdrop } from '@/features/auth/components/auth-backdrop';
 import { showAlert } from '@/lib/alert';
 import { useI18n } from '@/lib/i18n';
 import { makeSignUpSchema, type SignUpFormValues } from '@/features/auth/schemas';
@@ -37,6 +38,7 @@ export default function SignUpScreen() {
 
   return (
     <Screen>
+      <AuthBackdrop />
       <View className="pt-16">
         <View className="mb-8 items-center">
           <View className="mb-4 h-20 w-20 items-center justify-center rounded-3xl bg-primary shadow-md">

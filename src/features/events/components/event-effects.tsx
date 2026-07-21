@@ -1,20 +1,17 @@
 import { useEffect, useState } from 'react';
 import { Animated, Easing, StyleSheet, View } from 'react-native';
 
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import type { EventTheme } from '@/features/events/lib/event-theme';
 
 /** Which broadcast-style ambient effect a league/sport gets. */
-export type EffectKind = 'stars' | 'shimmer' | 'speed' | 'glow' | 'none';
+export type EffectKind = 'stars' | 'speed' | 'glow' | 'none';
 
-export function effectKind(
-  sportId: string,
-  leagueName?: string | null,
-  hasEventImage?: boolean,
-): EffectKind {
+export function effectKind(sportId: string, leagueName?: string | null): EffectKind {
   if (leagueName === 'UEFA Champions League') return 'stars';
-  if (sportId === 'f1' || sportId === 'motogp') return hasEventImage ? 'shimmer' : 'speed';
+  if (sportId === 'f1' || sportId === 'motogp') return 'speed';
   if (sportId === 'ufc') return 'glow';
   return 'none';
 }
@@ -73,27 +70,47 @@ function Star({ left, size, duration, delay }: (typeof STARS)[number]) {
   );
 }
 
-/** Slow pulsing beam of light on the banner's left side. */
-function BeamPulse() {
-  const progress = useLoop(4200);
-  const opacity = progress.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0, 0.28, 0] });
+/** Glint travelling along the banner's diagonal light streaks (right side). */
+function StreakGlint() {
+  const progress = useLoop(3600, 800);
+  const translateX = progress.interpolate({ inputRange: [0, 1], outputRange: [-40, 320] });
+  const translateY = progress.interpolate({ inputRange: [0, 1], outputRange: [200, -60] });
+  const opacity = progress.interpolate({
+    inputRange: [0, 0.12, 0.88, 1],
+    outputRange: [0, 0.85, 0.85, 0],
+  });
   return (
-    <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { opacity }]}>
-      <LinearGradient
-        colors={['rgba(255,255,255,0.9)', 'rgba(255,255,255,0)']}
-        start={{ x: 0, y: 0.5 }}
-        end={{ x: 0.45, y: 0.5 }}
-        style={StyleSheet.absoluteFill}
-      />
-    </Animated.View>
+    <View
+      pointerEvents="none"
+      style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: '38%', overflow: 'hidden' }}
+    >
+      <Animated.View
+        style={{
+          position: 'absolute',
+          left: 0,
+          bottom: 0,
+          width: 90,
+          height: 26,
+          transform: [{ translateX }, { translateY }, { rotate: '-40deg' }],
+          opacity,
+        }}
+      >
+        <LinearGradient
+          colors={['rgba(255,255,255,0)', 'rgba(255,255,255,0.9)', 'rgba(255,255,255,0)']}
+          start={{ x: 0, y: 0.5 }}
+          end={{ x: 1, y: 0.5 }}
+          style={StyleSheet.absoluteFill}
+        />
+      </Animated.View>
+    </View>
   );
 }
 
-/** Rising star sparkles plus a breathing light beam, Champions League style. */
+/** Rising star sparkles plus a glint on the light streaks, Champions League style. */
 function Stars() {
   return (
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-      <BeamPulse />
+      <StreakGlint />
       {STARS.map((star) => (
         <Star key={star.left} {...star} />
       ))}
@@ -101,34 +118,28 @@ function Stars() {
   );
 }
 
-/** A bright band of light sweeping across the artwork (track shimmer). */
-function Shimmer() {
-  const progress = useLoop(3400, 900);
-  const translateX = progress.interpolate({ inputRange: [0, 1], outputRange: [-260, 1100] });
-  const opacity = progress.interpolate({
-    inputRange: [0, 0.1, 0.9, 1],
-    outputRange: [0, 0.45, 0.45, 0],
-  });
+/**
+ * Neon pulse for circuit outline artwork: a white-tinted copy of the track
+ * image breathes on top of it, making the whole circuit glow.
+ */
+export function TrackGlow({
+  uri,
+  style,
+}: {
+  uri: string;
+  style: { position: 'absolute'; top: number; left: number; right: number; bottom: number };
+}) {
+  const progress = useLoop(3000);
+  const opacity = progress.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0, 0.22, 0] });
   return (
-    <View pointerEvents="none" style={[StyleSheet.absoluteFill, { overflow: 'hidden' }]}>
-      <Animated.View
-        style={{
-          position: 'absolute',
-          top: -40,
-          bottom: -40,
-          width: 160,
-          transform: [{ translateX }, { rotate: '18deg' }],
-          opacity,
-        }}
-      >
-        <LinearGradient
-          colors={['rgba(255,255,255,0)', 'rgba(255,255,255,0.7)', 'rgba(255,255,255,0)']}
-          start={{ x: 0, y: 0.5 }}
-          end={{ x: 1, y: 0.5 }}
-          style={StyleSheet.absoluteFill}
-        />
-      </Animated.View>
-    </View>
+    <Animated.View pointerEvents="none" style={[style, { opacity }]}>
+      <Image
+        source={{ uri }}
+        style={StyleSheet.absoluteFill}
+        contentFit="contain"
+        tintColor="#FFFFFF"
+      />
+    </Animated.View>
   );
 }
 
@@ -190,16 +201,13 @@ export function EventEffect({
   sportId,
   leagueName,
   theme,
-  hasEventImage,
 }: {
   sportId: string;
   leagueName?: string | null;
   theme: EventTheme;
-  hasEventImage?: boolean;
 }) {
-  const kind = effectKind(sportId, leagueName, hasEventImage);
+  const kind = effectKind(sportId, leagueName);
   if (kind === 'stars') return <Stars />;
-  if (kind === 'shimmer') return <Shimmer />;
   if (kind === 'speed') return <SpeedLines />;
   if (kind === 'glow') return <Glow accent={theme.accent} />;
   return null;

@@ -12,7 +12,7 @@ import { Screen } from '@/components/ui/screen';
 import { EmptyCard, LoadingCard } from '@/components/ui/states';
 import { useThemeColors } from '@/constants/theme';
 import { formatCountdown } from '@/features/events/components/event-card';
-import { EventEffect } from '@/features/events/components/event-effects';
+import { EventEffect, TrackGlow } from '@/features/events/components/event-effects';
 import { useEvent } from '@/features/events/hooks/use-events';
 import { artworkStyle, eventTheme, overlayColors } from '@/features/events/lib/event-theme';
 import { reminderTimes } from '@/features/events/lib/reminder-times';
@@ -84,9 +84,12 @@ export default function EventDetailScreen() {
 
   const theme = eventTheme(event.sportId, event.leagueName);
   const artwork = event.imageUrl ?? event.leagueArtworkUrl;
+  // Motorsport event images are circuit outlines: shrink to fit, never crop.
+  const isTrackArt = !!event.imageUrl && (event.sportId === 'f1' || event.sportId === 'motogp');
   const art = event.imageUrl
-    ? { fit: 'cover' as const, position: 'center' as const }
+    ? { fit: isTrackArt ? ('contain' as const) : ('cover' as const), position: 'center' as const }
     : artworkStyle(event.leagueName);
+  const artInsets = { position: 'absolute', top: 16, left: 16, right: 16, bottom: 84 } as const;
   const ufc = event.sportId === 'ufc' ? splitUfcTitle(event.title) : null;
 
   return (
@@ -105,7 +108,7 @@ export default function EventDetailScreen() {
                 source={{ uri: artwork }}
                 style={
                   art.fit === 'contain'
-                    ? { position: 'absolute', top: 24, left: 24, right: 24, bottom: 88 }
+                    ? artInsets
                     : { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }
                 }
                 contentFit={art.fit}
@@ -113,12 +116,11 @@ export default function EventDetailScreen() {
                 transition={200}
               />
             )}
-            <EventEffect
-              sportId={event.sportId}
-              leagueName={event.leagueName}
-              theme={theme}
-              hasEventImage={!!event.imageUrl}
-            />
+            {isTrackArt && artwork ? (
+              <TrackGlow uri={artwork} style={artInsets} />
+            ) : (
+              <EventEffect sportId={event.sportId} leagueName={event.leagueName} theme={theme} />
+            )}
             <LinearGradient
               colors={overlayColors(theme)}
               style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 160 }}

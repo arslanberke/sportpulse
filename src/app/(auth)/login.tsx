@@ -9,6 +9,7 @@ import { Text, View } from 'react-native';
 import { Button } from '@/components/ui/button';
 import { Screen } from '@/components/ui/screen';
 import { TextField } from '@/components/ui/text-field';
+import { AuthBackdrop } from '@/features/auth/components/auth-backdrop';
 import { showAlert } from '@/lib/alert';
 import { useI18n } from '@/lib/i18n';
 import { hasSeenOnboarding } from '@/features/auth/onboarding';
@@ -47,6 +48,7 @@ export default function LoginScreen() {
 
   return (
     <Screen>
+      <AuthBackdrop />
       <View className="pt-20">
         <View className="mb-8 items-center">
           <LinearGradient
