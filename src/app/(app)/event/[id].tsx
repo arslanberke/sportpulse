@@ -246,7 +246,7 @@ export default function EventDetailScreen() {
                 height: 160,
               }}
             />
-            <View className="absolute inset-x-0 bottom-0 p-5">
+            <View className="absolute inset-x-0 bottom-0 px-5 pb-3 pt-5">
               <View className="mb-1 flex-row items-center gap-1.5">
                 {event.leagueBadgeUrl && (
                   <Image
