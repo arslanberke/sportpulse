@@ -12,6 +12,7 @@ import { Screen } from '@/components/ui/screen';
 import { EmptyCard, LoadingCard } from '@/components/ui/states';
 import { useThemeColors } from '@/constants/theme';
 import { formatCountdown } from '@/features/events/components/event-card';
+import { EventEffect } from '@/features/events/components/event-effects';
 import { useEvent } from '@/features/events/hooks/use-events';
 import { eventTheme, overlayColors } from '@/features/events/lib/event-theme';
 import { reminderTimes } from '@/features/events/lib/reminder-times';
@@ -99,6 +100,7 @@ export default function EventDetailScreen() {
                 transition={200}
               />
             )}
+            <EventEffect sportId={event.sportId} leagueName={event.leagueName} theme={theme} />
             <LinearGradient
               colors={overlayColors(theme)}
               style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 160 }}

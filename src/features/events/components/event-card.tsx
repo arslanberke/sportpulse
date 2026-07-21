@@ -6,6 +6,7 @@ import { Pressable, Text, View } from 'react-native';
 
 import { Chip } from '@/components/ui/chip';
 import { useThemeColors } from '@/constants/theme';
+import { EventEffect } from '@/features/events/components/event-effects';
 import { eventTheme, overlayColors } from '@/features/events/lib/event-theme';
 import { formatDayTime, formatTime } from '@/lib/dates';
 import { useI18n, type Translate } from '@/lib/i18n';
@@ -80,6 +81,7 @@ export function FeaturedEventCard({ event }: { event: SportEvent }) {
               transition={200}
             />
           )}
+          <EventEffect sportId={event.sportId} leagueName={event.leagueName} theme={theme} />
           <LinearGradient
             colors={overlayColors(theme)}
             style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 150 }}
