@@ -1,5 +1,7 @@
+import * as Haptics from 'expo-haptics';
 import type { ReactNode } from 'react';
-import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { useCallback } from 'react';
+import { Platform, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { LinearGradient } from 'expo-linear-gradient';
@@ -30,6 +32,13 @@ function Backdrop() {
 export function Screen({ children, scrollable = true, onRefresh, refreshing = false }: ScreenProps) {
   const colors = useThemeColors();
 
+  const handleRefresh = useCallback(() => {
+    if (Platform.OS !== 'web') {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    onRefresh?.();
+  }, [onRefresh]);
+
   if (!scrollable) {
     return (
       <SafeAreaView className="flex-1 bg-background">
@@ -50,7 +59,7 @@ export function Screen({ children, scrollable = true, onRefresh, refreshing = fa
           onRefresh ? (
             <RefreshControl
               refreshing={refreshing}
-              onRefresh={onRefresh}
+              onRefresh={handleRefresh}
               tintColor={colors.primary}
               colors={[colors.primary]}
             />

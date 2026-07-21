@@ -3,6 +3,7 @@ import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Link } from "expo-router";
 import { Pressable, Text, View } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
 
 import { Chip } from "@/components/ui/chip";
 import { useThemeColors } from "@/constants/theme";
@@ -83,7 +84,13 @@ function StatusChip({
  * Hero card for the next upcoming event: full-width poster with a gradient
  * overlay, big title, countdown pill and channel chips.
  */
-export function FeaturedEventCard({ event }: { event: SportEvent }) {
+export function FeaturedEventCard({
+  event,
+  index = 0,
+}: {
+  event: SportEvent;
+  index?: number;
+}) {
   const { t } = useI18n();
   const channelNames = (event.channels ?? []).map((c) => c.name).join(", ");
   const theme = eventTheme(event.sportId, event.leagueName);
@@ -107,9 +114,10 @@ export function FeaturedEventCard({ event }: { event: SportEvent }) {
   const banner = leagueBanner(event.leagueName);
 
   return (
-    <Link href={`/event/${event.id}`} asChild>
-      <Pressable className="mb-4 overflow-hidden rounded-card bg-surface shadow-md active:scale-[0.99] active:opacity-90">
-        <View style={{ height: 200 }}>
+    <Animated.View entering={FadeInDown.delay(Math.min(index, 8) * 60).duration(400).springify().damping(18)}>
+      <Link href={`/event/${event.id}`} asChild>
+        <Pressable className="mb-4 overflow-hidden rounded-card bg-surface shadow-md active:scale-[0.99] active:opacity-90">
+          <View style={{ height: 200 }}>
           <LinearGradient
             colors={theme.gradient}
             start={{ x: 0, y: 0 }}
@@ -253,11 +261,12 @@ export function FeaturedEventCard({ event }: { event: SportEvent }) {
                   textClassName="text-white"
                 />
               )}
+              </View>
             </View>
           </View>
-        </View>
-      </Pressable>
-    </Link>
+        </Pressable>
+      </Link>
+    </Animated.View>
   );
 }
 
@@ -265,15 +274,22 @@ export function FeaturedEventCard({ event }: { event: SportEvent }) {
  * One event in the week list: time column, title, channel chips and a
  * countdown pill.
  */
-export function EventCard({ event }: { event: SportEvent }) {
+export function EventCard({
+  event,
+  index = 0,
+}: {
+  event: SportEvent;
+  index?: number;
+}) {
   const { t } = useI18n();
   const colors = useThemeColors();
   const channelNames = (event.channels ?? []).map((c) => c.name).join(", ");
   const theme = eventTheme(event.sportId, event.leagueName);
 
   return (
-    <Link href={`/event/${event.id}`} asChild>
-      <Pressable className="mb-3 flex-row overflow-hidden rounded-card border border-line bg-surface active:scale-[0.99] active:opacity-90">
+    <Animated.View entering={FadeInDown.delay(Math.min(index, 8) * 60).duration(400).springify().damping(18)}>
+      <Link href={`/event/${event.id}`} asChild>
+        <Pressable className="mb-3 flex-row overflow-hidden rounded-card border border-line bg-surface active:scale-[0.99] active:opacity-90">
         <View
           className="w-16 items-center justify-center py-4"
           style={{ backgroundColor: theme.gradient[theme.gradient.length - 1] }}
@@ -343,7 +359,8 @@ export function EventCard({ event }: { event: SportEvent }) {
             color={colors.inkTertiary}
           />
         </View>
-      </Pressable>
-    </Link>
+        </Pressable>
+      </Link>
+    </Animated.View>
   );
 }
