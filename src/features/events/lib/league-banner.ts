@@ -21,13 +21,11 @@ const LEAGUE_BANNER: Record<string, LeagueBanner> = {
   },
   'UEFA Europa League': {
     source: require('../../../../assets/images/el-hero-banner.jpg'),
-    fit: 'contain',
-    backgroundColor: '#1a0604',
+    fit: 'cover',
   },
   'UEFA Conference League': {
     source: require('../../../../assets/images/conf-hero-banner.jpg'),
-    fit: 'contain',
-    backgroundColor: '#04140d',
+    fit: 'cover',
   },
 };
 

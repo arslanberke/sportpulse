@@ -118,6 +118,7 @@ const en = {
 
   // Event detail
   'event.title': 'Event',
+  'event.details': 'Details',
   'event.channel': 'Where to watch',
   'event.venue': 'Venue',
   'event.noChannel': 'No channel info for your country yet.',
@@ -257,6 +258,7 @@ const tr: Record<TranslationKey, string> = {
   'home.cancelled': 'İptal edildi',
 
   'event.title': 'Etkinlik',
+  'event.details': 'Detaylar',
   'event.channel': 'Nereden izlenir',
   'event.venue': 'Mekan',
   'event.noChannel': 'Ülken için henüz kanal bilgisi yok.',

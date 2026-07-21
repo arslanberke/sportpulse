@@ -7,7 +7,6 @@ import { LinearGradient } from "expo-linear-gradient";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Chip } from "@/components/ui/chip";
 import { Screen } from "@/components/ui/screen";
 import { EmptyCard, LoadingCard } from "@/components/ui/states";
 import { useThemeColors } from "@/constants/theme";
@@ -270,65 +269,92 @@ export default function EventDetailScreen() {
                   {ufc.card}
                 </Text>
               )}
-              <Text className="mb-2 text-2xl font-bold text-white">
+              <Text className="text-lg font-bold text-white">
                 {ufc ? ufc.bout : event.title}
               </Text>
-              <View className="flex-row flex-wrap items-center gap-2">
-                {event.status === "scheduled" ? (
-                  <Chip
-                    label={formatCountdown(event.startsAt, t)}
-                    icon="hourglass-outline"
-                    iconColor="#FFFFFF"
-                    style={{ backgroundColor: theme.accent }}
-                    textClassName="text-white"
-                  />
-                ) : (
-                  <Chip
-                    label={t(
-                      event.status === "postponed"
-                        ? "home.postponed"
-                        : "home.cancelled",
-                    )}
-                    icon="alert-circle-outline"
-                    iconColor="#FFFFFF"
-                    className="bg-danger"
-                    textClassName="text-white"
-                  />
-                )}
-                <Chip
-                  label={formatDateTime(event.startsAt)}
-                  icon="time-outline"
-                  iconColor="#FFFFFF"
-                  className="bg-white/20"
-                  textClassName="text-white"
-                />
-              </View>
             </View>
           </View>
         </View>
 
-        {event.venue && (
-          <Card className="mb-4">
-            <SectionHeader
-              icon="location"
-              label={t("event.venue")}
-              tint={colors.primary}
-            />
-            {event.venueImageUrl && (
-              <View className="mb-3 overflow-hidden rounded-2xl">
-                <Image
-                  source={{ uri: event.venueImageUrl }}
-                  style={{ width: "100%", height: 150 }}
-                  contentFit="cover"
-                  transition={200}
+        <Card className="mb-4">
+          <SectionHeader
+            icon="calendar"
+            label={t("event.details")}
+            tint={colors.primary}
+          />
+          <View className="gap-2.5">
+            <View className="flex-row items-center gap-3">
+              <View className="h-9 w-9 items-center justify-center rounded-xl bg-surface-raised">
+                <Ionicons
+                  name={
+                    event.status === "scheduled"
+                      ? "hourglass-outline"
+                      : "alert-circle-outline"
+                  }
+                  size={16}
+                  color={
+                    event.status === "scheduled"
+                      ? colors.primary
+                      : colors.danger
+                  }
                 />
               </View>
+              <Text
+                className="text-base font-semibold"
+                style={{
+                  color:
+                    event.status === "scheduled"
+                      ? colors.ink
+                      : colors.danger,
+                }}
+              >
+                {event.status === "scheduled"
+                  ? formatCountdown(event.startsAt, t)
+                  : t(
+                      event.status === "postponed"
+                        ? "home.postponed"
+                        : "home.cancelled",
+                    )}
+              </Text>
+            </View>
+            <View className="flex-row items-center gap-3">
+              <View className="h-9 w-9 items-center justify-center rounded-xl bg-surface-raised">
+                <Ionicons
+                  name="time-outline"
+                  size={16}
+                  color={colors.inkSecondary}
+                />
+              </View>
+              <Text className="text-base font-medium text-ink">
+                {formatDateTime(event.startsAt)}
+              </Text>
+            </View>
+            {event.venue && (
+              <View className="flex-row items-center gap-3">
+                <View className="h-9 w-9 items-center justify-center rounded-xl bg-surface-raised">
+                  <Ionicons
+                    name="location-outline"
+                    size={16}
+                    color={colors.inkSecondary}
+                  />
+                </View>
+                <Text className="flex-1 text-base font-medium text-ink">
+                  {event.venue}
+                </Text>
+              </View>
             )}
-            <Text className="text-base font-medium text-ink">
-              {event.venue}
-            </Text>
-          </Card>
-        )}
+          </View>
+          {event.venueImageUrl && (
+            <View className="mt-3 overflow-hidden rounded-2xl">
+              <Image
+                source={{ uri: event.venueImageUrl }}
+                style={{ width: "100%", height: 150 }}
+                contentFit="cover"
+                transition={200}
+              />
+            </View>
+          )}
+        </Card>
 
         <Card className="mb-4">
           <SectionHeader
