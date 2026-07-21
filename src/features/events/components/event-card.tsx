@@ -85,16 +85,26 @@ export function FeaturedEventCard({ event }: { event: SportEvent }) {
             style={{ width: '100%', height: '100%' }}
           />
           {circuit ? (
-            <View style={{ position: 'absolute', top: 12, left: 16, right: 16, bottom: 56 }}>
-              <CircuitOutline path={circuit} />
-            </View>
+            <>
+              {event.leagueArtworkUrl && (
+                <Image
+                  source={{ uri: event.leagueArtworkUrl }}
+                  style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: 0.55 }}
+                  contentFit="cover"
+                  transition={200}
+                />
+              )}
+              <View style={{ position: 'absolute', top: 12, left: 16, right: 16, bottom: 56 }}>
+                <CircuitOutline path={circuit} />
+              </View>
+            </>
           ) : (
             artwork && (
               <Image
                 source={{ uri: artwork }}
                 style={
                   art.fit === 'contain'
-                    ? { position: 'absolute', top: 24, left: 24, right: 24, bottom: 64 }
+                    ? { position: 'absolute', top: 4, left: 4, right: 4, bottom: 4 }
                     : { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }
                 }
                 contentFit={art.fit}
