@@ -64,7 +64,7 @@ export function CircuitOutline({ path }: { path: string }) {
   return (
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
       <Svg
-        viewBox="-8 -8 116 116"
+        viewBox="-4 -4 108 108"
         width="100%"
         height="100%"
         preserveAspectRatio="xMidYMid meet"
