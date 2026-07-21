@@ -10,8 +10,10 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-import { useThemeColors } from '@/constants/theme';
+import { Lottie } from '@/components/ui/lottie';
 import { useI18n } from '@/lib/i18n';
+
+const emptyAnimation = require('../../../assets/lottie/empty.json');
 
 /** Skeleton placeholder: grey bars with a light sweep gliding across them. */
 export function LoadingCard({ label }: { label?: string }) {
@@ -100,15 +102,15 @@ export function EmptyCard({
   icon?: string;
   iconName?: keyof typeof Ionicons.glyphMap;
 }) {
-  const colors = useThemeColors();
   return (
     <View className="items-center rounded-card bg-surface p-8 shadow-md">
-      {iconName && (
-        <View className="mb-3 h-14 w-14 items-center justify-center rounded-full bg-primary-light">
-          <Ionicons name={iconName} size={28} color={colors.primary} />
+      {iconName ? (
+        <View className="mb-2 h-24 w-24 items-center justify-center">
+          <Lottie source={emptyAnimation} size={96} />
         </View>
+      ) : (
+        icon && <Text className="mb-2 text-4xl">{icon}</Text>
       )}
-      {icon && <Text className="mb-2 text-4xl">{icon}</Text>}
       <Text className="text-center text-base leading-6 text-ink-secondary">{message}</Text>
     </View>
   );

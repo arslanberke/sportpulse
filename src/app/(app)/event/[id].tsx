@@ -1,8 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useLocalSearchParams } from "expo-router";
+import { useState } from "react";
 import { Platform, Text, View } from "react-native";
 import Animated, {
+  FadeIn,
+  FadeOut,
   useAnimatedScrollHandler,
   useAnimatedStyle,
   useSharedValue,
@@ -12,6 +15,7 @@ import { LinearGradient } from "expo-linear-gradient";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Lottie } from "@/components/ui/lottie";
 import { Screen } from "@/components/ui/screen";
 import { EmptyCard, LoadingCard } from "@/components/ui/states";
 import { useThemeColors } from "@/constants/theme";
@@ -40,6 +44,8 @@ import {
   areLiveActivitiesEnabled,
   startEventActivity,
 } from "../../../../modules/live-activity";
+
+const successAnimation = require("../../../../assets/lottie/success.json");
 
 /** Card section header: a tinted icon tile next to the section title. */
 function SectionHeader({
@@ -72,6 +78,7 @@ export default function EventDetailScreen() {
   const { event, isLoading } = useEvent(id);
   const { data: prefs } = useReminderPrefs();
 
+  const [showSuccess, setShowSuccess] = useState(false);
   const scrollY = useSharedValue(0);
   const onScroll = useAnimatedScrollHandler((e) => {
     scrollY.value = e.contentOffset.y;
@@ -126,6 +133,7 @@ export default function EventDetailScreen() {
         event,
         channels.map((c) => c.name),
       );
+      setShowSuccess(true);
     } catch {
       showAlert(t("event.couldNotShare"), t("common.tryAgain"));
     }
@@ -168,6 +176,7 @@ export default function EventDetailScreen() {
   const banner = leagueBanner(event.leagueName);
 
   return (
+    <>
     <Screen onScroll={onScroll}>
       <View className="pt-4">
         <Animated.View
@@ -467,5 +476,27 @@ export default function EventDetailScreen() {
         )}
       </View>
     </Screen>
+    {showSuccess && (
+      <Animated.View
+        entering={FadeIn.duration(150)}
+        exiting={FadeOut.duration(200)}
+        pointerEvents="none"
+        className="absolute inset-0 items-center justify-center"
+        style={{ backgroundColor: "rgba(0,0,0,0.35)" }}
+      >
+        <View className="items-center rounded-card bg-surface px-8 py-6 shadow-md">
+          <Lottie
+            source={successAnimation}
+            size={120}
+            loop={false}
+            onFinish={() => setShowSuccess(false)}
+          />
+          <Text className="mt-1 text-base font-semibold text-ink">
+            {t("event.addedToCalendar")}
+          </Text>
+        </View>
+      </Animated.View>
+    )}
+    </>
   );
 }
