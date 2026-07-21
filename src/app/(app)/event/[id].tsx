@@ -14,8 +14,9 @@ import { useThemeColors } from '@/constants/theme';
 import { formatCountdown } from '@/features/events/components/event-card';
 import { EventEffect } from '@/features/events/components/event-effects';
 import { useEvent } from '@/features/events/hooks/use-events';
-import { eventTheme, overlayColors } from '@/features/events/lib/event-theme';
+import { artworkStyle, eventTheme, overlayColors } from '@/features/events/lib/event-theme';
 import { reminderTimes } from '@/features/events/lib/reminder-times';
+import { splitUfcTitle } from '@/features/events/lib/ufc-title';
 import { useReminderPrefs } from '@/features/settings/hooks/use-reminder-prefs';
 import { showAlert } from '@/lib/alert';
 import { formatDateTime } from '@/lib/dates';
@@ -80,6 +81,10 @@ export default function EventDetailScreen() {
 
   const theme = eventTheme(event.sportId, event.leagueName);
   const artwork = event.imageUrl ?? event.leagueArtworkUrl;
+  const art = event.imageUrl
+    ? { fit: 'cover' as const, position: 'center' as const }
+    : artworkStyle(event.leagueName);
+  const ufc = event.sportId === 'ufc' ? splitUfcTitle(event.title) : null;
 
   return (
     <Screen>
@@ -96,7 +101,8 @@ export default function EventDetailScreen() {
               <Image
                 source={{ uri: artwork }}
                 style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
-                contentFit="cover"
+                contentFit={art.fit}
+                contentPosition={art.position}
                 transition={200}
               />
             )}
@@ -120,7 +126,17 @@ export default function EventDetailScreen() {
                   </Text>
                 )}
               </View>
-              <Text className="mb-2 text-2xl font-bold text-white">{event.title}</Text>
+              {ufc && (
+                <Text
+                  className="text-base font-black uppercase tracking-widest"
+                  style={{ color: theme.accent }}
+                >
+                  {ufc.card}
+                </Text>
+              )}
+              <Text className="mb-2 text-2xl font-bold text-white">
+                {ufc ? ufc.bout : event.title}
+              </Text>
               <View className="flex-row flex-wrap items-center gap-2">
                 {event.status === 'scheduled' ? (
                   <Chip

@@ -55,3 +55,26 @@ export function eventTheme(sportId: string, leagueName?: string | null): EventTh
 export function overlayColors(theme: EventTheme): [string, string, string] {
   return ['transparent', `rgba(${theme.overlay}, 0.55)`, `rgba(${theme.overlay}, 0.92)`];
 }
+
+/** How the league artwork should sit inside the hero. */
+export interface ArtworkStyle {
+  /** 'contain' for wide banner art that must not be cropped. */
+  fit: 'cover' | 'contain';
+  /** Focal point of the artwork when cropping (expo-image contentPosition). */
+  position: 'center' | 'top' | 'bottom' | 'left center' | 'right center' | 'right top';
+}
+
+/** Hand-tuned per artwork so the subject (car, logo, trophy) stays visible. */
+const LEAGUE_ARTWORK: Record<string, ArtworkStyle> = {
+  'UEFA Champions League': { fit: 'contain', position: 'center' },
+  'UEFA Europa League': { fit: 'contain', position: 'center' },
+  'UEFA Conference League': { fit: 'contain', position: 'center' },
+  'Formula 1': { fit: 'cover', position: 'right top' },
+  'Ligue 1': { fit: 'cover', position: 'left center' },
+};
+
+const DEFAULT_ARTWORK: ArtworkStyle = { fit: 'cover', position: 'center' };
+
+export function artworkStyle(leagueName?: string | null): ArtworkStyle {
+  return (leagueName && LEAGUE_ARTWORK[leagueName]) || DEFAULT_ARTWORK;
+}

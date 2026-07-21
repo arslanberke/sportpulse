@@ -7,7 +7,8 @@ import { Pressable, Text, View } from 'react-native';
 import { Chip } from '@/components/ui/chip';
 import { useThemeColors } from '@/constants/theme';
 import { EventEffect } from '@/features/events/components/event-effects';
-import { eventTheme, overlayColors } from '@/features/events/lib/event-theme';
+import { artworkStyle, eventTheme, overlayColors } from '@/features/events/lib/event-theme';
+import { splitUfcTitle } from '@/features/events/lib/ufc-title';
 import { formatDayTime, formatTime } from '@/lib/dates';
 import { useI18n, type Translate } from '@/lib/i18n';
 import type { SportEvent } from '@/types';
@@ -62,6 +63,10 @@ export function FeaturedEventCard({ event }: { event: SportEvent }) {
   const channelNames = (event.channels ?? []).map((c) => c.name).join(', ');
   const theme = eventTheme(event.sportId, event.leagueName);
   const artwork = event.imageUrl ?? event.leagueArtworkUrl;
+  const art = event.imageUrl
+    ? { fit: 'cover' as const, position: 'center' as const }
+    : artworkStyle(event.leagueName);
+  const ufc = event.sportId === 'ufc' ? splitUfcTitle(event.title) : null;
 
   return (
     <Link href={`/event/${event.id}`} asChild>
@@ -77,7 +82,8 @@ export function FeaturedEventCard({ event }: { event: SportEvent }) {
             <Image
               source={{ uri: artwork }}
               style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
-              contentFit="cover"
+              contentFit={art.fit}
+              contentPosition={art.position}
               transition={200}
             />
           )}
@@ -97,8 +103,16 @@ export function FeaturedEventCard({ event }: { event: SportEvent }) {
                 </Text>
               )}
             </View>
+            {ufc && (
+              <Text
+                className="text-sm font-black uppercase tracking-widest"
+                style={{ color: theme.accent }}
+              >
+                {ufc.card}
+              </Text>
+            )}
             <Text className="mb-2 text-xl font-bold text-white" numberOfLines={2}>
-              {event.title}
+              {ufc ? ufc.bout : event.title}
             </Text>
             <View className="flex-row flex-wrap items-center gap-2">
               <StatusChip event={event} t={t} accent={theme.accent} />
