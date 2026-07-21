@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 
@@ -24,11 +25,13 @@ function followFor(
 function FollowChip({
   label,
   icon,
+  imageUrl,
   active,
   onPress,
 }: {
   label: string;
   icon?: string;
+  imageUrl?: string | null;
   active: boolean;
   onPress: () => void;
 }) {
@@ -40,12 +43,22 @@ function FollowChip({
         active ? 'bg-primary' : 'bg-background'
       }`}
     >
-      {icon && (
-        <Ionicons
-          name={icon as keyof typeof Ionicons.glyphMap}
-          size={16}
-          color={active ? '#FFFFFF' : colors.inkSecondary}
-        />
+      {imageUrl ? (
+        <View className="h-5 w-5 items-center justify-center overflow-hidden rounded-full bg-white">
+          <Image
+            source={{ uri: imageUrl }}
+            style={{ width: 18, height: 18 }}
+            contentFit="contain"
+          />
+        </View>
+      ) : (
+        icon && (
+          <Ionicons
+            name={icon as keyof typeof Ionicons.glyphMap}
+            size={16}
+            color={active ? '#FFFFFF' : colors.inkSecondary}
+          />
+        )
       )}
       <Text className={`font-semibold ${active ? 'text-white' : 'text-ink-secondary'}`}>
         {label}
@@ -126,6 +139,7 @@ export function FollowPicker() {
             <FollowChip
               key={team.id}
               label={team.name}
+              imageUrl={team.logoUrl}
               active={Boolean(followFor(followList, 'team', team.id))}
               onPress={() => handleToggle('team', team.id)}
             />
