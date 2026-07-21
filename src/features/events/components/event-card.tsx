@@ -6,6 +6,7 @@ import { Pressable, Text, View } from 'react-native';
 
 import { Chip } from '@/components/ui/chip';
 import { useThemeColors } from '@/constants/theme';
+import { eventTheme, overlayColors } from '@/features/events/lib/event-theme';
 import { formatDayTime, formatTime } from '@/lib/dates';
 import { useI18n, type Translate } from '@/lib/i18n';
 import type { SportEvent } from '@/types';
@@ -27,14 +28,15 @@ export function formatCountdown(startsAt: string, t: Translate, now = new Date()
   return past ? t('home.startedAgo', { time }) : t('home.startsIn', { time });
 }
 
-function StatusChip({ event, t }: { event: SportEvent; t: Translate }) {
+function StatusChip({ event, t, accent }: { event: SportEvent; t: Translate; accent?: string }) {
   if (event.status === 'scheduled') {
     return (
       <Chip
         label={formatCountdown(event.startsAt, t)}
         icon="hourglass-outline"
         iconColor="#FFFFFF"
-        className="bg-primary"
+        className={accent ? undefined : 'bg-primary'}
+        style={accent ? { backgroundColor: accent } : undefined}
         textClassName="text-white"
       />
     );
@@ -56,43 +58,48 @@ function StatusChip({ event, t }: { event: SportEvent; t: Translate }) {
  */
 export function FeaturedEventCard({ event }: { event: SportEvent }) {
   const { t } = useI18n();
-  const colors = useThemeColors();
   const channelNames = (event.channels ?? []).map((c) => c.name).join(', ');
+  const theme = eventTheme(event.sportId, event.leagueName);
+  const artwork = event.imageUrl ?? event.leagueArtworkUrl;
 
   return (
     <Link href={`/event/${event.id}`} asChild>
       <Pressable className="mb-4 overflow-hidden rounded-card bg-surface shadow-md active:scale-[0.99] active:opacity-90">
         <View style={{ height: 200 }}>
-          {event.imageUrl ? (
+          <LinearGradient
+            colors={theme.gradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{ width: '100%', height: '100%' }}
+          />
+          {artwork && (
             <Image
-              source={{ uri: event.imageUrl }}
-              style={{ width: '100%', height: '100%' }}
+              source={{ uri: artwork }}
+              style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
               contentFit="cover"
               transition={200}
             />
-          ) : (
-            <LinearGradient
-              colors={[colors.primary, colors.primaryDark]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={{ width: '100%', height: '100%' }}
-            />
           )}
           <LinearGradient
-            colors={['transparent', 'rgba(4, 14, 9, 0.55)', 'rgba(4, 14, 9, 0.92)']}
+            colors={overlayColors(theme)}
             style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 150 }}
           />
           <View className="absolute inset-x-0 bottom-0 p-4">
-            {event.leagueName && (
-              <Text className="mb-1 text-xs font-bold uppercase tracking-wider text-white/70">
-                {event.leagueName}
-              </Text>
-            )}
+            <View className="mb-1 flex-row items-center gap-1.5">
+              {event.leagueBadgeUrl && (
+                <Image source={{ uri: event.leagueBadgeUrl }} style={{ width: 16, height: 16 }} contentFit="contain" />
+              )}
+              {event.leagueName && (
+                <Text className="text-xs font-bold uppercase tracking-wider text-white/70">
+                  {event.leagueName}
+                </Text>
+              )}
+            </View>
             <Text className="mb-2 text-xl font-bold text-white" numberOfLines={2}>
               {event.title}
             </Text>
             <View className="flex-row flex-wrap items-center gap-2">
-              <StatusChip event={event} t={t} />
+              <StatusChip event={event} t={t} accent={theme.accent} />
               <Chip
                 label={formatDayTime(event.startsAt)}
                 icon="time-outline"
@@ -125,19 +132,25 @@ export function EventCard({ event }: { event: SportEvent }) {
   const { t } = useI18n();
   const colors = useThemeColors();
   const channelNames = (event.channels ?? []).map((c) => c.name).join(', ');
+  const theme = eventTheme(event.sportId, event.leagueName);
 
   return (
     <Link href={`/event/${event.id}`} asChild>
       <Pressable className="mb-3 flex-row overflow-hidden rounded-card border border-line bg-surface active:scale-[0.99] active:opacity-90">
-        <View className="w-16 items-center justify-center border-r border-line bg-surface-raised py-4">
-          <Text className="text-base font-bold text-ink">{formatTime(event.startsAt)}</Text>
+        <View className="w-16 items-center justify-center py-4" style={{ backgroundColor: theme.gradient[theme.gradient.length - 1] }}>
+          <Text className="text-base font-bold text-white">{formatTime(event.startsAt)}</Text>
         </View>
         <View className="flex-1 p-4">
-          {event.leagueName && (
-            <Text className="mb-0.5 text-[11px] font-bold uppercase tracking-wider text-ink-tertiary">
-              {event.leagueName}
-            </Text>
-          )}
+          <View className="mb-0.5 flex-row items-center gap-1.5">
+            {event.leagueBadgeUrl && (
+              <Image source={{ uri: event.leagueBadgeUrl }} style={{ width: 13, height: 13 }} contentFit="contain" />
+            )}
+            {event.leagueName && (
+              <Text className="text-[11px] font-bold uppercase tracking-wider text-ink-tertiary">
+                {event.leagueName}
+              </Text>
+            )}
+          </View>
           <Text className="mb-2 text-base font-semibold text-ink" numberOfLines={2}>
             {event.title}
           </Text>
@@ -146,9 +159,9 @@ export function EventCard({ event }: { event: SportEvent }) {
               <Chip
                 label={formatCountdown(event.startsAt, t)}
                 icon="hourglass-outline"
-                iconColor={colors.primary}
-                className="bg-primary-light"
-                textClassName="text-primary"
+                iconColor={theme.accent}
+                className="bg-surface-raised border border-line"
+                textStyle={{ color: theme.accent }}
               />
             ) : (
               <Chip

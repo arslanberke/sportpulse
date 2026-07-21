@@ -66,6 +66,8 @@ export interface SportEvent {
   externalIds: Record<string, string>;
   // Joined data (present when fetched via the events service):
   leagueName?: string | null;
+  leagueArtworkUrl?: string | null;
+  leagueBadgeUrl?: string | null;
   sport?: Sport | null;
   channels?: Channel[];
 }

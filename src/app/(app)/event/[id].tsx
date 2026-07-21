@@ -13,6 +13,7 @@ import { EmptyCard, LoadingCard } from '@/components/ui/states';
 import { useThemeColors } from '@/constants/theme';
 import { formatCountdown } from '@/features/events/components/event-card';
 import { useEvent } from '@/features/events/hooks/use-events';
+import { eventTheme, overlayColors } from '@/features/events/lib/event-theme';
 import { reminderTimes } from '@/features/events/lib/reminder-times';
 import { useReminderPrefs } from '@/features/settings/hooks/use-reminder-prefs';
 import { showAlert } from '@/lib/alert';
@@ -76,36 +77,47 @@ export default function EventDetailScreen() {
     }
   };
 
+  const theme = eventTheme(event.sportId, event.leagueName);
+  const artwork = event.imageUrl ?? event.leagueArtworkUrl;
+
   return (
     <Screen>
       <View className="pt-4">
         <View className="mb-4 overflow-hidden rounded-card bg-surface shadow-md">
           <View style={{ height: 220 }}>
-            {event.imageUrl ? (
+            <LinearGradient
+              colors={theme.gradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{ width: '100%', height: '100%' }}
+            />
+            {artwork && (
               <Image
-                source={{ uri: event.imageUrl }}
-                style={{ width: '100%', height: '100%' }}
+                source={{ uri: artwork }}
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
                 contentFit="cover"
                 transition={200}
               />
-            ) : (
-              <LinearGradient
-                colors={[colors.primary, colors.primaryDark]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={{ width: '100%', height: '100%' }}
-              />
             )}
             <LinearGradient
-              colors={['transparent', 'rgba(4, 14, 9, 0.55)', 'rgba(4, 14, 9, 0.92)']}
+              colors={overlayColors(theme)}
               style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 160 }}
             />
             <View className="absolute inset-x-0 bottom-0 p-5">
-              {event.leagueName && (
-                <Text className="mb-1 text-xs font-bold uppercase tracking-wider text-white/70">
-                  {event.leagueName}
-                </Text>
-              )}
+              <View className="mb-1 flex-row items-center gap-1.5">
+                {event.leagueBadgeUrl && (
+                  <Image
+                    source={{ uri: event.leagueBadgeUrl }}
+                    style={{ width: 18, height: 18 }}
+                    contentFit="contain"
+                  />
+                )}
+                {event.leagueName && (
+                  <Text className="text-xs font-bold uppercase tracking-wider text-white/70">
+                    {event.leagueName}
+                  </Text>
+                )}
+              </View>
               <Text className="mb-2 text-2xl font-bold text-white">{event.title}</Text>
               <View className="flex-row flex-wrap items-center gap-2">
                 {event.status === 'scheduled' ? (
@@ -113,7 +125,7 @@ export default function EventDetailScreen() {
                     label={formatCountdown(event.startsAt, t)}
                     icon="hourglass-outline"
                     iconColor="#FFFFFF"
-                    className="bg-primary"
+                    style={{ backgroundColor: theme.accent }}
                     textClassName="text-white"
                   />
                 ) : (
