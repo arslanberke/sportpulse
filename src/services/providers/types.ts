@@ -76,6 +76,29 @@ export interface StandingEntry {
   teamLogoUrl?: string | null; // constructor/team logo
 }
 
+/** One row of a team-league standings table (e.g. NBA). */
+export interface TeamStandingEntry {
+  seed: number;
+  team: string;
+  teamLogoUrl: string | null;
+  wins: number;
+  losses: number;
+  winPct: string; // e.g. ".732"
+  gamesBehind: string; // "-" for the leader, else e.g. "14"
+}
+
+/** A single conference/division group within a league standings table. */
+export interface ConferenceStandings {
+  name: string;
+  entries: TeamStandingEntry[];
+}
+
+/** Team-league (basketball) standings grouped by conference. */
+export interface LeagueStandings {
+  season: string;
+  conferences: ConferenceStandings[];
+}
+
 /** A motorsport championship (drivers/riders) standing for a season. */
 export interface Standings {
   /** Season label, e.g. "2025". */

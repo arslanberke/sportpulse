@@ -2,6 +2,7 @@ import { supabase } from '@/services/supabase';
 import type {
   Channel,
   EventLineup,
+  LeagueStandings,
   SessionResults,
   Standings,
   SportEvent,
@@ -160,6 +161,22 @@ export async function fetchEventStandings(
   }>('event-standings', { body: { eventId } });
   if (error) throw error;
   return data?.standings ?? null;
+}
+
+/**
+ * Team-league (basketball) conference standings for the league of an event,
+ * via the server-side `event-standings` Edge Function. Returns null for
+ * non-basketball events or uncovered leagues.
+ */
+export async function fetchEventLeagueStandings(
+  eventId: string,
+): Promise<LeagueStandings | null> {
+  const { data, error } = await supabase.functions.invoke<{
+    available: boolean;
+    leagueStandings: LeagueStandings | null;
+  }>('event-standings', { body: { eventId } });
+  if (error) throw error;
+  return data?.leagueStandings ?? null;
 }
 
 /** Event-specific broadcast overrides for a set of events in a country. */

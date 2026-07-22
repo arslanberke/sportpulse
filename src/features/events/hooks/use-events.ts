@@ -9,6 +9,7 @@ import {
   fetchEventBriefing,
   fetchEventBroadcasts,
   fetchEventLineup,
+  fetchEventLeagueStandings,
   fetchEventResults,
   fetchEventStandings,
   fetchEvents,
@@ -166,6 +167,21 @@ export function useEventStandings(event: SportEvent | null) {
     queryKey: ['event-standings', event?.id],
     queryFn: () => fetchEventStandings(event!.id),
     enabled: Boolean(event) && isMotorsport,
+    staleTime: HOUR_MS,
+    retry: false,
+  });
+}
+
+/**
+ * Team-league (basketball) conference standings for the event's league. The
+ * server caches per event, so this stays cheap across views.
+ */
+export function useEventLeagueStandings(event: SportEvent | null) {
+  const isBasketball = event?.sportId === 'basketball';
+  return useQuery({
+    queryKey: ['event-league-standings', event?.id],
+    queryFn: () => fetchEventLeagueStandings(event!.id),
+    enabled: Boolean(event) && isBasketball,
     staleTime: HOUR_MS,
     retry: false,
   });
