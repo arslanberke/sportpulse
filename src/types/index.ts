@@ -132,6 +132,29 @@ export interface Standings {
   entries: StandingEntry[];
 }
 
+/** One row of a team-league standings table (e.g. NBA). */
+export interface TeamStandingEntry {
+  seed: number;
+  team: string;
+  teamLogoUrl: string | null;
+  wins: number;
+  losses: number;
+  winPct: string;
+  gamesBehind: string;
+}
+
+/** A single conference/division group within a league standings table. */
+export interface ConferenceStandings {
+  name: string;
+  entries: TeamStandingEntry[];
+}
+
+/** Team-league (basketball) standings grouped by conference. */
+export interface LeagueStandings {
+  season: string;
+  conferences: ConferenceStandings[];
+}
+
 export type FollowKind = 'sport' | 'league' | 'team';
 
 /** Something the user follows; drives which events they see and get reminded about. */

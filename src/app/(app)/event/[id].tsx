@@ -27,6 +27,7 @@ import {
 } from "@/features/events/components/circuit-outline";
 import { BriefingCard } from "@/features/events/components/briefing-card";
 import { EventEffect } from "@/features/events/components/event-effects";
+import { LeagueStandingsCard } from "@/features/events/components/league-standings-card";
 import { LineupCard } from "@/features/events/components/lineup-card";
 import { MatchupArt } from "@/features/events/components/matchup-art";
 import { ResultsCard } from "@/features/events/components/results-card";
@@ -400,6 +401,8 @@ export default function EventDetailScreen() {
         <ResultsCard event={event} index={1} />
 
         <StandingsCard event={event} index={1} />
+
+        <LeagueStandingsCard event={event} index={1} />
 
         <Card className="mb-4" index={2}>
           <SectionHeader
