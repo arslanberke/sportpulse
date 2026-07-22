@@ -1,19 +1,20 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Link, useRouter } from 'expo-router';
-import { useCallback, useEffect } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
 
 import { Screen } from '@/components/ui/screen';
 import { EmptyCard, ErrorCard, LoadingCard } from '@/components/ui/states';
 import { useThemeColors } from '@/constants/theme';
+import { useSports } from '@/features/catalog/hooks/use-catalog';
 import { EventCard, FeaturedEventCard } from '@/features/events/components/event-card';
 import { useUpcomingEvents } from '@/features/events/hooks/use-events';
 import { useFollows } from '@/features/follows/hooks/use-follows';
 import { formatDay, isSameDay } from '@/lib/dates';
 import { useI18n } from '@/lib/i18n';
-import type { SportEvent } from '@/types';
+import type { Sport, SportEvent } from '@/types';
 
 /** Groups events by calendar day (local timezone), keeping order. */
 function groupByDay(events: SportEvent[]): { day: Date; events: SportEvent[] }[] {
@@ -27,14 +28,66 @@ function groupByDay(events: SportEvent[]): { day: Date; events: SportEvent[] }[]
   return groups;
 }
 
+function SportTab({
+  label,
+  icon,
+  active,
+  onPress,
+}: {
+  label: string;
+  icon?: string;
+  active: boolean;
+  onPress: () => void;
+}) {
+  const colors = useThemeColors();
+  return (
+    <Pressable
+      onPress={onPress}
+      className={`mr-2 flex-row items-center gap-1.5 rounded-full px-4 py-2 ${
+        active ? 'bg-primary' : 'bg-surface border border-line'
+      }`}
+    >
+      {icon && (
+        <Ionicons
+          name={icon as keyof typeof Ionicons.glyphMap}
+          size={15}
+          color={active ? '#FFFFFF' : colors.inkSecondary}
+        />
+      )}
+      <Text
+        className={`text-sm font-semibold ${active ? 'text-white' : 'text-ink-secondary'}`}
+      >
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
 /** "This week": every upcoming event for the user's follows, day by day. */
 export default function HomeScreen() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const colors = useThemeColors();
   const router = useRouter();
   const queryClient = useQueryClient();
   const { data: follows, isFetched: followsFetched } = useFollows();
+  const { data: sports } = useSports();
   const { events, isLoading, error } = useUpcomingEvents(7);
+  const [sportFilter, setSportFilter] = useState<string | null>(null);
+
+  // Only offer tabs for sports that actually have events this week.
+  const sportTabs = useMemo<Sport[]>(() => {
+    const present = new Set(events.map((e) => e.sportId));
+    return (sports ?? []).filter((s) => present.has(s.id));
+  }, [sports, events]);
+
+  // A stale filter (sport dropped out of the window) falls back to "all".
+  const activeFilter =
+    sportFilter && sportTabs.some((s) => s.id === sportFilter) ? sportFilter : null;
+
+  const visibleEvents = useMemo(
+    () => (activeFilter ? events.filter((e) => e.sportId === activeFilter) : events),
+    [events, activeFilter],
+  );
 
   // First run after sign-up: send the user to the follow/country setup.
   useEffect(() => {
@@ -58,8 +111,8 @@ export default function HomeScreen() {
     return formatDay(day);
   };
 
-  const featuredId = events.find((e) => e.status === 'scheduled')?.id;
-  const orderIndex = new Map(events.map((e, i) => [e.id, i]));
+  const featuredId = visibleEvents.find((e) => e.status === 'scheduled')?.id;
+  const orderIndex = new Map(visibleEvents.map((e, i) => [e.id, i]));
 
   return (
     <Screen onRefresh={handleRefresh} refreshing={queryClient.isFetching() > 0}>
@@ -78,6 +131,31 @@ export default function HomeScreen() {
           </Link>
         </View>
 
+        {sportTabs.length > 1 && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            className="mb-5 -mx-5 px-5"
+            contentContainerStyle={{ paddingRight: 20 }}
+          >
+            <SportTab
+              label={t('home.allSports')}
+              icon="apps"
+              active={activeFilter === null}
+              onPress={() => setSportFilter(null)}
+            />
+            {sportTabs.map((sport) => (
+              <SportTab
+                key={sport.id}
+                label={language === 'tr' ? sport.nameTr : sport.nameEn}
+                icon={sport.icon}
+                active={activeFilter === sport.id}
+                onPress={() => setSportFilter(sport.id)}
+              />
+            ))}
+          </ScrollView>
+        )}
+
         {isLoading && <LoadingCard />}
         {error && events.length === 0 && (
           <ErrorCard
@@ -86,7 +164,7 @@ export default function HomeScreen() {
           />
         )}
 
-        {groupByDay(events).map((group) => (
+        {groupByDay(visibleEvents).map((group) => (
           <View key={group.day.toISOString()} className="mb-2">
             <View className="mb-3 flex-row items-center gap-3">
               <Text className="text-base font-bold uppercase tracking-wider text-ink">
@@ -112,7 +190,7 @@ export default function HomeScreen() {
           </View>
         ))}
 
-        {!isLoading && !error && events.length === 0 && (
+        {!isLoading && !error && visibleEvents.length === 0 && (
           <EmptyCard iconName="calendar-outline" message={t('home.noEvents')} />
         )}
       </View>

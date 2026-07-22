@@ -105,6 +105,7 @@ const en = {
 
   // Home / week list
   'home.title': 'This Week',
+  'home.allSports': 'All',
   'home.today': 'Today',
   'home.tomorrow': 'Tomorrow',
   'home.noEvents': 'No upcoming events for your follows. Follow more sports, leagues or teams!',
@@ -256,6 +257,7 @@ const tr: Record<TranslationKey, string> = {
   'explore.noTeams': 'Henüz takım yok — fikstürler senkronlandıkça görünecekler.',
 
   'home.title': 'Bu Hafta',
+  'home.allSports': 'Tümü',
   'home.today': 'Bugün',
   'home.tomorrow': 'Yarın',
   'home.noEvents':
