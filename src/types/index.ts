@@ -106,6 +106,8 @@ export interface SessionEntry {
   position: number;
   name: string;
   team: string | null;
+  photoUrl?: string | null;
+  teamLogoUrl?: string | null;
 }
 
 /** Results for a single motorsport session (Qualifying, Race, ...). */
@@ -120,6 +122,8 @@ export interface StandingEntry {
   name: string;
   team: string | null;
   points: number;
+  photoUrl?: string | null;
+  teamLogoUrl?: string | null;
 }
 
 /** A motorsport championship (drivers/riders) standing for a season. */

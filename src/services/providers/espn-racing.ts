@@ -1,3 +1,4 @@
+import { f1DriverPhoto, f1TeamLogo } from './motorsport-brands.ts';
 import type { SessionEntry, SessionResults } from './types.ts';
 
 /**
@@ -85,17 +86,20 @@ async function classification(competitionRef: string): Promise<SessionEntry[]> {
         : null;
       const name = athlete?.displayName;
       if (!name || !c.order) return null;
+      const team = c.vehicle?.manufacturer ?? null;
       return {
         position: c.order,
         name,
-        team: c.vehicle?.manufacturer ?? null,
+        team,
+        photoUrl: f1DriverPhoto(name),
+        teamLogoUrl: f1TeamLogo(team),
       };
     }),
   );
 
-  return rows
-    .filter((r): r is SessionEntry => r !== null)
-    .sort((a, b) => a.position - b.position);
+  return (rows.filter((r) => r !== null) as SessionEntry[]).sort(
+    (a, b) => a.position - b.position,
+  );
 }
 
 /**

@@ -55,6 +55,8 @@ export interface SessionEntry {
   position: number;
   name: string; // driver / rider
   team: string | null; // constructor / manufacturer
+  photoUrl?: string | null; // driver/rider headshot
+  teamLogoUrl?: string | null; // constructor/team logo
 }
 
 /** Results for a single motorsport session (Qualifying, Race, ...). */
@@ -70,6 +72,8 @@ export interface StandingEntry {
   name: string; // driver / rider
   team: string | null; // constructor / manufacturer
   points: number;
+  photoUrl?: string | null; // driver/rider headshot
+  teamLogoUrl?: string | null; // constructor/team logo
 }
 
 /** A motorsport championship (drivers/riders) standing for a season. */

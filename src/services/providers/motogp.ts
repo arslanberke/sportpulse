@@ -1,3 +1,4 @@
+import { fetchMotoGpRiderPhotos } from './standings.ts';
 import type { SessionEntry, SessionResults } from './types.ts';
 
 /**
@@ -37,7 +38,7 @@ interface Session {
 
 interface ClassificationRow {
   position: number | null;
-  rider?: { full_name?: string };
+  rider?: { full_name?: string; legacy_id?: number };
   team?: { name?: string };
 }
 
@@ -106,17 +107,29 @@ export async function fetchMotoGpResults(params: {
     ) ?? sessions?.find((s) => s.type === want.type);
   if (!session) return null;
 
-  const data = await getJson<{ classification?: ClassificationRow[] }>(
-    `${BASE}/session/${session.id}/classification?test=false`,
-  );
+  const [data, photos] = await Promise.all([
+    getJson<{ classification?: ClassificationRow[] }>(
+      `${BASE}/session/${session.id}/classification?test=false`,
+    ),
+    fetchMotoGpRiderPhotos(target.getUTCFullYear()),
+  ]);
   const rows = data?.classification ?? [];
   const entries: SessionEntry[] = rows
     .filter((r): r is ClassificationRow & { position: number } => r.position != null)
-    .map((r) => ({
-      position: r.position,
-      name: r.rider?.full_name ?? '',
-      team: r.team?.name ?? null,
-    }))
+    .map((r) => {
+      const name = r.rider?.full_name ?? '';
+      const photo =
+        (r.rider?.legacy_id != null ? photos.byLegacyId.get(r.rider.legacy_id) : undefined) ??
+        photos.byName.get(name.toLowerCase()) ??
+        null;
+      return {
+        position: r.position,
+        name,
+        team: r.team?.name ?? null,
+        photoUrl: photo,
+        teamLogoUrl: null,
+      };
+    })
     .filter((e) => e.name.length > 0)
     .sort((a, b) => a.position - b.position);
 

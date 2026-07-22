@@ -3,49 +3,14 @@ import { Text, View } from "react-native";
 
 import { Card } from "@/components/ui/card";
 import { useThemeColors } from "@/constants/theme";
+import { MotorsportRow } from "@/features/events/components/motorsport-row";
 import { useEventResults } from "@/features/events/hooks/use-events";
-import { teamAccentColor } from "@/features/events/lib/motorsport-teams";
 import { useI18n } from "@/lib/i18n";
-import type { SessionEntry, SportEvent } from "@/types";
-
-function ResultRow({ entry }: { entry: SessionEntry }) {
-  const colors = useThemeColors();
-  const podium = entry.position <= 3;
-  const accent = teamAccentColor(entry.team);
-  return (
-    <View className="flex-row items-center gap-3 overflow-hidden rounded-2xl bg-surface-raised py-2.5 pr-3">
-      <View
-        className="h-9 w-1 rounded-full"
-        style={{ backgroundColor: accent ?? "transparent" }}
-      />
-      <View
-        className="h-7 w-7 items-center justify-center rounded-lg"
-        style={{
-          backgroundColor: podium ? `${colors.primary}1F` : "transparent",
-        }}
-      >
-        <Text
-          className="text-sm font-bold"
-          style={{ color: podium ? colors.primary : colors.inkSecondary }}
-        >
-          {entry.position}
-        </Text>
-      </View>
-      <Text numberOfLines={1} className="flex-1 text-sm font-medium text-ink">
-        {entry.name}
-      </Text>
-      {entry.team && (
-        <Text numberOfLines={1} className="text-xs text-ink-secondary">
-          {entry.team}
-        </Text>
-      )}
-    </View>
-  );
-}
+import type { SportEvent } from "@/types";
 
 /**
- * Motorsport session classification (F1). Renders nothing until a session has
- * run and ESPN has published its result.
+ * Motorsport session classification (F1 / MotoGP). Renders nothing until a
+ * session has run and the provider has published its result.
  */
 export function ResultsCard({
   event,
@@ -76,7 +41,15 @@ export function ResultsCard({
       </View>
       <View className="gap-2">
         {results.entries.map((entry) => (
-          <ResultRow key={entry.position} entry={entry} />
+          <MotorsportRow
+            key={entry.position}
+            position={entry.position}
+            name={entry.name}
+            team={entry.team}
+            photoUrl={entry.photoUrl}
+            teamLogoUrl={entry.teamLogoUrl}
+            highlight={entry.position <= 3}
+          />
         ))}
       </View>
     </Card>
