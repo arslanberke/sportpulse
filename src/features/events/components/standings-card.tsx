@@ -53,6 +53,7 @@ export function StandingsCard({
             teamLogoUrl={entry.teamLogoUrl}
             points={entry.points}
             highlight={entry.position === 1}
+            fullBody={event.sportId === "motogp"}
           />
         ))}
       </View>

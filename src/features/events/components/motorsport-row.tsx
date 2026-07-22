@@ -16,27 +16,33 @@ function Avatar({
   photoUrl,
   name,
   accent,
+  fullBody,
 }: {
   photoUrl?: string | null;
   name: string;
   accent: string | null;
+  fullBody: boolean;
 }) {
   const colors = useThemeColors();
   const [failed, setFailed] = useState(false);
   const tint = accent ?? colors.primary;
+  // Both sources are anchored to the top of the frame so the head lands in the
+  // circle. F1 headshots are square (head fills most of it), while MotoGP shots
+  // are tall full-body — those get zoomed in horizontally so the top of the
+  // frame shows the head/shoulders instead of the whole body down to the waist.
+  const imgStyle = fullBody
+    ? { position: "absolute" as const, top: 0, left: -26, width: 96, height: 144 }
+    : { position: "absolute" as const, top: 0, width: 44, height: 66 };
   return (
     <View
       className="h-11 w-11 items-center justify-center overflow-hidden rounded-full"
       style={{ backgroundColor: `${tint}26` }}
     >
       {photoUrl && !failed ? (
-        // Render taller than the 44px frame and anchor to the top: the top ~2/3
-        // of a square F1 headshot and the head of a full-body MotoGP shot both
-        // land the face inside the circle.
         <Image
           source={{ uri: photoUrl }}
           onError={() => setFailed(true)}
-          style={{ position: "absolute", top: 0, width: 44, height: 66 }}
+          style={imgStyle}
           resizeMode="cover"
         />
       ) : (
@@ -74,6 +80,7 @@ export function MotorsportRow({
   teamLogoUrl,
   points,
   highlight,
+  fullBody = false,
 }: {
   position: number;
   name: string;
@@ -82,6 +89,7 @@ export function MotorsportRow({
   teamLogoUrl?: string | null;
   points?: number;
   highlight: boolean;
+  fullBody?: boolean;
 }) {
   const colors = useThemeColors();
   const accent = teamAccentColor(team);
@@ -102,7 +110,7 @@ export function MotorsportRow({
           {position}
         </Text>
       </View>
-      <Avatar photoUrl={photoUrl} name={name} accent={accent} />
+      <Avatar photoUrl={photoUrl} name={name} accent={accent} fullBody={fullBody} />
       <View className="flex-1">
         <Text numberOfLines={1} className="text-sm font-semibold text-ink">
           {name}

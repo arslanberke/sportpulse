@@ -49,6 +49,7 @@ export function ResultsCard({
             photoUrl={entry.photoUrl}
             teamLogoUrl={entry.teamLogoUrl}
             highlight={entry.position <= 3}
+            fullBody={event.sportId === "motogp"}
           />
         ))}
       </View>
