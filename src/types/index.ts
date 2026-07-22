@@ -106,12 +106,30 @@ export interface SessionEntry {
   position: number;
   name: string;
   team: string | null;
+  photoUrl?: string | null;
+  teamLogoUrl?: string | null;
 }
 
 /** Results for a single motorsport session (Qualifying, Race, ...). */
 export interface SessionResults {
   session: string;
   entries: SessionEntry[];
+}
+
+/** One row of a motorsport championship standing. */
+export interface StandingEntry {
+  position: number;
+  name: string;
+  team: string | null;
+  points: number;
+  photoUrl?: string | null;
+  teamLogoUrl?: string | null;
+}
+
+/** A motorsport championship (drivers/riders) standing for a season. */
+export interface Standings {
+  season: string;
+  entries: StandingEntry[];
 }
 
 export type FollowKind = 'sport' | 'league' | 'team';

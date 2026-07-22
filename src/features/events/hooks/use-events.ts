@@ -10,6 +10,7 @@ import {
   fetchEventBroadcasts,
   fetchEventLineup,
   fetchEventResults,
+  fetchEventStandings,
   fetchEvents,
 } from '@/services/events';
 import type { SportEvent, UserFollow } from '@/types';
@@ -152,5 +153,20 @@ export function useEventResults(event: SportEvent | null) {
     enabled: Boolean(event) && started,
     staleTime: 5 * 60_000,
     refetchInterval: (query) => (query.state.data == null ? 5 * 60_000 : false),
+  });
+}
+
+/**
+ * Motorsport (F1/MotoGP) championship standings for the event's season. The
+ * server caches per event, so this stays cheap across views.
+ */
+export function useEventStandings(event: SportEvent | null) {
+  const isMotorsport = event?.sportId === 'f1' || event?.sportId === 'motogp';
+  return useQuery({
+    queryKey: ['event-standings', event?.id],
+    queryFn: () => fetchEventStandings(event!.id),
+    enabled: Boolean(event) && isMotorsport,
+    staleTime: HOUR_MS,
+    retry: false,
   });
 }

@@ -55,6 +55,8 @@ export interface SessionEntry {
   position: number;
   name: string; // driver / rider
   team: string | null; // constructor / manufacturer
+  photoUrl?: string | null; // driver/rider headshot
+  teamLogoUrl?: string | null; // constructor/team logo
 }
 
 /** Results for a single motorsport session (Qualifying, Race, ...). */
@@ -62,6 +64,23 @@ export interface SessionResults {
   /** Normalized session label, e.g. "Qualifying" | "Race" | "Practice". */
   session: string;
   entries: SessionEntry[];
+}
+
+/** One row of a motorsport championship standing. */
+export interface StandingEntry {
+  position: number;
+  name: string; // driver / rider
+  team: string | null; // constructor / manufacturer
+  points: number;
+  photoUrl?: string | null; // driver/rider headshot
+  teamLogoUrl?: string | null; // constructor/team logo
+}
+
+/** A motorsport championship (drivers/riders) standing for a season. */
+export interface Standings {
+  /** Season label, e.g. "2025". */
+  season: string;
+  entries: StandingEntry[];
 }
 
 /** A league to fetch, with the provider-specific ids we know for it. */

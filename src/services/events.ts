@@ -3,6 +3,7 @@ import type {
   Channel,
   EventLineup,
   SessionResults,
+  Standings,
   SportEvent,
   UserFollow,
 } from '@/types';
@@ -143,6 +144,22 @@ export async function fetchEventResults(
   }>('event-results', { body: { eventId } });
   if (error) throw error;
   return data?.results ?? null;
+}
+
+/**
+ * Championship (drivers'/riders') standings for the season of a motorsport
+ * event, via the server-side `event-standings` Edge Function. Returns null
+ * for non-motorsport events or uncovered series.
+ */
+export async function fetchEventStandings(
+  eventId: string,
+): Promise<Standings | null> {
+  const { data, error } = await supabase.functions.invoke<{
+    available: boolean;
+    standings: Standings | null;
+  }>('event-standings', { body: { eventId } });
+  if (error) throw error;
+  return data?.standings ?? null;
 }
 
 /** Event-specific broadcast overrides for a set of events in a country. */
