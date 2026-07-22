@@ -26,16 +26,17 @@ function Avatar({
   const tint = accent ?? colors.primary;
   return (
     <View
-      className="h-10 w-10 items-center justify-center overflow-hidden rounded-full"
+      className="h-11 w-11 items-center justify-center overflow-hidden rounded-full"
       style={{ backgroundColor: `${tint}26` }}
     >
       {photoUrl && !failed ? (
-        // Taller than the frame + top-anchored, so full-body MotoGP shots and
-        // head-and-shoulders F1 shots both land on the face.
+        // Render taller than the 44px frame and anchor to the top: the top ~2/3
+        // of a square F1 headshot and the head of a full-body MotoGP shot both
+        // land the face inside the circle.
         <Image
           source={{ uri: photoUrl }}
           onError={() => setFailed(true)}
-          style={{ width: 40, height: 56, marginTop: 2 }}
+          style={{ position: "absolute", top: 0, width: 44, height: 66 }}
           resizeMode="cover"
         />
       ) : (
