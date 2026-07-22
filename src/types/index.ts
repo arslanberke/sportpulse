@@ -114,6 +114,20 @@ export interface SessionResults {
   entries: SessionEntry[];
 }
 
+/** One row of a motorsport championship standing. */
+export interface StandingEntry {
+  position: number;
+  name: string;
+  team: string | null;
+  points: number;
+}
+
+/** A motorsport championship (drivers/riders) standing for a season. */
+export interface Standings {
+  season: string;
+  entries: StandingEntry[];
+}
+
 export type FollowKind = 'sport' | 'league' | 'team';
 
 /** Something the user follows; drives which events they see and get reminded about. */

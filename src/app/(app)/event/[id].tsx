@@ -30,6 +30,7 @@ import { EventEffect } from "@/features/events/components/event-effects";
 import { LineupCard } from "@/features/events/components/lineup-card";
 import { MatchupArt } from "@/features/events/components/matchup-art";
 import { ResultsCard } from "@/features/events/components/results-card";
+import { StandingsCard } from "@/features/events/components/standings-card";
 import { useEvent } from "@/features/events/hooks/use-events";
 import {
   artworkStyle,
@@ -397,6 +398,8 @@ export default function EventDetailScreen() {
         <BriefingCard event={event} index={1} />
 
         <ResultsCard event={event} index={1} />
+
+        <StandingsCard event={event} index={1} />
 
         <Card className="mb-4" index={2}>
           <SectionHeader

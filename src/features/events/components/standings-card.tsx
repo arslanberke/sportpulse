@@ -3,14 +3,14 @@ import { Text, View } from "react-native";
 
 import { Card } from "@/components/ui/card";
 import { useThemeColors } from "@/constants/theme";
-import { useEventResults } from "@/features/events/hooks/use-events";
+import { useEventStandings } from "@/features/events/hooks/use-events";
 import { teamAccentColor } from "@/features/events/lib/motorsport-teams";
 import { useI18n } from "@/lib/i18n";
-import type { SessionEntry, SportEvent } from "@/types";
+import type { SportEvent, StandingEntry } from "@/types";
 
-function ResultRow({ entry }: { entry: SessionEntry }) {
+function StandingRow({ entry }: { entry: StandingEntry }) {
   const colors = useThemeColors();
-  const podium = entry.position <= 3;
+  const leader = entry.position === 1;
   const accent = teamAccentColor(entry.team);
   return (
     <View className="flex-row items-center gap-3 overflow-hidden rounded-2xl bg-surface-raised py-2.5 pr-3">
@@ -20,34 +20,35 @@ function ResultRow({ entry }: { entry: SessionEntry }) {
       />
       <View
         className="h-7 w-7 items-center justify-center rounded-lg"
-        style={{
-          backgroundColor: podium ? `${colors.primary}1F` : "transparent",
-        }}
+        style={{ backgroundColor: leader ? `${colors.primary}1F` : "transparent" }}
       >
         <Text
           className="text-sm font-bold"
-          style={{ color: podium ? colors.primary : colors.inkSecondary }}
+          style={{ color: leader ? colors.primary : colors.inkSecondary }}
         >
           {entry.position}
         </Text>
       </View>
-      <Text numberOfLines={1} className="flex-1 text-sm font-medium text-ink">
-        {entry.name}
-      </Text>
-      {entry.team && (
-        <Text numberOfLines={1} className="text-xs text-ink-secondary">
-          {entry.team}
+      <View className="flex-1">
+        <Text numberOfLines={1} className="text-sm font-medium text-ink">
+          {entry.name}
         </Text>
-      )}
+        {entry.team && (
+          <Text numberOfLines={1} className="text-xs text-ink-secondary">
+            {entry.team}
+          </Text>
+        )}
+      </View>
+      <Text className="text-sm font-bold text-ink">{entry.points}</Text>
     </View>
   );
 }
 
 /**
- * Motorsport session classification (F1). Renders nothing until a session has
- * run and ESPN has published its result.
+ * Motorsport (F1/MotoGP) drivers'/riders' championship standings for the
+ * event's season. Renders nothing for other sports or uncovered series.
  */
-export function ResultsCard({
+export function StandingsCard({
   event,
   index,
 }: {
@@ -56,10 +57,10 @@ export function ResultsCard({
 }) {
   const { t } = useI18n();
   const colors = useThemeColors();
-  const { data: results } = useEventResults(event);
+  const { data: standings } = useEventStandings(event);
 
   if (event.sportId !== "f1" && event.sportId !== "motogp") return null;
-  if (!results || results.entries.length === 0) return null;
+  if (!standings || standings.entries.length === 0) return null;
 
   return (
     <Card className="mb-4" index={index}>
@@ -68,15 +69,18 @@ export function ResultsCard({
           className="h-9 w-9 items-center justify-center rounded-xl"
           style={{ backgroundColor: `${colors.primary}1F` }}
         >
-          <Ionicons name="flag" size={18} color={colors.primary} />
+          <Ionicons name="podium" size={18} color={colors.primary} />
         </View>
         <Text className="text-base font-semibold text-ink">
-          {t("event.results")}
+          {t("event.standings")}
+        </Text>
+        <Text className="ml-auto text-xs text-ink-secondary">
+          {standings.season}
         </Text>
       </View>
       <View className="gap-2">
-        {results.entries.map((entry) => (
-          <ResultRow key={entry.position} entry={entry} />
+        {standings.entries.map((entry) => (
+          <StandingRow key={entry.position} entry={entry} />
         ))}
       </View>
     </Card>
