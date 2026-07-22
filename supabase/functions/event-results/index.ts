@@ -7,6 +7,7 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 import type { SessionResults } from '../../../src/services/providers/types.ts';
 import { fetchRacingResults } from '../../../src/services/providers/espn-racing.ts';
+import { fetchMotoGpResults } from '../../../src/services/providers/motogp.ts';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -73,11 +74,14 @@ Deno.serve(async (request) => {
     }
   }
 
-  const results = await fetchRacingResults({
-    sportId: data.sport_id,
-    title: data.title,
-    startsAtUtc: data.starts_at,
-  });
+  const results =
+    data.sport_id === 'motogp'
+      ? await fetchMotoGpResults({ title: data.title, startsAtUtc: data.starts_at })
+      : await fetchRacingResults({
+          sportId: data.sport_id,
+          title: data.title,
+          startsAtUtc: data.starts_at,
+        });
   if (!results) return json({ available: false, results: null });
 
   await supabase
