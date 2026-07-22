@@ -86,12 +86,19 @@ export interface LineupPlayer {
   position: string | null;
   isSubstitute: boolean;
   photoUrl: string | null; // transparent cutout when available
+  isCaptain: boolean;
+  countryCode: string | null; // ISO 3166-1 alpha-2, for a flag
+  /** Pitch slot from the provider: row 1 = keeper's line. Null for subs. */
+  grid: { row: number; col: number } | null;
 }
 
 /** Confirmed lineups for an event, split by side. */
 export interface EventLineup {
   home: LineupPlayer[];
   away: LineupPlayer[];
+  /** e.g. "4-3-3". Null when the provider has no formation. */
+  homeFormation: string | null;
+  awayFormation: string | null;
 }
 
 export type FollowKind = 'sport' | 'league' | 'team';

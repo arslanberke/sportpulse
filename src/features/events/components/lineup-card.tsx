@@ -4,77 +4,167 @@ import { ActivityIndicator, Text, View } from "react-native";
 
 import { Card } from "@/components/ui/card";
 import { useThemeColors } from "@/constants/theme";
+import {
+  countryFlag,
+  LineupPitch,
+} from "@/features/events/components/lineup-pitch";
 import { useEventLineup } from "@/features/events/hooks/use-events";
 import { useI18n } from "@/lib/i18n";
-import type { LineupPlayer, SportEvent } from "@/types";
+import type { EventLineup, LineupPlayer, SportEvent } from "@/types";
 
-function PlayerRow({ player }: { player: LineupPlayer }) {
-  const colors = useThemeColors();
+function badge(player: LineupPlayer, keeper: string) {
+  const marks: string[] = [];
+  if (player.isCaptain) marks.push("C");
+  if ((player.position ?? "").toLowerCase() === "goalkeeper") marks.push(keeper);
+  return marks.length ? ` (${marks.join(", ")})` : "";
+}
+
+/** One player as it appears in the textual roster (flag · number · name). */
+function RosterCell({
+  player,
+  align,
+}: {
+  player: LineupPlayer | undefined;
+  align: "left" | "right";
+}) {
+  const { t } = useI18n();
+  if (!player) return <View className="flex-1" />;
+  const keeper = t("event.keeperShort");
+  const flag = countryFlag(player.countryCode);
+  const num = (
+    <Text className="w-6 text-center text-sm font-bold text-ink-secondary">
+      {player.number ?? ""}
+    </Text>
+  );
+  const name = (
+    <Text
+      numberOfLines={1}
+      className={`flex-1 text-sm font-medium text-ink ${align === "right" ? "text-right" : ""}`}
+    >
+      {player.name}
+      {badge(player, keeper)}
+    </Text>
+  );
+  const flagText = <Text className="text-sm">{flag}</Text>;
   return (
-    <View className="flex-row items-center gap-2.5 py-1.5">
-      <View className="h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-surface-raised">
-        {player.photoUrl ? (
-          <Image
-            source={{ uri: player.photoUrl }}
-            style={{ width: 36, height: 36 }}
-            contentFit="cover"
-            transition={150}
-          />
-        ) : (
-          <Ionicons name="person" size={16} color={colors.inkSecondary} />
-        )}
-      </View>
-      <Text className="w-6 text-right text-sm font-bold text-ink-secondary">
-        {player.number ?? ""}
-      </Text>
-      <Text numberOfLines={1} className="flex-1 text-sm font-medium text-ink">
-        {player.name}
-      </Text>
-      {player.position && (
-        <Text className="text-xs font-medium text-ink-secondary">
-          {player.position}
-        </Text>
+    <View className="flex-1 flex-row items-center gap-1.5">
+      {align === "left" ? (
+        <>
+          {flagText}
+          {num}
+          {name}
+        </>
+      ) : (
+        <>
+          {name}
+          {num}
+          {flagText}
+        </>
       )}
     </View>
   );
 }
 
-function TeamBlock({
+/** Two-column roster (home left, away right), paired row by row. */
+function RosterColumns({
+  home,
+  away,
+}: {
+  home: LineupPlayer[];
+  away: LineupPlayer[];
+}) {
+  const rows = Math.max(home.length, away.length);
+  return (
+    <View className="gap-1.5">
+      {Array.from({ length: rows }).map((_, i) => (
+        <View key={i} className="flex-row items-center gap-3">
+          <RosterCell player={home[i]} align="left" />
+          <RosterCell player={away[i]} align="right" />
+        </View>
+      ))}
+    </View>
+  );
+}
+
+function TeamHeader({
   name,
   badgeUrl,
-  players,
+  formation,
+  align,
 }: {
   name: string | null;
   badgeUrl: string | null;
-  players: LineupPlayer[];
+  formation: string | null;
+  align: "left" | "right";
+}) {
+  const logo = badgeUrl ? (
+    <Image
+      source={{ uri: badgeUrl }}
+      style={{ width: 22, height: 22 }}
+      contentFit="contain"
+    />
+  ) : null;
+  return (
+    <View
+      className={`flex-1 flex-row items-center gap-2 ${align === "right" ? "justify-end" : ""}`}
+    >
+      {align === "left" && logo}
+      <View className={align === "right" ? "items-end" : ""}>
+        <Text numberOfLines={1} className="text-sm font-bold text-ink">
+          {name ?? ""}
+        </Text>
+        {formation && (
+          <Text className="text-xs font-medium text-ink-secondary">
+            {formation}
+          </Text>
+        )}
+      </View>
+      {align === "right" && logo}
+    </View>
+  );
+}
+
+function LineupBody({
+  lineup,
+  event,
+}: {
+  lineup: EventLineup;
+  event: SportEvent;
 }) {
   const { t } = useI18n();
-  const starters = players.filter((p) => !p.isSubstitute);
-  const subs = players.filter((p) => p.isSubstitute);
+  const homeSubs = lineup.home.filter((p) => p.isSubstitute);
+  const awaySubs = lineup.away.filter((p) => p.isSubstitute);
+  const homeStart = lineup.home.filter((p) => !p.isSubstitute);
+  const awayStart = lineup.away.filter((p) => !p.isSubstitute);
+
   return (
-    <View>
-      <View className="mb-1 flex-row items-center gap-2">
-        {badgeUrl && (
-          <Image
-            source={{ uri: badgeUrl }}
-            style={{ width: 22, height: 22 }}
-            contentFit="contain"
-          />
-        )}
-        <Text className="text-sm font-bold text-ink">{name ?? ""}</Text>
+    <View className="gap-4">
+      <View className="flex-row items-center gap-3">
+        <TeamHeader
+          name={event.homeTeamName ?? null}
+          badgeUrl={event.homeTeamLogoUrl ?? null}
+          formation={lineup.homeFormation}
+          align="left"
+        />
+        <TeamHeader
+          name={event.awayTeamName ?? null}
+          badgeUrl={event.awayTeamLogoUrl ?? null}
+          formation={lineup.awayFormation}
+          align="right"
+        />
       </View>
-      {starters.map((p) => (
-        <PlayerRow key={p.id} player={p} />
-      ))}
-      {subs.length > 0 && (
-        <>
-          <Text className="mb-0.5 mt-2 text-xs font-semibold uppercase tracking-wide text-ink-secondary">
+
+      <LineupPitch home={lineup.home} away={lineup.away} />
+
+      <RosterColumns home={homeStart} away={awayStart} />
+
+      {(homeSubs.length > 0 || awaySubs.length > 0) && (
+        <View className="gap-1.5">
+          <Text className="text-xs font-semibold uppercase tracking-wide text-ink-secondary">
             {t("event.substitutes")}
           </Text>
-          {subs.map((p) => (
-            <PlayerRow key={p.id} player={p} />
-          ))}
-        </>
+          <RosterColumns home={homeSubs} away={awaySubs} />
+        </View>
       )}
     </View>
   );
@@ -113,19 +203,7 @@ export function LineupCard({
       </View>
 
       {lineup ? (
-        <View className="gap-4">
-          <TeamBlock
-            name={event.homeTeamName ?? null}
-            badgeUrl={event.homeTeamLogoUrl ?? null}
-            players={lineup.home}
-          />
-          <View className="h-px bg-line" />
-          <TeamBlock
-            name={event.awayTeamName ?? null}
-            badgeUrl={event.awayTeamLogoUrl ?? null}
-            players={lineup.away}
-          />
-        </View>
+        <LineupBody lineup={lineup} event={event} />
       ) : isLoading ? (
         <View className="flex-row items-center gap-2 py-1">
           <ActivityIndicator size="small" color={colors.primary} />

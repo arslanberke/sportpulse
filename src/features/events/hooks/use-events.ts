@@ -97,7 +97,8 @@ export function useEvent(id: string | undefined) {
 /**
  * Confirmed lineups for a football event. Only queries around kickoff
  * (from ~3h before to ~3h after), since official lineups appear ~1h before
- * and don't exist otherwise. Polls every 2 min until they're published.
+ * and don't exist otherwise. Polls every ~4 min until they're published — a
+ * gentle interval to stay well within the provider's daily request budget.
  */
 export function useEventLineup(event: SportEvent | null) {
   const startsAt = event ? new Date(event.startsAt).getTime() : 0;
@@ -111,8 +112,8 @@ export function useEventLineup(event: SportEvent | null) {
     queryKey: ['event-lineup', event?.id],
     queryFn: () => fetchEventLineup(event!.id),
     enabled: Boolean(event) && nearKickoff,
-    staleTime: 60_000,
+    staleTime: 120_000,
     refetchInterval: (query) =>
-      query.state.data == null && Date.now() < startsAt ? 120_000 : false,
+      query.state.data == null && Date.now() < startsAt ? 240_000 : false,
   });
 }
