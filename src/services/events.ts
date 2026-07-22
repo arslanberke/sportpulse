@@ -110,6 +110,20 @@ export async function fetchEventLineup(eventId: string): Promise<EventLineup | n
   return data?.lineup ?? null;
 }
 
+/**
+ * AI "what you need to know" briefing for one event, generated server-side from
+ * real form/head-to-head data. Returns null when there isn't enough grounded
+ * data to summarize without inventing facts.
+ */
+export async function fetchEventBriefing(eventId: string): Promise<string | null> {
+  const { data, error } = await supabase.functions.invoke<{
+    available: boolean;
+    briefing: string | null;
+  }>('event-briefing', { body: { eventId } });
+  if (error) throw error;
+  return data?.briefing ?? null;
+}
+
 /** Event-specific broadcast overrides for a set of events in a country. */
 export async function fetchEventBroadcasts(params: {
   eventIds: string[];

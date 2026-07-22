@@ -6,6 +6,7 @@ import { useFollows } from '@/features/follows/hooks/use-follows';
 import { useProfile } from '@/features/profile/hooks/use-profile';
 import {
   fetchEvent,
+  fetchEventBriefing,
   fetchEventBroadcasts,
   fetchEventLineup,
   fetchEvents,
@@ -115,5 +116,19 @@ export function useEventLineup(event: SportEvent | null) {
     staleTime: 120_000,
     refetchInterval: (query) =>
       query.state.data == null && Date.now() < startsAt ? 240_000 : false,
+  });
+}
+
+/**
+ * AI event briefing (grounded in real form/H2H). Fetched once per event and
+ * cached; the server also caches the generated text, so this stays cheap.
+ */
+export function useEventBriefing(event: SportEvent | null) {
+  return useQuery({
+    queryKey: ['event-briefing', event?.id],
+    queryFn: () => fetchEventBriefing(event!.id),
+    enabled: Boolean(event),
+    staleTime: 6 * HOUR_MS,
+    retry: false,
   });
 }
