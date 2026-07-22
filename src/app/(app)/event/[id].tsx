@@ -26,6 +26,7 @@ import {
   findCircuitPath,
 } from "@/features/events/components/circuit-outline";
 import { EventEffect } from "@/features/events/components/event-effects";
+import { LineupCard } from "@/features/events/components/lineup-card";
 import { MatchupArt } from "@/features/events/components/matchup-art";
 import { useEvent } from "@/features/events/hooks/use-events";
 import {
@@ -444,7 +445,9 @@ export default function EventDetailScreen() {
           </View>
         </Card>
 
-        <Card className="mb-4" index={2}>
+        <LineupCard event={event} index={2} />
+
+        <Card className="mb-4" index={3}>
           <SectionHeader
             icon="notifications"
             label={t("event.reminders")}

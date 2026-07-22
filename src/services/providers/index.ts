@@ -1,8 +1,14 @@
 import { espnProvider } from './espn.ts';
 import { theSportsDbProvider } from './thesportsdb.ts';
-import type { LeagueRef, ProviderEvent } from './types.ts';
+import type { EventLineup, LeagueRef, ProviderEvent } from './types.ts';
 
-export type { FixtureProvider, LeagueRef, ProviderEvent } from './types.ts';
+export type {
+  EventLineup,
+  FixtureProvider,
+  LeagueRef,
+  LineupPlayer,
+  ProviderEvent,
+} from './types.ts';
 
 /** Ordered by preference: primary first, fallbacks after. */
 export const providers = [theSportsDbProvider, espnProvider];
@@ -26,4 +32,24 @@ export async function fetchUpcomingEvents(
     }
   }
   return [];
+}
+
+/**
+ * Confirmed lineups for an event, using whichever provider knows it. Returns
+ * null when no provider has the event or lineups aren't published yet.
+ */
+export async function fetchEventLineup(
+  externalIds: Record<string, string>,
+): Promise<EventLineup | null> {
+  for (const provider of providers) {
+    const externalId = externalIds[provider.name];
+    if (!externalId || !provider.fetchLineup) continue;
+    try {
+      const lineup = await provider.fetchLineup(externalId);
+      if (lineup) return lineup;
+    } catch {
+      // Fall through to the next provider.
+    }
+  }
+  return null;
 }

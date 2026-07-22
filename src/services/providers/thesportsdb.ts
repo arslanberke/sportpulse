@@ -1,4 +1,10 @@
-import type { FixtureProvider, LeagueRef, ProviderEvent } from './types.ts';
+import type {
+  EventLineup,
+  FixtureProvider,
+  LeagueRef,
+  LineupPlayer,
+  ProviderEvent,
+} from './types.ts';
 
 /**
  * TheSportsDB — primary provider.
@@ -34,6 +40,37 @@ interface TsdbEvent {
 
 interface TsdbVenue {
   strThumb: string | null;
+}
+
+interface TsdbLineupRow {
+  idPlayer: string;
+  strPlayer: string;
+  strPosition: string | null;
+  strHome: string | null; // 'Yes' | 'No'
+  strSubstitute: string | null; // 'Yes' | 'No'
+  intSquadNumber: string | null;
+  strCutout: string | null;
+  strThumb: string | null;
+}
+
+function normalizeLineupRow(row: TsdbLineupRow): LineupPlayer {
+  const number = row.intSquadNumber ? Number(row.intSquadNumber) : null;
+  return {
+    id: row.idPlayer,
+    name: row.strPlayer,
+    number: Number.isFinite(number) ? number : null,
+    position: row.strPosition || null,
+    isSubstitute: (row.strSubstitute ?? '').toLowerCase() === 'yes',
+    photoUrl: row.strCutout || row.strThumb || null,
+  };
+}
+
+/** Starters first, then subs; within each, by squad number ascending. */
+function sortLineup(players: LineupPlayer[]): LineupPlayer[] {
+  return [...players].sort((a, b) => {
+    if (a.isSubstitute !== b.isSubstitute) return a.isSubstitute ? 1 : -1;
+    return (a.number ?? 99) - (b.number ?? 99);
+  });
 }
 
 function toUtcIso(event: TsdbEvent): string | null {
@@ -139,5 +176,22 @@ export const theSportsDbProvider: FixtureProvider = {
     const byId = new Map<string, ProviderEvent>();
     for (const event of results) byId.set(event.externalId, event);
     return [...byId.values()];
+  },
+
+  async fetchLineup(externalId: string): Promise<EventLineup | null> {
+    const data = (await getJson(`${BASE}/lookuplineup.php?id=${externalId}`)) as {
+      lineup: TsdbLineupRow[] | null;
+    } | null;
+    const rows = data?.lineup;
+    if (!rows || rows.length === 0) return null;
+    const home: LineupPlayer[] = [];
+    const away: LineupPlayer[] = [];
+    for (const row of rows) {
+      ((row.strHome ?? '').toLowerCase() === 'yes' ? home : away).push(
+        normalizeLineupRow(row),
+      );
+    }
+    if (home.length === 0 && away.length === 0) return null;
+    return { home: sortLineup(home), away: sortLineup(away) };
   },
 };

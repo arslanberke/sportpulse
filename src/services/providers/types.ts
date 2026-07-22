@@ -27,6 +27,22 @@ export interface ProviderEvent {
   postponed: boolean;
 }
 
+/** A single player in a starting XI or on the bench. */
+export interface LineupPlayer {
+  id: string;
+  name: string;
+  number: number | null;
+  position: string | null; // e.g. "Centre-Back"
+  isSubstitute: boolean;
+  photoUrl: string | null; // transparent cutout when available
+}
+
+/** Confirmed lineups for an event, split by side. */
+export interface EventLineup {
+  home: LineupPlayer[];
+  away: LineupPlayer[];
+}
+
 /** A league to fetch, with the provider-specific ids we know for it. */
 export interface LeagueRef {
   /** Our own league UUID. */
@@ -41,4 +57,10 @@ export interface FixtureProvider {
   supports(league: LeagueRef): boolean;
   /** Upcoming events for a league within the next `days` days. */
   fetchUpcomingEvents(league: LeagueRef, days: number): Promise<ProviderEvent[]>;
+  /**
+   * Confirmed lineups for one event, or null when not published yet.
+   * Official lineups usually appear ~1h before kickoff, so callers should
+   * treat null as "not out yet" and retry closer to the start.
+   */
+  fetchLineup?(externalId: string): Promise<EventLineup | null>;
 }
