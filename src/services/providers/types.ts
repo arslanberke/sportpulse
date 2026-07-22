@@ -50,6 +50,20 @@ export interface EventLineup {
   awayFormation: string | null;
 }
 
+/** One row of a motorsport session classification. */
+export interface SessionEntry {
+  position: number;
+  name: string; // driver / rider
+  team: string | null; // constructor / manufacturer
+}
+
+/** Results for a single motorsport session (Qualifying, Race, ...). */
+export interface SessionResults {
+  /** Normalized session label, e.g. "Qualifying" | "Race" | "Practice". */
+  session: string;
+  entries: SessionEntry[];
+}
+
 /** A league to fetch, with the provider-specific ids we know for it. */
 export interface LeagueRef {
   /** Our own league UUID. */

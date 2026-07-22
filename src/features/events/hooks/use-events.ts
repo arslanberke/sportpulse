@@ -6,8 +6,10 @@ import { useFollows } from '@/features/follows/hooks/use-follows';
 import { useProfile } from '@/features/profile/hooks/use-profile';
 import {
   fetchEvent,
+  fetchEventBriefing,
   fetchEventBroadcasts,
   fetchEventLineup,
+  fetchEventResults,
   fetchEvents,
 } from '@/services/events';
 import type { SportEvent, UserFollow } from '@/types';
@@ -115,5 +117,40 @@ export function useEventLineup(event: SportEvent | null) {
     staleTime: 120_000,
     refetchInterval: (query) =>
       query.state.data == null && Date.now() < startsAt ? 240_000 : false,
+  });
+}
+
+/**
+ * AI event briefing (grounded in real form/H2H). Fetched once per event and
+ * cached; the server also caches the generated text, so this stays cheap.
+ */
+export function useEventBriefing(event: SportEvent | null) {
+  return useQuery({
+    queryKey: ['event-briefing', event?.id],
+    queryFn: () => fetchEventBriefing(event!.id),
+    enabled: Boolean(event),
+    staleTime: 6 * HOUR_MS,
+    retry: false,
+  });
+}
+
+/**
+ * Motorsport (F1) session results. Only queried once a session has started;
+ * polls a few times while it's running/settling, then stops once results land.
+ */
+export function useEventResults(event: SportEvent | null) {
+  const startsAt = event ? new Date(event.startsAt).getTime() : 0;
+  const isMotorsport = event?.sportId === 'f1' || event?.sportId === 'motogp';
+  const started = useMemo(() => {
+    if (!isMotorsport) return false;
+    return new Date().getTime() >= startsAt;
+  }, [isMotorsport, startsAt]);
+
+  return useQuery({
+    queryKey: ['event-results', event?.id],
+    queryFn: () => fetchEventResults(event!.id),
+    enabled: Boolean(event) && started,
+    staleTime: 5 * 60_000,
+    refetchInterval: (query) => (query.state.data == null ? 5 * 60_000 : false),
   });
 }

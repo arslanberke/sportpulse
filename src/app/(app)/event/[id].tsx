@@ -25,9 +25,11 @@ import {
   CircuitOutline,
   findCircuitPath,
 } from "@/features/events/components/circuit-outline";
+import { BriefingCard } from "@/features/events/components/briefing-card";
 import { EventEffect } from "@/features/events/components/event-effects";
 import { LineupCard } from "@/features/events/components/lineup-card";
 import { MatchupArt } from "@/features/events/components/matchup-art";
+import { ResultsCard } from "@/features/events/components/results-card";
 import { useEvent } from "@/features/events/hooks/use-events";
 import {
   artworkStyle,
@@ -392,7 +394,11 @@ export default function EventDetailScreen() {
           )}
         </Card>
 
-        <Card className="mb-4" index={1}>
+        <BriefingCard event={event} index={1} />
+
+        <ResultsCard event={event} index={1} />
+
+        <Card className="mb-4" index={2}>
           <SectionHeader
             icon="tv"
             label={t("event.channel")}
@@ -445,9 +451,9 @@ export default function EventDetailScreen() {
           </View>
         </Card>
 
-        <LineupCard event={event} index={2} />
+        <LineupCard event={event} index={3} />
 
-        <Card className="mb-4" index={3}>
+        <Card className="mb-4" index={4}>
           <SectionHeader
             icon="notifications"
             label={t("event.reminders")}

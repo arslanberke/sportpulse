@@ -297,3 +297,62 @@ export async function fetchApiFootballLineup(
     awayFormation: m.match_awayteam_system || null,
   };
 }
+
+interface AfResultRow {
+  match_date: string;
+  league_name: string;
+  match_hometeam_name: string;
+  match_awayteam_name: string;
+  match_hometeam_score: string;
+  match_awayteam_score: string;
+  match_status: string;
+}
+
+interface AfH2H {
+  firstTeam_VS_secondTeam: AfResultRow[];
+  firstTeam_lastResults: AfResultRow[];
+  secondTeam_lastResults: AfResultRow[];
+}
+
+/** Real, source-grounded context for an AI match briefing. */
+export interface MatchContext {
+  headToHead: string[];
+  homeForm: string[];
+  awayForm: string[];
+}
+
+function resultLine(m: AfResultRow): string {
+  return `${m.match_date} ${m.league_name}: ${m.match_hometeam_name} ${m.match_hometeam_score}-${m.match_awayteam_score} ${m.match_awayteam_name}`;
+}
+
+/**
+ * Recent form + head-to-head for a fixture, as plain result strings. These are
+ * fed to the model verbatim so the briefing stays grounded in real data.
+ */
+export async function fetchApiFootballContext(
+  matchId: number | string,
+  apiKey: string,
+): Promise<MatchContext | null> {
+  const matches = await afFetch<AfMatch>(
+    `/?action=get_events&match_id=${matchId}&APIkey=${apiKey}`,
+  );
+  const m = matches?.[0];
+  if (!m) return null;
+
+  const res = await fetch(
+    `${BASE}/?action=get_H2H&firstTeamId=${m.match_hometeam_id}&secondTeamId=${m.match_awayteam_id}&APIkey=${apiKey}`,
+  );
+  if (!res.ok) return null;
+  const body = (await res.json()) as unknown;
+  if (Array.isArray(body) || body == null) return null;
+  const h2h = body as AfH2H;
+
+  const played = (rows: AfResultRow[] | undefined) =>
+    (rows ?? []).filter((r) => r.match_status === 'Finished').slice(0, 6);
+
+  return {
+    headToHead: played(h2h.firstTeam_VS_secondTeam).map(resultLine),
+    homeForm: played(h2h.firstTeam_lastResults).map(resultLine),
+    awayForm: played(h2h.secondTeam_lastResults).map(resultLine),
+  };
+}
