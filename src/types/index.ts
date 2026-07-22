@@ -101,6 +101,19 @@ export interface EventLineup {
   awayFormation: string | null;
 }
 
+/** One row of a motorsport session classification. */
+export interface SessionEntry {
+  position: number;
+  name: string;
+  team: string | null;
+}
+
+/** Results for a single motorsport session (Qualifying, Race, ...). */
+export interface SessionResults {
+  session: string;
+  entries: SessionEntry[];
+}
+
 export type FollowKind = 'sport' | 'league' | 'team';
 
 /** Something the user follows; drives which events they see and get reminded about. */

@@ -1,5 +1,11 @@
 import { supabase } from '@/services/supabase';
-import type { Channel, EventLineup, SportEvent, UserFollow } from '@/types';
+import type {
+  Channel,
+  EventLineup,
+  SessionResults,
+  SportEvent,
+  UserFollow,
+} from '@/types';
 
 interface EventRow {
   id: string;
@@ -122,6 +128,21 @@ export async function fetchEventBriefing(eventId: string): Promise<string | null
   }>('event-briefing', { body: { eventId } });
   if (error) throw error;
   return data?.briefing ?? null;
+}
+
+/**
+ * Motorsport session results (F1) for one event, via the `event-results` Edge
+ * Function. Returns null while a session hasn't run yet or isn't covered.
+ */
+export async function fetchEventResults(
+  eventId: string,
+): Promise<SessionResults | null> {
+  const { data, error } = await supabase.functions.invoke<{
+    available: boolean;
+    results: SessionResults | null;
+  }>('event-results', { body: { eventId } });
+  if (error) throw error;
+  return data?.results ?? null;
 }
 
 /** Event-specific broadcast overrides for a set of events in a country. */

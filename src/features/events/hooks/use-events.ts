@@ -9,6 +9,7 @@ import {
   fetchEventBriefing,
   fetchEventBroadcasts,
   fetchEventLineup,
+  fetchEventResults,
   fetchEvents,
 } from '@/services/events';
 import type { SportEvent, UserFollow } from '@/types';
@@ -130,5 +131,26 @@ export function useEventBriefing(event: SportEvent | null) {
     enabled: Boolean(event),
     staleTime: 6 * HOUR_MS,
     retry: false,
+  });
+}
+
+/**
+ * Motorsport (F1) session results. Only queried once a session has started;
+ * polls a few times while it's running/settling, then stops once results land.
+ */
+export function useEventResults(event: SportEvent | null) {
+  const startsAt = event ? new Date(event.startsAt).getTime() : 0;
+  const isMotorsport = event?.sportId === 'f1' || event?.sportId === 'motogp';
+  const started = useMemo(() => {
+    if (!isMotorsport) return false;
+    return new Date().getTime() >= startsAt;
+  }, [isMotorsport, startsAt]);
+
+  return useQuery({
+    queryKey: ['event-results', event?.id],
+    queryFn: () => fetchEventResults(event!.id),
+    enabled: Boolean(event) && started,
+    staleTime: 5 * 60_000,
+    refetchInterval: (query) => (query.state.data == null ? 5 * 60_000 : false),
   });
 }
