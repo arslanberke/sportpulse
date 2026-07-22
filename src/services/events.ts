@@ -1,5 +1,5 @@
 import { supabase } from '@/services/supabase';
-import type { Channel, SportEvent, UserFollow } from '@/types';
+import type { Channel, EventLineup, SportEvent, UserFollow } from '@/types';
 
 interface EventRow {
   id: string;
@@ -94,6 +94,20 @@ export async function fetchEvent(id: string): Promise<SportEvent | null> {
     .maybeSingle();
   if (error) throw error;
   return data ? mapRow(data as unknown as EventRow) : null;
+}
+
+/**
+ * Confirmed lineups for one event, fetched live via the `event-lineup` Edge
+ * Function. Returns null while official lineups aren't published yet (they
+ * usually drop ~1h before kickoff).
+ */
+export async function fetchEventLineup(eventId: string): Promise<EventLineup | null> {
+  const { data, error } = await supabase.functions.invoke<{
+    available: boolean;
+    lineup: EventLineup | null;
+  }>('event-lineup', { body: { eventId } });
+  if (error) throw error;
+  return data?.lineup ?? null;
 }
 
 /** Event-specific broadcast overrides for a set of events in a country. */

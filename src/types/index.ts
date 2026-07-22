@@ -78,6 +78,22 @@ export interface SportEvent {
   channels?: Channel[];
 }
 
+/** A single player in a confirmed lineup (starting XI or bench). */
+export interface LineupPlayer {
+  id: string;
+  name: string;
+  number: number | null;
+  position: string | null;
+  isSubstitute: boolean;
+  photoUrl: string | null; // transparent cutout when available
+}
+
+/** Confirmed lineups for an event, split by side. */
+export interface EventLineup {
+  home: LineupPlayer[];
+  away: LineupPlayer[];
+}
+
 export type FollowKind = 'sport' | 'league' | 'team';
 
 /** Something the user follows; drives which events they see and get reminded about. */

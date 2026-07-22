@@ -4,8 +4,15 @@ import { useMemo } from 'react';
 import { useLeagueChannels } from '@/features/catalog/hooks/use-catalog';
 import { useFollows } from '@/features/follows/hooks/use-follows';
 import { useProfile } from '@/features/profile/hooks/use-profile';
-import { fetchEvent, fetchEventBroadcasts, fetchEvents } from '@/services/events';
+import {
+  fetchEvent,
+  fetchEventBroadcasts,
+  fetchEventLineup,
+  fetchEvents,
+} from '@/services/events';
 import type { SportEvent, UserFollow } from '@/types';
+
+const HOUR_MS = 3_600_000;
 
 /** Raw events for a window, driven by the user's follow list. */
 function useRawEvents(from: Date, to: Date, follows: UserFollow[] | undefined) {
@@ -85,4 +92,27 @@ export function useEvent(id: string | undefined) {
   }, [eventQuery.data, eventBroadcasts, leagueChannels]);
 
   return { ...eventQuery, event };
+}
+
+/**
+ * Confirmed lineups for a football event. Only queries around kickoff
+ * (from ~3h before to ~3h after), since official lineups appear ~1h before
+ * and don't exist otherwise. Polls every 2 min until they're published.
+ */
+export function useEventLineup(event: SportEvent | null) {
+  const startsAt = event ? new Date(event.startsAt).getTime() : 0;
+  const nearKickoff = useMemo(() => {
+    if (event?.sportId !== 'football') return false;
+    const now = new Date().getTime();
+    return now >= startsAt - 3 * HOUR_MS && now <= startsAt + 3 * HOUR_MS;
+  }, [event?.sportId, startsAt]);
+
+  return useQuery({
+    queryKey: ['event-lineup', event?.id],
+    queryFn: () => fetchEventLineup(event!.id),
+    enabled: Boolean(event) && nearKickoff,
+    staleTime: 60_000,
+    refetchInterval: (query) =>
+      query.state.data == null && Date.now() < startsAt ? 120_000 : false,
+  });
 }
