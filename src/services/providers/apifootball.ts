@@ -1,71 +1,100 @@
 /**
- * API-Football (api-sports.io) lineup provider.
+ * apifootball.com lineup provider.
  *
- * Unlike TheSportsDB, this returns the full starting XI + substitutes, the
- * formation string, and pitch grid coordinates — everything the formation
- * view needs. It's pure TypeScript over `fetch` so it runs in the Deno Edge
- * Function; the API key is passed in by the caller (never read from a global)
- * to keep the module environment-agnostic.
+ * Returns the full starting XI + substitutes and the formation string for a
+ * match. The `get_events` response embeds the lineup inline, so one request
+ * gives us everything. It's pure TypeScript over `fetch`, with the key passed
+ * in by the caller, so it runs in the Deno Edge Function.
  *
- * Free plan constraints handled here:
- *   - 10 requests/minute, 100/day  → callers cache the resolved fixture id and
- *     only poll near kickoff.
- *   - `date` param is limited to a window around "today" → fine because we only
- *     resolve fixtures near kickoff.
+ * apifootball.com doesn't give pitch (x,y) coordinates, so we derive a grid
+ * from the formation string + player order: row 1 = keeper, then one row per
+ * formation line, players spread across the columns of their line. This yields
+ * the same `{row, col}` shape the pitch view expects.
  */
 
 import type { EventLineup, LineupPlayer } from './types.ts';
 
-const BASE = 'https://v3.football.api-sports.io';
+const BASE = 'https://apiv3.apifootball.com';
 
-interface AfPlayer {
-  id: number;
-  name: string;
-  number: number | null;
-  pos: string | null; // "G" | "D" | "M" | "F"
-  grid: string | null; // "row:col", row 1 = keeper. Null for subs.
+interface AfLineupPlayer {
+  lineup_player: string;
+  lineup_number: string;
+  lineup_position: string; // "1".."11" for covered leagues, "0" otherwise
+  player_key: string;
 }
 
-interface AfTeamLineup {
-  team: { id: number; name: string };
-  formation: string | null;
-  startXI: { player: AfPlayer }[];
-  substitutes: { player: AfPlayer }[];
+interface AfSide {
+  starting_lineups: AfLineupPlayer[];
+  substitutes: AfLineupPlayer[];
 }
 
-interface AfFixture {
-  fixture: { id: number };
-  teams: { home: { name: string }; away: { name: string } };
+interface AfMatch {
+  match_id: string;
+  match_hometeam_id: string;
+  match_awayteam_id: string;
+  match_hometeam_name: string;
+  match_awayteam_name: string;
+  match_hometeam_system: string; // formation e.g. "4-2-3-1"
+  match_awayteam_system: string;
+  lineup?: { home: AfSide; away: AfSide };
 }
 
-interface AfResponse<T> {
-  errors: unknown;
-  results: number;
-  response: T;
+interface AfSquadPlayer {
+  player_key: string | number;
+  player_image: string;
+  player_country: string;
+  player_type: string; // "Goalkeepers" | "Defenders" | ...
+  player_is_captain: string; // "" / "0" when not a captain
 }
 
-const POSITION_LABELS: Record<string, string> = {
-  G: 'Goalkeeper',
-  D: 'Defender',
-  M: 'Midfielder',
-  F: 'Forward',
+interface AfTeam {
+  players?: AfSquadPlayer[];
+}
+
+async function afFetch<T>(path: string): Promise<T[] | null> {
+  const res = await fetch(`${BASE}${path}`);
+  if (!res.ok) return null;
+  const body = (await res.json()) as unknown;
+  // Errors come back as an object with an `error` field, not an array.
+  if (!Array.isArray(body)) return null;
+  return body as T[];
+}
+
+interface SquadInfo {
+  photoUrl: string | null;
+  position: string | null;
+  isCaptain: boolean;
+}
+
+const TYPE_LABELS: Record<string, string> = {
+  Goalkeepers: 'Goalkeeper',
+  Defenders: 'Defender',
+  Midfielders: 'Midfielder',
+  Forwards: 'Forward',
 };
 
-async function afFetch<T>(
-  path: string,
+/**
+ * One request per team returns the full squad with photos, captain flag and
+ * position group. Keyed by player_key so we can enrich the lineup rows.
+ */
+async function fetchSquad(
+  teamId: string,
   apiKey: string,
-): Promise<AfResponse<T> | null> {
-  const res = await fetch(`${BASE}${path}`, {
-    headers: { 'x-apisports-key': apiKey },
-  });
-  if (!res.ok) return null;
-  const body = (await res.json()) as AfResponse<T>;
-  const errors = body.errors;
-  const hasErrors = Array.isArray(errors)
-    ? errors.length > 0
-    : errors != null && Object.keys(errors as object).length > 0;
-  if (hasErrors) return null;
-  return body;
+): Promise<Map<string, SquadInfo>> {
+  const map = new Map<string, SquadInfo>();
+  if (!teamId) return map;
+  const teams = await afFetch<AfTeam>(
+    `/?action=get_teams&team_id=${teamId}&APIkey=${apiKey}`,
+  );
+  const players = teams?.[0]?.players ?? [];
+  for (const p of players) {
+    map.set(String(p.player_key), {
+      photoUrl: p.player_image || null,
+      position: p.player_type ? (TYPE_LABELS[p.player_type] ?? null) : null,
+      isCaptain: Boolean(p.player_is_captain && p.player_is_captain !== '0'),
+    });
+  }
+  return map;
 }
 
 /** Strips accents, punctuation and common club noise words for fuzzy matching. */
@@ -121,88 +150,150 @@ function nameScore(a: string, b: string): number {
 }
 
 /**
- * Resolves our event to an API-Football fixture id by matching both team names
- * on the kickoff date. Returns null when there's no confident match.
+ * Resolves our event to an apifootball.com match id by matching both team
+ * names on the kickoff date. Returns null when there's no confident match.
  */
-export async function resolveApiFootballFixture(
-  params: {
-    homeTeam: string | null;
-    awayTeam: string | null;
-    startsAtUtc: string;
-    apiKey: string;
-  },
-): Promise<number | null> {
+export async function resolveApiFootballFixture(params: {
+  homeTeam: string | null;
+  awayTeam: string | null;
+  startsAtUtc: string;
+  apiKey: string;
+}): Promise<number | null> {
   const { homeTeam, awayTeam, startsAtUtc, apiKey } = params;
   if (!homeTeam || !awayTeam) return null;
 
   const date = startsAtUtc.slice(0, 10); // YYYY-MM-DD (UTC)
-  const body = await afFetch<AfFixture[]>(
-    `/fixtures?date=${date}`,
-    apiKey,
+  const matches = await afFetch<AfMatch>(
+    `/?action=get_events&from=${date}&to=${date}&APIkey=${apiKey}`,
   );
-  if (!body || body.results === 0) return null;
+  if (!matches || matches.length === 0) return null;
 
   let best: { id: number; score: number } | null = null;
-  for (const fx of body.response) {
+  for (const m of matches) {
     const score =
-      nameScore(homeTeam, fx.teams.home.name) +
-      nameScore(awayTeam, fx.teams.away.name);
+      nameScore(homeTeam, m.match_hometeam_name) +
+      nameScore(awayTeam, m.match_awayteam_name);
     if (!best || score > best.score) {
-      best = { id: fx.fixture.id, score };
+      best = { id: Number(m.match_id), score };
     }
   }
   // Require a strong match on both sides (max score is 2.0).
-  if (best && best.score >= 1.5) return best.id;
+  if (best && best.score >= 1.5 && Number.isFinite(best.id)) return best.id;
   return null;
 }
 
-function normalizePlayer(
-  p: AfPlayer,
-  isSubstitute: boolean,
-): LineupPlayer {
-  let grid: { row: number; col: number } | null = null;
-  if (p.grid) {
-    const [row, col] = p.grid.split(':').map((n) => Number(n));
-    if (Number.isFinite(row) && Number.isFinite(col)) grid = { row, col };
+/** Formation string -> outfield line sizes, with the keeper as row 1. */
+function formationRows(formation: string): number[] {
+  const lines = formation
+    .split('-')
+    .map((n) => Number(n))
+    .filter((n) => Number.isFinite(n) && n > 0);
+  return lines.length ? [1, ...lines] : [];
+}
+
+/**
+ * Assigns a pitch grid to the ordered starters from the formation. Players are
+ * expected keeper-first; when the provider gives `lineup_position` (1..11) we
+ * sort by it, otherwise we trust the array order.
+ */
+function withGrid(
+  players: AfLineupPlayer[],
+  formation: string,
+): { player: AfLineupPlayer; grid: { row: number; col: number } | null }[] {
+  const havePos = players.every(
+    (p) => p.lineup_position && p.lineup_position !== '0',
+  );
+  const ordered = havePos
+    ? [...players].sort(
+        (a, b) => Number(a.lineup_position) - Number(b.lineup_position),
+      )
+    : players;
+
+  const rows = formationRows(formation);
+  const total = rows.reduce((a, b) => a + b, 0);
+  // Only lay out on the pitch when the formation matches the XI count.
+  if (total !== ordered.length) {
+    return ordered.map((player) => ({ player, grid: null }));
   }
+
+  const out: {
+    player: AfLineupPlayer;
+    grid: { row: number; col: number } | null;
+  }[] = [];
+  let idx = 0;
+  rows.forEach((size, rowIdx) => {
+    for (let col = 1; col <= size; col += 1) {
+      out.push({ player: ordered[idx], grid: { row: rowIdx + 1, col } });
+      idx += 1;
+    }
+  });
+  return out;
+}
+
+function normalizePlayer(
+  p: AfLineupPlayer,
+  isSubstitute: boolean,
+  grid: { row: number; col: number } | null,
+  squad: Map<string, SquadInfo>,
+): LineupPlayer {
+  const number = Number(p.lineup_number);
+  const info = squad.get(String(p.player_key));
   return {
-    id: String(p.id),
-    name: p.name,
-    number: p.number ?? null,
-    position: p.pos ? (POSITION_LABELS[p.pos] ?? p.pos) : null,
+    id: p.player_key,
+    name: p.lineup_player,
+    number: Number.isFinite(number) && number > 0 ? number : null,
+    position: info?.position ?? null,
     isSubstitute,
-    photoUrl: `https://media.api-sports.io/football/players/${p.id}.png`,
-    isCaptain: false,
+    photoUrl: info?.photoUrl ?? null,
+    isCaptain: info?.isCaptain ?? false,
     countryCode: null,
     grid,
   };
 }
 
-function toSide(team: AfTeamLineup): LineupPlayer[] {
-  return [
-    ...team.startXI.map((e) => normalizePlayer(e.player, false)),
-    ...team.substitutes.map((e) => normalizePlayer(e.player, true)),
-  ];
+function toSide(
+  side: AfSide,
+  formation: string,
+  squad: Map<string, SquadInfo>,
+): LineupPlayer[] {
+  const starters = withGrid(side.starting_lineups ?? [], formation).map((e) =>
+    normalizePlayer(e.player, false, e.grid, squad),
+  );
+  const subs = (side.substitutes ?? []).map((p) =>
+    normalizePlayer(p, true, null, squad),
+  );
+  return [...starters, ...subs];
 }
 
-/** Full lineup for a known API-Football fixture, or null when not published. */
+/** Full lineup for a known apifootball.com match, or null when not published. */
 export async function fetchApiFootballLineup(
-  fixtureId: number | string,
+  matchId: number | string,
   apiKey: string,
 ): Promise<EventLineup | null> {
-  const body = await afFetch<AfTeamLineup[]>(
-    `/fixtures/lineups?fixture=${fixtureId}`,
-    apiKey,
+  const matches = await afFetch<AfMatch>(
+    `/?action=get_events&match_id=${matchId}&APIkey=${apiKey}`,
   );
-  if (!body || body.results < 2) return null; // need both teams
+  if (!matches || matches.length === 0) return null;
 
-  const [home, away] = body.response;
-  if (!home.startXI.length || !away.startXI.length) return null;
+  const m = matches[0];
+  const lu = m.lineup;
+  if (!lu) return null;
+
+  const homeStart = lu.home?.starting_lineups ?? [];
+  const awayStart = lu.away?.starting_lineups ?? [];
+  if (homeStart.length === 0 || awayStart.length === 0) return null;
+
+  // Enrich rows with photos, captain and position from each squad (2 requests,
+  // best-effort — the lineup still renders if these fail).
+  const [homeSquad, awaySquad] = await Promise.all([
+    fetchSquad(m.match_hometeam_id, apiKey),
+    fetchSquad(m.match_awayteam_id, apiKey),
+  ]);
 
   return {
-    home: toSide(home),
-    away: toSide(away),
-    homeFormation: home.formation ?? null,
-    awayFormation: away.formation ?? null,
+    home: toSide(lu.home, m.match_hometeam_system, homeSquad),
+    away: toSide(lu.away, m.match_awayteam_system, awaySquad),
+    homeFormation: m.match_hometeam_system || null,
+    awayFormation: m.match_awayteam_system || null,
   };
 }

@@ -138,7 +138,13 @@ export function LineupPitch({
   return (
     <View
       className="overflow-hidden rounded-2xl"
-      style={{ aspectRatio: 0.72, backgroundColor: colors.primary }}
+      style={{
+        aspectRatio: 0.72,
+        backgroundColor: colors.primary,
+        width: "100%",
+        maxWidth: 380,
+        alignSelf: "center",
+      }}
     >
       <LinearGradient
         colors={["#0f7a3d", "#0c6a35", "#0f7a3d"]}
