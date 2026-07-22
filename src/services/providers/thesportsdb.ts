@@ -62,6 +62,9 @@ function normalizeLineupRow(row: TsdbLineupRow): LineupPlayer {
     position: row.strPosition || null,
     isSubstitute: (row.strSubstitute ?? '').toLowerCase() === 'yes',
     photoUrl: row.strCutout || row.strThumb || null,
+    isCaptain: false,
+    countryCode: null,
+    grid: null,
   };
 }
 
@@ -192,6 +195,11 @@ export const theSportsDbProvider: FixtureProvider = {
       );
     }
     if (home.length === 0 && away.length === 0) return null;
-    return { home: sortLineup(home), away: sortLineup(away) };
+    return {
+      home: sortLineup(home),
+      away: sortLineup(away),
+      homeFormation: null,
+      awayFormation: null,
+    };
   },
 };
