@@ -128,6 +128,15 @@ export function LeagueStandingsCard({
           </Fragment>
         ))}
       </View>
+      <View className="mt-3 flex-row items-center gap-2">
+        <View
+          className="h-3 w-3 rounded-sm"
+          style={{ backgroundColor: `${colors.primary}33` }}
+        />
+        <Text className="text-xs text-ink-secondary">
+          {t("event.standings.playoffLegend")}
+        </Text>
+      </View>
     </Card>
   );
 }
