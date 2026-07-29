@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { Link, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
 
@@ -10,10 +10,12 @@ import { EmptyCard, ErrorCard, LoadingCard } from '@/components/ui/states';
 import { useThemeColors } from '@/constants/theme';
 import { useSports } from '@/features/catalog/hooks/use-catalog';
 import { EventCard, FeaturedEventCard } from '@/features/events/components/event-card';
+import { WeekHeader } from '@/features/events/components/week-header';
 import { useUpcomingEvents } from '@/features/events/hooks/use-events';
 import { useFollows } from '@/features/follows/hooks/use-follows';
 import { formatDay, isSameDay } from '@/lib/dates';
 import { useI18n } from '@/lib/i18n';
+import { matchesAny, searchNeedles } from '@/lib/search';
 import type { Sport, SportEvent } from '@/types';
 
 /** Groups events by calendar day (local timezone), keeping order. */
@@ -66,13 +68,23 @@ function SportTab({
 /** "This week": every upcoming event for the user's follows, day by day. */
 export default function HomeScreen() {
   const { t, language } = useI18n();
-  const colors = useThemeColors();
   const router = useRouter();
   const queryClient = useQueryClient();
   const { data: follows, isFetched: followsFetched } = useFollows();
   const { data: sports } = useSports();
   const { events, isLoading, error } = useUpcomingEvents(7);
   const [sportFilter, setSportFilter] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchExpanded, setSearchExpanded] = useState(false);
+
+  // Kaydirma basladiginda alan kapanir: liste tam ekran kalir, terim basliktaki
+  // dugmede gorunur olmaya devam eder.
+  const collapseOnScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (event.nativeEvent.contentOffset.y > 24) setSearchExpanded(false);
+    },
+    [],
+  );
 
   // Only offer tabs for sports that actually have events this week.
   const sportTabs = useMemo<Sport[]>(() => {
@@ -84,9 +96,19 @@ export default function HomeScreen() {
   const activeFilter =
     sportFilter && sportTabs.some((s) => s.id === sportFilter) ? sportFilter : null;
 
+  // Arama terimi etkinligin kendi adini, ligini ve iki takimini birlikte tarar:
+  // "fenerbahce" ya da "avrupa ligi" ikisi de listeyi daraltir.
+  const searchedEvents = useMemo(() => {
+    const needles = searchNeedles(searchTerm);
+    if (needles.length === 0) return events;
+    return events.filter((e) =>
+      matchesAny([e.title, e.leagueName, e.homeTeamName, e.awayTeamName], needles),
+    );
+  }, [events, searchTerm]);
+
   const visibleEvents = useMemo(
-    () => (activeFilter ? events.filter((e) => e.sportId === activeFilter) : events),
-    [events, activeFilter],
+    () => (activeFilter ? searchedEvents.filter((e) => e.sportId === activeFilter) : searchedEvents),
+    [searchedEvents, activeFilter],
   );
 
   // First run after sign-up: send the user to the follow/country setup.
@@ -115,21 +137,18 @@ export default function HomeScreen() {
   const orderIndex = new Map(visibleEvents.map((e, i) => [e.id, i]));
 
   return (
-    <Screen onRefresh={handleRefresh} refreshing={queryClient.isFetching() > 0}>
+    <Screen
+      onRefresh={handleRefresh}
+      refreshing={queryClient.isFetching() > 0}
+      onScroll={collapseOnScroll}
+    >
       <View className="pt-4">
-        <View className="mb-6 flex-row items-center justify-between">
-          <View>
-            <Text className="text-sm font-semibold uppercase tracking-widest text-primary">
-              SportPulse
-            </Text>
-            <Text className="text-3xl font-bold text-ink">{t('home.title')}</Text>
-          </View>
-          <Link href="/settings" asChild>
-            <Pressable className="h-11 w-11 items-center justify-center rounded-pill border border-line bg-surface active:opacity-70">
-              <Ionicons name="settings-outline" size={20} color={colors.ink} />
-            </Pressable>
-          </Link>
-        </View>
+        <WeekHeader
+          term={searchTerm}
+          onTermChange={setSearchTerm}
+          expanded={searchExpanded}
+          onExpandedChange={setSearchExpanded}
+        />
 
         {sportTabs.length > 1 && (
           <ScrollView
@@ -191,7 +210,14 @@ export default function HomeScreen() {
         ))}
 
         {!isLoading && !error && visibleEvents.length === 0 && (
-          <EmptyCard iconName="calendar-outline" message={t('home.noEvents')} />
+          <EmptyCard
+            iconName={searchTerm.trim() ? 'search-outline' : 'calendar-outline'}
+            message={
+              searchTerm.trim()
+                ? t('home.searchNoEvents', { term: searchTerm.trim() })
+                : t('home.noEvents')
+            }
+          />
         )}
       </View>
     </Screen>
