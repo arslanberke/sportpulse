@@ -13,10 +13,15 @@ const DURATION_MS = 120;
 const MAX_STEPS = 8;
 
 /**
- * "Fan" entrance: the item swings in from the left with a slight tilt, like a
- * deck of cards being spread out. Items run one after another, top first.
+ * "Fan" entrance: the item slides in from the left while fading. Items run
+ * one after another, top first.
  *
  * Shared so every stacked list (follows, event cards, ...) opens the same way.
+ *
+ * Bilerek yalnizca kaydirma + solma: onceki surumdeki rotate ve scale, ilk
+ * acilista yuklenen gorsellerin kalici olarak bulanik cizilmesine yol
+ * aciyordu (ayni gorsel ikinci aciliste netti). Oteleme bu sorunu
+ * tetiklemiyor.
  */
 export function listEntering(index = 0): EntryExitAnimationFunction {
   const delay = Math.min(index, MAX_STEPS) * STAGGER_MS;
@@ -27,21 +32,16 @@ export function listEntering(index = 0): EntryExitAnimationFunction {
       duration: DURATION_MS,
       easing: Easing.bezier(0.22, 1, 0.36, 1),
     };
-    const step = <T extends number | string>(to: T) =>
-      withDelay(delay, withTiming(to, config));
+    const step = (to: number) => withDelay(delay, withTiming(to, config));
 
     return {
       initialValues: {
         opacity: 0,
-        transform: [{ translateX: -24 }, { rotate: '-3deg' }, { scale: 0.96 }],
+        transform: [{ translateX: -24 }],
       },
       animations: {
         opacity: step(1),
-        transform: [
-          { translateX: step(0) },
-          { rotate: step('0deg') },
-          { scale: step(1) },
-        ],
+        transform: [{ translateX: step(0) }],
       },
     };
   };
