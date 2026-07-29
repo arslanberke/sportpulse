@@ -66,6 +66,25 @@ npm run phone:log             # uygulama loglarini akit (idevicesyslog)
 cihazlarda developer disk image gerektirdigi icin calismaz; `idevicesyslog`
 calisir. Ekran goruntusu ve uygulama baslatma icin `devicectl` kullanilmali.
 
+Ekran goruntusu o anda ekranda ne varsa onu alir; kullanici telefonu
+kullaniyorsa ozel icerik yakalanabilir. Goruntu yalnizca uygulama on plana
+alindiktan hemen sonra alinmali.
+
+### Bir ekrani dokunmadan test etmek
+
+`devicectl` dokunma gonderemez, ama expo-router rotalari deep link ile
+dogrudan acilabilir. Ekranlari tek tek dogrulamanin en hizli yolu budur:
+
+```bash
+DEV=$(xcrun devicectl list devices | awk '/physical/{print}' \
+  | grep -oE '[0-9A-F]{8}-([0-9A-F]{4}-){3}[0-9A-F]{12}' | head -1)
+xcrun devicectl device process launch --terminate-existing --device "$DEV" \
+  --payload-url "sportpulse://follow/sport/football" com.berkearslan.sportpulse
+```
+
+Dokunma gerektiren durumlar (arama alanini acmak gibi) icin ilgili useState
+baslangic degeri gecici olarak degistirilip goruntu alinabilir.
+
 ## Dogrulama
 
 ```bash
@@ -79,5 +98,14 @@ npm run lint
 - Ucretsiz Apple hesabi kullaniliyor: push yetkisi yok (bkz.
   `plugins/withoutPushEntitlement.js`) ve cihaza kurulan uygulama 7 gunde
   suresi doler, sonrasinda `npm run dev:phone` ile yeniden kurulmasi gerekir.
+- Gorseller bulanik gorunuyorsa iki bilinen sebep var. Birincisi: reanimated
+  giris animasyonlarinda `rotate`/`scale` kullanmak, animasyon sirasinda
+  yuklenen gorselleri kalici olarak yumusatiyor (bkz. `src/lib/animations.ts`).
+  Ikincisi: `expo-image` gorseli gorunum boyutuna indirger ve bu bitmap'i URL
+  ile onbelleklerse, ayni gorsel baska bir boyutta cizildiginde eski bitmap
+  olceklenir; kucuk rozetlerde `allowDownscaling={false}` kullanilir.
+- Arama yaparken `src/lib/search.ts` kullanilmali: saglayici verisi Turkce
+  karakterlerde tutarsiz ("Fenerbahce" / "Fenerbahçe") ve yarisma adlari
+  ingilizce kayitli ("UEFA Europa League"), bu yuzden ham `includes` yetmez.
 - Live Activity modulu (`modules/live-activity`) yalnizca iOS derlemelerinde
   vardir; Expo Go ve web'de `null` doner.
