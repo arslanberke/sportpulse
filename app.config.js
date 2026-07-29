@@ -43,5 +43,7 @@ module.exports = ({ config }) => ({
     ['./plugins/withPodMinimumDeploymentTarget', { deploymentTarget: '16.4' }],
     // Ucretsiz Apple hesabi push yetkisi saglayamiyor; yayin derlemesinde korunur.
     ...(IS_PRODUCTION ? [] : ['./plugins/withoutPushEntitlement']),
+    // Cihazin Metro'yu ag degisimlerinden bagimsiz bulabilmesi icin.
+    ...(IS_PRODUCTION ? [] : ['./plugins/withMetroHost']),
   ],
 });

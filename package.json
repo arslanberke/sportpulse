@@ -54,6 +54,11 @@
   },
   "scripts": {
     "start": "expo start",
+    "dev": "./scripts/dev.sh start",
+    "dev:phone": "./scripts/dev.sh phone",
+    "phone:launch": "./scripts/dev.sh launch",
+    "phone:shot": "./scripts/dev.sh shot",
+    "phone:log": "./scripts/dev.sh log",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo run:android",
     "ios": "expo run:ios",
