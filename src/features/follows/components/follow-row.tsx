@@ -82,6 +82,12 @@ export function FollowRow({
               source={{ uri: imageUrl }}
               style={{ width: 26, height: 26 }}
               contentFit="contain"
+              // Kod cozucunun gorunum boyutuna indirgedigi bitmap URL ile
+              // onbelleklenir; ayni rozet farkli boyutta bir kez cizildiyse
+              // eski bitmap olceklenerek kullanilir ve rozet bulanir. Tam
+              // boyutta cozup olceklemeyi GPU'ya birakmak tutarli ve keskin
+              // sonuc verir; rozetler ~500 piksel oldugu icin bedeli dusuk.
+              allowDownscaling={false}
             />
           </View>
         ) : (
