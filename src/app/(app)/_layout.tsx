@@ -1,11 +1,18 @@
 import { Stack } from 'expo-router';
 
 import { useThemeColors } from '@/constants/theme';
+import { useLaunchDeepLink } from '@/features/navigation/use-launch-deep-link';
+import { useNotificationNavigation } from '@/features/navigation/use-notification-navigation';
 import { useI18n } from '@/lib/i18n';
 
 export default function AppLayout() {
   const colors = useThemeColors();
   const { t } = useI18n();
+
+  // Korumali rotalar ancak burada mevcut oldugu icin, bekleyen deep link ve
+  // bildirim dokunmalari bu yerlesimde ele alinir.
+  useLaunchDeepLink();
+  useNotificationNavigation();
   return (
     <Stack
       screenOptions={{

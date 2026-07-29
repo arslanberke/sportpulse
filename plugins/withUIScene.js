@@ -24,15 +24,24 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     self.window = window
     appDelegate.window = window
 
+    // Sahne yasam dongusunde uygulamayi baslatan URL launchOptions'a hic
+    // girmez, sahneye connectionOptions ile gelir. React Native'in
+    // Linking.getInitialURL'i ise launchOptions'a baktigi icin bu URL'yi
+    // aktarmazsak nil doner: soguk baslangicta hem deep link hedefi hem de
+    // Supabase'in e-posta ile giris baglantisi sessizce dusurulur.
+    //
+    // URL'yi burada RCTLinkingManager'a olay olarak vermek ise ise yaramaz;
+    // JS paketi henuz calismadigi icin olayi dinleyen kimse yoktur.
+    var launchOptions = appDelegate.reactNativeLaunchOptions ?? [:]
+    if let url = connectionOptions.urlContexts.first?.url {
+      launchOptions[.url] = url
+    }
+
     appDelegate.reactNativeFactory?.startReactNative(
       withModuleName: "main",
       in: window,
-      launchOptions: appDelegate.reactNativeLaunchOptions
+      launchOptions: launchOptions
     )
-
-    if let url = connectionOptions.urlContexts.first?.url {
-      RCTLinkingManager.application(UIApplication.shared, open: url, options: [:])
-    }
 
     if let userActivity = connectionOptions.userActivities.first {
       RCTLinkingManager.application(
