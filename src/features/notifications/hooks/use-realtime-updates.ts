@@ -3,6 +3,7 @@ import * as Notifications from 'expo-notifications';
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
 
+import { ensureNotificationPermission } from '@/features/notifications/local-notifications';
 import { supabase } from '@/services/supabase';
 import { useAuthStore } from '@/store/auth-store';
 
@@ -40,14 +41,21 @@ export function useRealtimeUpdates() {
           if (payload.eventType === 'INSERT') {
             const row = payload.new as unknown as NotificationRow;
             if (row?.title && Platform.OS !== 'web') {
-              void Notifications.scheduleNotificationAsync({
-                content: {
-                  title: row.title,
-                  body: row.body,
-                  data: row.data,
-                },
-                trigger: null,
-              });
+              void ensureNotificationPermission()
+                .then((granted) => {
+                  if (!granted) return;
+                  return Notifications.scheduleNotificationAsync({
+                    content: {
+                      title: row.title,
+                      body: row.body,
+                      data: row.data,
+                    },
+                    trigger: null,
+                  });
+                })
+                .catch(() => {
+                  // Surfacing the update in-app is enough if the OS refuses.
+                });
             }
           }
         },

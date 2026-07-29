@@ -40,6 +40,33 @@ export async function addFollow(params: {
   if (error) throw error;
 }
 
+/**
+ * Adds several follows at once. Used when a "follow everything" pick is
+ * expanded into the individual rows it stood for.
+ */
+export async function addFollows(params: {
+  userId: string;
+  items: { kind: FollowKind; targetId: string }[];
+}) {
+  if (params.items.length === 0) return;
+  const { error } = await supabase.from('user_follows').insert(
+    params.items.map((item) => ({
+      user_id: params.userId,
+      kind: item.kind,
+      sport_id: item.kind === 'sport' ? item.targetId : null,
+      league_id: item.kind === 'league' ? item.targetId : null,
+      team_id: item.kind === 'team' ? item.targetId : null,
+    })),
+  );
+  if (error) throw error;
+}
+
+export async function removeFollows(ids: string[]) {
+  if (ids.length === 0) return;
+  const { error } = await supabase.from('user_follows').delete().in('id', ids);
+  if (error) throw error;
+}
+
 export async function removeFollow(id: string) {
   const { error } = await supabase.from('user_follows').delete().eq('id', id);
   if (error) throw error;

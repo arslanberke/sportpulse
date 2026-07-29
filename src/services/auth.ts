@@ -1,3 +1,4 @@
+import { authRedirectUrl } from '@/features/auth/auth-redirect';
 import { supabase } from '@/services/supabase';
 
 export interface SignUpParams {
@@ -11,7 +12,12 @@ export async function signUp({ email, password, fullName }: SignUpParams) {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { full_name: fullName } },
+    options: {
+      data: { full_name: fullName },
+      // Brings the user back into the app after they confirm their email
+      // instead of onto the project's default Site URL (localhost).
+      emailRedirectTo: authRedirectUrl(),
+    },
   });
   if (error) throw error;
   return data;

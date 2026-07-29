@@ -1,4 +1,4 @@
-import type { FixtureProvider, LeagueRef, ProviderEvent } from './types.ts';
+import type { FixtureProvider, LeagueRef, ProviderEvent, ProviderTeam } from './types.ts';
 
 /**
  * ESPN hidden API (site.api.espn.com) — fallback provider.
@@ -30,6 +30,27 @@ interface EspnEvent {
   date: string; // ISO with zone, e.g. '2026-07-17T11:30Z'
   status?: { type?: { name?: string } };
   competitions?: { competitors?: EspnCompetitor[] }[];
+}
+
+interface EspnTeamEntry {
+  team?: {
+    id?: string;
+    displayName?: string;
+    /** "Ajax" where displayName is "Ajax Amsterdam". */
+    shortDisplayName?: string;
+    /** The club without the city, e.g. "Hoffenheim" for "TSG Hoffenheim". */
+    name?: string;
+    logos?: { href?: string }[];
+  };
+}
+
+/** Club list endpoint; only the sports that have a slug expose one. */
+function teamsUrl(league: LeagueRef): string | null {
+  const path = SPORT_PATHS[league.sportId];
+  const slug = league.externalIds.espn;
+  if (!path || !slug) return null;
+  if (!['football', 'basketball'].includes(league.sportId)) return null;
+  return `${BASE}/${path}/${slug}/teams`;
 }
 
 function scoreboardUrl(league: LeagueRef, dates: string): string | null {
@@ -82,5 +103,31 @@ export const espnProvider: FixtureProvider = {
     if (!response.ok) return [];
     const data = (await response.json()) as { events?: EspnEvent[] };
     return (data.events ?? []).map(normalize);
+  },
+
+  async fetchLeagueTeams(league: LeagueRef): Promise<ProviderTeam[]> {
+    const url = teamsUrl(league);
+    if (!url) return [];
+    const response = await fetch(url);
+    if (!response.ok) return [];
+    const data = (await response.json()) as {
+      sports?: { leagues?: { teams?: EspnTeamEntry[] }[] }[];
+    };
+    const entries = data.sports?.[0]?.leagues?.[0]?.teams ?? [];
+    return entries
+      .map((entry) => entry.team)
+      .filter((team): team is NonNullable<EspnTeamEntry['team']> =>
+        Boolean(team?.id && team.displayName),
+      )
+      .map((team) => ({
+        externalIds: { espn: team.id! },
+        name: team.displayName!,
+        logoUrl: team.logos?.[0]?.href ?? null,
+        // Other feeds spell the same club longer or shorter; ESPN hands us
+        // both forms, which saves guessing at match time.
+        aliases: [team.shortDisplayName, team.name].filter(
+          (alias): alias is string => Boolean(alias),
+        ),
+      }));
   },
 };

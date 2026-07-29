@@ -9,13 +9,8 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/images/icon.png",
-      "bundleIdentifier": "com.sportpulse.app",
-      "entitlements": {
-        "com.apple.security.application-groups": ["group.com.sportpulse.app"]
-      },
-      "infoPlist": {
-        "NSSupportsLiveActivities": true
-      }
+      "bundleIdentifier": "com.berkearslan.sportpulse",
+      "appleTeamId": "64RAGC9YS4"
     },
     "android": {
       "adaptiveIcon": {
@@ -38,9 +33,15 @@
           "imageWidth": 76
         }
       ],
-      "expo-notifications",
       "expo-image-picker",
-      "@bacons/apple-targets"
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "16.4"
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

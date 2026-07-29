@@ -2,17 +2,18 @@
 // caches the result on the event so repeat views don't re-hit the upstream
 // API. Covers two shapes:
 //   - motorsport (F1 / MotoGP): drivers'/riders' championship points table
-//   - basketball (NBA): conference W-L standings table
+//   - basketball (NBA via ESPN, EuroLeague via its own feed): W-L table
 // Returns available:false for anything else or when the series isn't covered.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
-import type {
-  LeagueStandings,
-  Standings,
-} from '../../../src/services/providers/types.ts';
-import { fetchMotorsportStandings } from '../../../src/services/providers/standings.ts';
 import { fetchBasketballStandings } from '../../../src/services/providers/basketball-standings.ts';
+import { fetchEuroleagueStandings } from '../../../src/services/providers/euroleague-standings.ts';
+import { fetchMotorsportStandings } from '../../../src/services/providers/standings.ts';
+import type {
+    LeagueStandings,
+    Standings,
+} from '../../../src/services/providers/types.ts';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -47,7 +48,7 @@ interface EventRow {
 }
 
 interface LeagueRow {
-  external_ids: { espn?: string } | null;
+  external_ids: { espn?: string; euroleague?: string } | null;
 }
 
 function respond(payload: CachePayload): Response {
@@ -109,19 +110,23 @@ Deno.serve(async (request) => {
     });
     if (standings) payload = { kind: 'motorsport', motorsport: standings };
   } else {
-    let slug: string | undefined;
+    let ids: LeagueRow['external_ids'] = null;
     if (data.league_id) {
       const { data: league } = await supabase
         .from('leagues')
         .select('external_ids')
         .eq('id', data.league_id)
         .maybeSingle<LeagueRow>();
-      slug = league?.external_ids?.espn;
+      ids = league?.external_ids ?? null;
     }
-    if (slug) {
-      const league = await fetchBasketballStandings(slug);
-      if (league) payload = { kind: 'league', league };
-    }
+    // ESPN has no European basketball, so those leagues carry a EuroLeague
+    // competition code instead of a slug and use the competition's own feed.
+    const league = ids?.euroleague
+      ? await fetchEuroleagueStandings(ids.euroleague)
+      : ids?.espn
+        ? await fetchBasketballStandings(ids.espn)
+        : null;
+    if (league) payload = { kind: 'league', league };
   }
 
   if (!payload) {

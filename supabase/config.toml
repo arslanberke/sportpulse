@@ -385,6 +385,15 @@ deno_version = 2
 # [edge_runtime.secrets]
 # secret_key = "env(SECRET_VALUE)"
 
+# The sync jobs are called by pg_cron with a shared SYNC_SECRET, not a user
+# JWT, so the platform's JWT gate has to be off — the functions check the
+# secret themselves and return 401 otherwise.
+[functions.sync-events]
+verify_jwt = false
+
+[functions.sync-teams]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327

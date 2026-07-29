@@ -44,12 +44,13 @@ export function Button({
 }: ButtonProps) {
   const isDisabled = disabled || loading;
   const [scale] = useState(() => new Animated.Value(1));
+  // Straight ease, no bounciness: the press should feel firm, not springy.
   const spring = (toValue: number) =>
     Animated.spring(scale, {
       toValue,
       useNativeDriver: true,
       speed: 40,
-      bounciness: 6,
+      bounciness: 0,
     }).start();
 
   return (

@@ -1,9 +1,10 @@
 import type {
-  EventLineup,
-  FixtureProvider,
-  LeagueRef,
-  LineupPlayer,
-  ProviderEvent,
+    EventLineup,
+    FixtureProvider,
+    LeagueRef,
+    LineupPlayer,
+    ProviderEvent,
+    ProviderTeam,
 } from './types.ts';
 
 /**
@@ -40,6 +41,27 @@ interface TsdbEvent {
 
 interface TsdbVenue {
   strThumb: string | null;
+}
+
+interface TsdbTeam {
+  idTeam: string;
+  strTeam: string;
+  strBadge: string | null;
+  /** Other spellings, separated by commas, e.g. "Ajax, AFC Ajax". */
+  strTeamAlternate?: string | null;
+  strTeamShort?: string | null;
+  /** '0' when unknown; otherwise the club's id at ESPN. */
+  idESPN?: string | null;
+  // A club lists every competition it plays in as idLeague..idLeague7.
+  [key: string]: string | null | undefined;
+}
+
+/** True when the club lists this competition among its leagues. */
+function teamPlaysIn(team: TsdbTeam, leagueId: string): boolean {
+  for (const suffix of ['', '2', '3', '4', '5', '6', '7']) {
+    if (team[`idLeague${suffix}`] === leagueId) return true;
+  }
+  return false;
 }
 
 interface TsdbLineupRow {
@@ -179,6 +201,47 @@ export const theSportsDbProvider: FixtureProvider = {
     const byId = new Map<string, ProviderEvent>();
     for (const event of results) byId.set(event.externalId, event);
     return [...byId.values()];
+  },
+
+  async fetchLeagueTeams(league: LeagueRef): Promise<ProviderTeam[]> {
+    const leagueId = league.externalIds.thesportsdb;
+    if (!leagueId) return [];
+    // `lookup_all_teams.php?id=` is paywalled: on the free key it answers every
+    // id with the same sample squad, so it can't be used. `search_all_teams`
+    // keyed by the provider's own league name is free and correct — hence the
+    // extra lookup to turn our display name ("Süper Lig") into theirs
+    // ("Turkish Super Lig").
+    const leagueData = (await getJson(`${BASE}/lookupleague.php?id=${leagueId}`)) as {
+      leagues: { strLeague: string | null }[] | null;
+    } | null;
+    const providerName = leagueData?.leagues?.[0]?.strLeague;
+    if (!providerName) return [];
+
+    const data = (await getJson(
+      `${BASE}/search_all_teams.php?l=${encodeURIComponent(providerName)}`,
+    )) as { teams: TsdbTeam[] | null } | null;
+
+    return (data?.teams ?? [])
+      .filter((team) => team.idTeam && team.strTeam)
+      // The endpoint has been seen to fall back to an unrelated league, so
+      // only keep teams that really list this competition.
+      .filter((team) => teamPlaysIn(team, leagueId))
+      .map((team) => ({
+        externalIds: {
+          thesportsdb: team.idTeam,
+          // Handing ESPN's id over means the two providers resolve to the
+          // same row no matter which one is synced first.
+          ...(team.idESPN && team.idESPN !== '0' ? { espn: team.idESPN } : {}),
+        },
+        name: team.strTeam,
+        logoUrl: team.strBadge || null,
+        // The club's other spellings, so a name another feed uses still
+        // resolves to this row instead of minting a second one.
+        aliases: (team.strTeamAlternate ?? '')
+          .split(',')
+          .map((alias) => alias.trim())
+          .filter((alias) => alias.length > 0),
+      }));
   },
 
   async fetchLineup(externalId: string): Promise<EventLineup | null> {

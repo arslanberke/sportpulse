@@ -1,6 +1,8 @@
 import { type ReactNode } from 'react';
 import { View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
+
+import { listEntering } from '@/lib/animations';
 
 interface CardProps {
   children: ReactNode;
@@ -9,15 +11,10 @@ interface CardProps {
   index?: number;
 }
 
-/** Rounded content container. Cascades in on mount (staggered by `index`). */
+/** Rounded content container. Fans in from the left (staggered by `index`). */
 export function Card({ children, className = '', index = 0 }: CardProps) {
   return (
-    <Animated.View
-      entering={FadeInDown.delay(index * 70)
-        .duration(420)
-        .springify()
-        .damping(18)}
-    >
+    <Animated.View entering={listEntering(index)}>
       <View
         className={`rounded-card border border-line bg-surface p-5 ${className}`}
         style={{

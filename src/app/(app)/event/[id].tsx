@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import { Platform, Text, View } from "react-native";
+import { Platform, Share, Text, View } from "react-native";
 import Animated, {
   FadeIn,
   FadeOut,
@@ -140,6 +140,23 @@ export default function EventDetailScreen() {
         channels.map((c) => c.name),
       );
       setShowSuccess(true);
+    } catch {
+      showAlert(t("event.couldNotShare"), t("common.tryAgain"));
+    }
+  };
+
+  const handleShare = async () => {
+    const channelNames = channels.map((c) => c.name).join(", ");
+    const time = formatDateTime(event.startsAt);
+    const message = channelNames
+      ? t("event.shareMessageWithChannel", {
+          title: event.title,
+          time,
+          channel: channelNames,
+        })
+      : t("event.shareMessage", { title: event.title, time });
+    try {
+      await Share.share({ message });
     } catch {
       showAlert(t("event.couldNotShare"), t("common.tryAgain"));
     }
@@ -494,6 +511,13 @@ export default function EventDetailScreen() {
         </Card>
 
         <Button title={t("event.addToCalendar")} onPress={handleShareIcs} />
+        <View className="mt-3">
+          <Button
+            title={t("event.share")}
+            onPress={handleShare}
+            variant="secondary"
+          />
+        </View>
         {showLiveActivity && (
           <View className="mt-3">
             <Button

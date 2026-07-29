@@ -1,12 +1,12 @@
 import { supabase } from '@/services/supabase';
 import type {
-  Channel,
-  EventLineup,
-  LeagueStandings,
-  SessionResults,
-  Standings,
-  SportEvent,
-  UserFollow,
+    Channel,
+    EventLineup,
+    LeagueStandings,
+    SessionResults,
+    SportEvent,
+    Standings,
+    UserFollow,
 } from '@/types';
 
 interface EventRow {
@@ -87,6 +87,30 @@ export async function fetchEvents(params: {
     .gte('starts_at', from.toISOString())
     .lt('starts_at', to.toISOString())
     .or(clauses.join(','))
+    .order('starts_at');
+  if (error) throw error;
+  return (data as unknown as EventRow[]).map(mapRow);
+}
+
+/**
+ * A club's own fixture list: everything ahead of it in any competition. The
+ * team page groups these by league, so a cup tie never sits between two
+ * league games.
+ */
+export async function fetchTeamEvents(params: {
+  teamId: string;
+  days: number;
+}): Promise<SportEvent[]> {
+  const from = new Date();
+  const to = new Date(from.getTime() + params.days * 86_400_000);
+  const { data, error } = await supabase
+    .from('events')
+    .select(
+      'id, sport_id, league_id, home_team_id, away_team_id, title, starts_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url)',
+    )
+    .gte('starts_at', from.toISOString())
+    .lt('starts_at', to.toISOString())
+    .or(`home_team_id.eq.${params.teamId},away_team_id.eq.${params.teamId}`)
     .order('starts_at');
   if (error) throw error;
   return (data as unknown as EventRow[]).map(mapRow);

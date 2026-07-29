@@ -155,6 +155,41 @@ export interface LeagueStandings {
   conferences: ConferenceStandings[];
 }
 
+/**
+ * One row of a league table. Football fills draws/goalDiff/points; basketball
+ * fills winPct/gamesBehind. The renderer picks its columns from the sport, so
+ * a single shape covers both without a union.
+ */
+export interface LeagueTableRow {
+  rank: number;
+  team: string;
+  teamLogoUrl: string | null;
+  played: number;
+  wins: number;
+  draws: number | null;
+  losses: number;
+  points: number | null;
+  goalDiff: string | null;
+  winPct: string | null;
+  gamesBehind: string | null;
+}
+
+/** A group inside a table: a conference, or a cup's league phase. */
+export interface LeagueTableGroup {
+  name: string;
+  rows: LeagueTableRow[];
+}
+
+/** The table of one competition, as shown on a team's standings tab. */
+export interface LeagueTable {
+  leagueId: string;
+  leagueName: string;
+  leagueLogoUrl: string | null;
+  sportId: string;
+  season: string;
+  groups: LeagueTableGroup[];
+}
+
 export type FollowKind = 'sport' | 'league' | 'team';
 
 /** Something the user follows; drives which events they see and get reminded about. */

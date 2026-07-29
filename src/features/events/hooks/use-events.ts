@@ -5,14 +5,15 @@ import { useLeagueChannels } from '@/features/catalog/hooks/use-catalog';
 import { useFollows } from '@/features/follows/hooks/use-follows';
 import { useProfile } from '@/features/profile/hooks/use-profile';
 import {
-  fetchEvent,
-  fetchEventBriefing,
-  fetchEventBroadcasts,
-  fetchEventLineup,
-  fetchEventLeagueStandings,
-  fetchEventResults,
-  fetchEventStandings,
-  fetchEvents,
+    fetchEvent,
+    fetchEventBriefing,
+    fetchEventBroadcasts,
+    fetchEventLeagueStandings,
+    fetchEventLineup,
+    fetchEventResults,
+    fetchEventStandings,
+    fetchEvents,
+    fetchTeamEvents,
 } from '@/services/events';
 import type { SportEvent, UserFollow } from '@/types';
 
@@ -44,6 +45,44 @@ export function useUpcomingEvents(days = 7) {
 
   const eventsQuery = useRawEvents(from, to, follows);
   const { data: leagueChannels } = useLeagueChannels(profile?.countryCode);
+
+  const eventIds = (eventsQuery.data ?? []).map((e) => e.id);
+  const { data: eventBroadcasts } = useQuery({
+    queryKey: ['event-broadcasts', eventIds.join(','), profile?.countryCode],
+    queryFn: () =>
+      fetchEventBroadcasts({ eventIds, countryCode: profile!.countryCode }),
+    enabled: Boolean(profile) && eventIds.length > 0,
+  });
+
+  const events: SportEvent[] = useMemo(
+    () =>
+      (eventsQuery.data ?? []).map((event) => ({
+        ...event,
+        channels:
+          eventBroadcasts?.get(event.id) ??
+          (event.leagueId ? (leagueChannels?.get(event.leagueId) ?? []) : []),
+      })),
+    [eventsQuery.data, eventBroadcasts, leagueChannels],
+  );
+
+  return { ...eventsQuery, events };
+}
+
+/**
+ * A club's upcoming fixtures across every competition, with broadcast
+ * channels merged in the same way as the week list. Independent of the
+ * follow list: this is the team page, not the feed.
+ */
+export function useTeamEvents(teamId: string | undefined, days = 120) {
+  const { data: profile } = useProfile();
+  const { data: leagueChannels } = useLeagueChannels(profile?.countryCode);
+
+  const eventsQuery = useQuery({
+    queryKey: ['team-events', teamId, days],
+    queryFn: () => fetchTeamEvents({ teamId: teamId!, days }),
+    enabled: Boolean(teamId),
+    staleTime: 5 * 60_000,
+  });
 
   const eventIds = (eventsQuery.data ?? []).map((e) => e.id);
   const { data: eventBroadcasts } = useQuery({

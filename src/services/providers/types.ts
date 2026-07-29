@@ -27,6 +27,25 @@ export interface ProviderEvent {
   postponed: boolean;
 }
 
+/** A club/constructor taking part in a league, independent of any fixture. */
+export interface ProviderTeam {
+  /**
+   * Every provider id known for this club, keyed by provider name. Providers
+   * often report each other's ids, and matching on any of them is what keeps
+   * "Amed SFK" and "Amed" from becoming two clubs.
+   */
+  externalIds: Record<string, string>;
+  name: string;
+  /** Transparent badge (PNG with alpha) when the provider has one. */
+  logoUrl: string | null;
+  /**
+   * Other names the source itself gives for the club — its short name, or the
+   * name without the city it tacks on. Used only to recognise a club we
+   * already have under a different competition's spelling.
+   */
+  aliases?: string[];
+}
+
 /** A single player in a starting XI or on the bench. */
 export interface LineupPlayer {
   id: string;
@@ -87,6 +106,30 @@ export interface TeamStandingEntry {
   gamesBehind: string; // "-" for the leader, else e.g. "14"
 }
 
+/**
+ * One row of a league table. Football fills draws/goalDiff/points; basketball
+ * fills winPct/gamesBehind, so a single shape serves both.
+ */
+export interface LeagueTableRow {
+  rank: number;
+  team: string;
+  teamLogoUrl: string | null;
+  played: number;
+  wins: number;
+  draws: number | null;
+  losses: number;
+  points: number | null;
+  goalDiff: string | null;
+  winPct: string | null;
+  gamesBehind: string | null;
+}
+
+/** A group inside a table: a conference, or a cup's league phase. */
+export interface LeagueTableGroup {
+  name: string;
+  rows: LeagueTableRow[];
+}
+
 /** A single conference/division group within a league standings table. */
 export interface ConferenceStandings {
   name: string;
@@ -114,6 +157,18 @@ export interface LeagueRef {
   externalIds: Record<string, string>;
 }
 
+/**
+ * A source that only knows who plays in a league, not when. Some leagues
+ * (EuroLeague, the Turkish basketball and volleyball ones) have no fixture
+ * feed we can use but do publish their entry list, and that alone is enough
+ * to fill the follow screens.
+ */
+export interface TeamListProvider {
+  readonly name: string;
+  supports(league: LeagueRef): boolean;
+  fetchLeagueTeams(league: LeagueRef): Promise<ProviderTeam[]>;
+}
+
 export interface FixtureProvider {
   readonly name: string;
   /** Whether this provider can serve the given league. */
@@ -126,4 +181,9 @@ export interface FixtureProvider {
    * treat null as "not out yet" and retry closer to the start.
    */
   fetchLineup?(externalId: string): Promise<EventLineup | null>;
+  /**
+   * Every team taking part in the league this season. Independent of the
+   * fixture list, so it works between seasons too.
+   */
+  fetchLeagueTeams?(league: LeagueRef): Promise<ProviderTeam[]>;
 }

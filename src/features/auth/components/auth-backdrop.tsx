@@ -81,23 +81,23 @@ export function AuthBackdrop() {
   );
 }
 
-/** Card-style entrance: fade in while springing up from below. */
+/** Card-style entrance: fade in while easing across from the left. */
 export function AuthEntrance({ children, delay = 0 }: PropsWithChildren<{ delay?: number }>) {
   const [progress] = useState(() => new Animated.Value(0));
   useEffect(() => {
     Animated.sequence([
       Animated.delay(delay),
-      Animated.spring(progress, {
+      Animated.timing(progress, {
         toValue: 1,
-        friction: 8,
-        tension: 50,
+        duration: 180,
+        easing: Easing.out(Easing.cubic),
         useNativeDriver: false,
       }),
     ]).start();
   }, [progress, delay]);
-  const translateY = progress.interpolate({ inputRange: [0, 1], outputRange: [36, 0] });
+  const translateX = progress.interpolate({ inputRange: [0, 1], outputRange: [-24, 0] });
   return (
-    <Animated.View style={{ opacity: progress, transform: [{ translateY }] }}>
+    <Animated.View style={{ opacity: progress, transform: [{ translateX }] }}>
       {children}
     </Animated.View>
   );

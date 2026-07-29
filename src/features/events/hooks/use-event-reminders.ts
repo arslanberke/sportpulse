@@ -4,6 +4,7 @@ import { Platform } from 'react-native';
 
 import { useUpcomingEvents } from '@/features/events/hooks/use-events';
 import { reminderTimes } from '@/features/events/lib/reminder-times';
+import { ensureNotificationPermission } from '@/features/notifications/local-notifications';
 import { useReminderPrefs } from '@/features/settings/hooks/use-reminder-prefs';
 import { formatDateTime } from '@/lib/dates';
 import { useI18n } from '@/lib/i18n';
@@ -33,6 +34,8 @@ export function useEventReminders() {
     let cancelled = false;
 
     (async () => {
+      if (!(await ensureNotificationPermission())) return;
+
       // Clear our own reminders only, then re-schedule from scratch.
       const existing = await Notifications.getAllScheduledNotificationsAsync();
       for (const notification of existing) {
@@ -65,7 +68,9 @@ export function useEventReminders() {
           });
         }
       }
-    })();
+    })().catch(() => {
+      // A denied permission or a stale trigger must not crash the screen.
+    });
 
     return () => {
       cancelled = true;

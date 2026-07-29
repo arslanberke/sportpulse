@@ -1,6 +1,9 @@
 import { supabase } from '@/services/supabase';
 import type { Channel, League, Sport, Team } from '@/types';
 
+/** Rows per kind in a catalog search; enough to scroll, short enough to scan. */
+const SEARCH_LIMIT = 20;
+
 interface SportRow {
   id: string;
   name_en: string;
@@ -59,12 +62,32 @@ export async function fetchLeagues(): Promise<League[]> {
 }
 
 export async function fetchTeams(leagueId?: string): Promise<Team[]> {
-  let query = supabase
+  // Membership lives in league_teams because a club plays in several
+  // competitions; teams.league_id is only its home league.
+  if (leagueId) {
+    const { data, error } = await supabase
+      .from('league_teams')
+      .select('teams (id, sport_id, league_id, name, logo_url, external_ids)')
+      .eq('league_id', leagueId);
+    if (error) throw error;
+    return (data as unknown as { teams: TeamRow | null }[])
+      .map((row) => row.teams)
+      .filter((row): row is TeamRow => row !== null)
+      .map((row) => ({
+        id: row.id,
+        sportId: row.sport_id,
+        leagueId: row.league_id,
+        name: row.name,
+        logoUrl: row.logo_url,
+        externalIds: row.external_ids,
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  const { data, error } = await supabase
     .from('teams')
     .select('id, sport_id, league_id, name, logo_url, external_ids')
     .order('name');
-  if (leagueId) query = query.eq('league_id', leagueId);
-  const { data, error } = await query;
   if (error) throw error;
   return (data as TeamRow[]).map((row) => ({
     id: row.id,
@@ -74,6 +97,95 @@ export async function fetchTeams(leagueId?: string): Promise<Team[]> {
     logoUrl: row.logo_url,
     externalIds: row.external_ids,
   }));
+}
+
+export async function fetchTeam(teamId: string): Promise<Team | null> {
+  const { data, error } = await supabase
+    .from('teams')
+    .select('id, sport_id, league_id, name, logo_url, external_ids')
+    .eq('id', teamId)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  const row = data as TeamRow;
+  return {
+    id: row.id,
+    sportId: row.sport_id,
+    leagueId: row.league_id,
+    name: row.name,
+    logoUrl: row.logo_url,
+    externalIds: row.external_ids,
+  };
+}
+
+/**
+ * Every competition a club takes part in — its league plus the cups it
+ * qualified for. Drives both the fixture grouping and the standings tabs.
+ */
+export async function fetchTeamLeagues(teamId: string): Promise<League[]> {
+  const { data, error } = await supabase
+    .from('league_teams')
+    .select('leagues (id, sport_id, name, country_code, logo_url, external_ids)')
+    .eq('team_id', teamId);
+  if (error) throw error;
+  return (data as unknown as { leagues: LeagueRow | null }[])
+    .map((row) => row.leagues)
+    .filter((row): row is LeagueRow => row !== null)
+    .map((row) => ({
+      id: row.id,
+      sportId: row.sport_id,
+      name: row.name,
+      countryCode: row.country_code,
+      logoUrl: row.logo_url,
+      externalIds: row.external_ids,
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/**
+ * Free-text lookup over leagues and teams, so a user can jump straight to
+ * "Galatasaray" without walking sport → league → team. Sports are matched in
+ * the client (there are seven of them and they are already loaded).
+ */
+export async function searchCatalog(
+  term: string,
+): Promise<{ leagues: League[]; teams: Team[] }> {
+  const pattern = `%${term.trim()}%`;
+  const [leagueResult, teamResult] = await Promise.all([
+    supabase
+      .from('leagues')
+      .select('id, sport_id, name, country_code, logo_url, external_ids')
+      .ilike('name', pattern)
+      .order('name')
+      .limit(SEARCH_LIMIT),
+    supabase
+      .from('teams')
+      .select('id, sport_id, league_id, name, logo_url, external_ids')
+      .ilike('name', pattern)
+      .order('name')
+      .limit(SEARCH_LIMIT),
+  ]);
+  if (leagueResult.error) throw leagueResult.error;
+  if (teamResult.error) throw teamResult.error;
+
+  return {
+    leagues: (leagueResult.data as LeagueRow[]).map((row) => ({
+      id: row.id,
+      sportId: row.sport_id,
+      name: row.name,
+      countryCode: row.country_code,
+      logoUrl: row.logo_url,
+      externalIds: row.external_ids,
+    })),
+    teams: (teamResult.data as TeamRow[]).map((row) => ({
+      id: row.id,
+      sportId: row.sport_id,
+      leagueId: row.league_id,
+      name: row.name,
+      logoUrl: row.logo_url,
+      externalIds: row.external_ids,
+    })),
+  };
 }
 
 interface LeagueChannelRow {

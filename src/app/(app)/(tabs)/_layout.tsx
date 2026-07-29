@@ -6,8 +6,11 @@ import type { ColorValue } from 'react-native';
 
 import { useThemeColors } from '@/constants/theme';
 import { useEventReminders } from '@/features/events/hooks/use-event-reminders';
-import { useNextEventWidget } from '@/features/events/hooks/use-next-event-widget';
-import { usePushNotifications } from '@/features/notifications/hooks/use-push-notifications';
+import { useResultNotifications } from '@/features/events/hooks/use-result-notifications';
+import { useWeeklyDigest } from '@/features/notifications/hooks/use-weekly-digest';
+// TODO: Re-enable when paid Apple Developer account is available
+// import { useNextEventWidget } from '@/features/events/hooks/use-next-event-widget';
+// import { usePushNotifications } from '@/features/notifications/hooks/use-push-notifications';
 import { useRealtimeUpdates } from '@/features/notifications/hooks/use-realtime-updates';
 import { useI18n } from '@/lib/i18n';
 
@@ -19,13 +22,14 @@ function tabIcon(name: IconName) {
     useEffect(() => {
       Animated.timing(scale, {
         toValue: focused ? 1 : 0,
-        duration: 220,
-        easing: Easing.out(Easing.back(2.2)),
+        duration: 180,
+        // A plain ease-out: `back` overshoots and made the icons wobble.
+        easing: Easing.out(Easing.quad),
         useNativeDriver: false,
       }).start();
     }, [scale, focused]);
-    const iconScale = scale.interpolate({ inputRange: [0, 1], outputRange: [1, 1.18] });
-    const translateY = scale.interpolate({ inputRange: [0, 1], outputRange: [0, -2] });
+    const iconScale = scale.interpolate({ inputRange: [0, 1], outputRange: [1, 1.08] });
+    const translateY = scale.interpolate({ inputRange: [0, 1], outputRange: [0, -1] });
     return (
       <Animated.View style={{ transform: [{ scale: iconScale }, { translateY }] }}>
         <Ionicons name={name} color={color} size={size} />
@@ -39,9 +43,12 @@ export default function TabsLayout() {
   const colors = useThemeColors();
   const { t } = useI18n();
   useRealtimeUpdates();
-  usePushNotifications();
+  // TODO: Re-enable when paid Apple Developer account is available
+  // usePushNotifications();
   useEventReminders();
-  useNextEventWidget();
+  useResultNotifications();
+  useWeeklyDigest();
+  // useNextEventWidget();
 
   return (
     <Tabs

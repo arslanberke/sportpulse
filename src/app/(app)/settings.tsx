@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Screen } from '@/components/ui/screen';
 import { CountryPicker } from '@/features/settings/components/country-picker';
+import { ExtraAlertsSection } from '@/features/settings/components/extra-alerts-section';
 import { ReminderPrefsSection } from '@/features/settings/components/reminder-prefs-section';
 import { showAlert } from '@/lib/alert';
 import { useI18n, useLanguageStore, type Language } from '@/lib/i18n';
@@ -108,6 +109,8 @@ export default function SettingsScreen() {
     <Screen>
       <View className="pt-4">
         <ReminderPrefsSection />
+
+        <ExtraAlertsSection />
 
         <Card className="mb-6">
           <Text className="mb-1 text-lg font-semibold text-ink">{t('settings.country')}</Text>

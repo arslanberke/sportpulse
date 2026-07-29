@@ -3,23 +3,24 @@ import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Link } from "expo-router";
 import { Pressable, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 
 import { Chip } from "@/components/ui/chip";
 import { useThemeColors } from "@/constants/theme";
 import {
-  CircuitOutline,
-  findCircuitPath,
+    CircuitOutline,
+    findCircuitPath,
 } from "@/features/events/components/circuit-outline";
 import { EventEffect } from "@/features/events/components/event-effects";
 import { MatchupArt } from "@/features/events/components/matchup-art";
 import {
-  artworkStyle,
-  eventTheme,
-  overlayColors,
+    artworkStyle,
+    eventTheme,
+    overlayColors,
 } from "@/features/events/lib/event-theme";
 import { leagueBanner } from "@/features/events/lib/league-banner";
 import { splitUfcTitle } from "@/features/events/lib/ufc-title";
+import { listEntering } from "@/lib/animations";
 import { formatDayTime, formatTime } from "@/lib/dates";
 import { useI18n, type Translate } from "@/lib/i18n";
 import type { SportEvent } from "@/types";
@@ -115,7 +116,7 @@ export function FeaturedEventCard({
   const banner = leagueBanner(event.leagueName);
 
   return (
-    <Animated.View entering={FadeInDown.delay(Math.min(index, 8) * 60).duration(400).springify().damping(18)}>
+    <Animated.View entering={listEntering(index)}>
       <Link href={`/event/${event.id}`} asChild>
         <Pressable className="mb-4 overflow-hidden rounded-card bg-surface shadow-md active:scale-[0.99] active:opacity-90">
           <View style={{ height: 200 }}>
@@ -331,7 +332,7 @@ export function EventCard({
   const theme = eventTheme(event.sportId, event.leagueName);
 
   return (
-    <Animated.View entering={FadeInDown.delay(Math.min(index, 8) * 60).duration(400).springify().damping(18)}>
+    <Animated.View entering={listEntering(index)}>
       <Link href={`/event/${event.id}`} asChild>
         <Pressable className="mb-3 flex-row overflow-hidden rounded-card border border-line bg-surface active:scale-[0.99] active:opacity-90">
         <View

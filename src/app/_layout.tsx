@@ -5,12 +5,14 @@ import { Stack } from 'expo-router';
 import { ActivityIndicator, View } from 'react-native';
 
 import { Colors } from '@/constants/theme';
+import { useAuthDeepLink } from '@/features/auth/hooks/use-auth-deep-link';
 import { useAuthListener } from '@/features/auth/hooks/use-auth-listener';
 import { queryClient } from '@/lib/query-client';
 import { useAuthStore } from '@/store/auth-store';
 
 export default function RootLayout() {
   useAuthListener();
+  useAuthDeepLink();
 
   const isLoading = useAuthStore((s) => s.isLoading);
   const session = useAuthStore((s) => s.session);
