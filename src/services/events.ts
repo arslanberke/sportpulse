@@ -116,6 +116,29 @@ export async function fetchTeamEvents(params: {
   return (data as unknown as EventRow[]).map(mapRow);
 }
 
+/**
+ * Bir yarismanin sirada bekleyen ilk etkinligi.
+ *
+ * Sema sezon tarihi tutmadigi icin "lig ne zaman basliyor" sorusu ancak
+ * bilinen ilk maca bakilarak yanitlanabilir. Takip listesinden bagimsizdir:
+ * kullanici henuz takip etmedigi bir lige de girebilir.
+ */
+export async function fetchLeagueNextEvent(leagueId: string): Promise<SportEvent | null> {
+  const { data, error } = await supabase
+    .from('events')
+    .select(
+      'id, sport_id, league_id, home_team_id, away_team_id, title, starts_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url)',
+    )
+    .eq('league_id', leagueId)
+    .eq('status', 'scheduled')
+    .gte('starts_at', new Date().toISOString())
+    .order('starts_at')
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? mapRow(data as unknown as EventRow) : null;
+}
+
 export async function fetchEvent(id: string): Promise<SportEvent | null> {
   const { data, error } = await supabase
     .from('events')

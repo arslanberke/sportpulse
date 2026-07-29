@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Text, TextInput, View } from 'react-native';
@@ -12,6 +13,8 @@ import {
     useFollowActions,
     type FollowGroup,
 } from '@/features/follows/hooks/use-follow-actions';
+import { useLeagueStart } from '@/features/events/hooks/use-league-start';
+import { formatDayTime } from '@/lib/dates';
 import { useI18n } from '@/lib/i18n';
 
 /** Teams inside one league, plus a toggle for the league as a whole. */
@@ -23,6 +26,7 @@ export default function LeagueFollowScreen() {
   const { data: teams } = useTeams(leagueId);
   const { isFollowing, toggleAll, toggleWithin } = useFollowActions();
   const [search, setSearch] = useState('');
+  const leagueStart = useLeagueStart(leagueId);
 
   const league = (leagues ?? []).find((l) => l.id === leagueId);
   // Reachable by deep link even for sports that have no team level.
@@ -53,6 +57,25 @@ export default function LeagueFollowScreen() {
     <Screen>
       <Stack.Screen options={{ title: league?.name ?? '' }} />
       <View className="pt-4">
+        {/* Yarisma ara donemdeyken ilk maca kalan sure; lig oynanirken gizli. */}
+        {leagueStart.startsAt && (
+          <Card className="mb-4" index={0}>
+            <View className="flex-row items-center gap-3">
+              <Ionicons name="hourglass-outline" size={22} color={colors.primary} />
+              <View className="flex-1">
+                <Text className="text-base font-semibold text-ink">
+                  {leagueStart.daysUntil === 1
+                    ? t('explore.startsTomorrow')
+                    : t('explore.startsInDays', { count: leagueStart.daysUntil })}
+                </Text>
+                <Text className="mt-0.5 text-sm text-ink-secondary">
+                  {t('explore.firstMatch', { date: formatDayTime(leagueStart.startsAt.toISOString()) })}
+                </Text>
+              </View>
+            </View>
+          </Card>
+        )}
+
         <Card className="mb-4" index={0}>
           <FollowRow
             label={t('explore.followWholeLeague')}
