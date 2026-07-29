@@ -25,7 +25,10 @@ export default function AppLayout() {
         animation: 'default',
       }}
     >
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      {/* Baslik gizli olsa da tanimli olmali: bir deep link ustune ekran
+          actiginda geri dugmesinin etiketi bu baslikten turetilir ve tanimsiz
+          kaldiginda kullaniciya "(tabs)" yazisi gorunur. */}
+      <Stack.Screen name="(tabs)" options={{ headerShown: false, title: t('tabs.home') }} />
       <Stack.Screen name="settings" options={{ title: t('common.settings') }} />
       <Stack.Screen name="setup" options={{ title: t('setup.title') }} />
       <Stack.Screen name="event/[id]" options={{ title: t('event.title') }} />
