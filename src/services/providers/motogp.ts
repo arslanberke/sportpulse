@@ -1,3 +1,4 @@
+import { warnHttp } from './log.ts';
 import { fetchMotoGpRiderPhotos } from './standings.ts';
 import type { SessionEntry, SessionResults } from './types.ts';
 
@@ -45,7 +46,7 @@ interface ClassificationRow {
 async function getJson<T>(url: string): Promise<T | null> {
   try {
     const res = await fetch(url, { headers: { 'User-Agent': UA } });
-    if (!res.ok) return null;
+    if (!res.ok) return warnHttp('motogp', res, null);
     return (await res.json()) as T;
   } catch {
     return null;

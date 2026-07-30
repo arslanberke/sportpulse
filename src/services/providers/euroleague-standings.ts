@@ -1,3 +1,4 @@
+import { warnHttp } from './log.ts';
 import type {
   ConferenceStandings,
   LeagueStandings,
@@ -46,7 +47,7 @@ function winPercent(wins: number, played: number): string {
 async function getText(url: string): Promise<string | null> {
   try {
     const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
-    if (!res.ok) return null;
+    if (!res.ok) return warnHttp('euroleague-standings', res, null);
     return await res.text();
   } catch {
     return null;
@@ -66,7 +67,7 @@ async function crestsByCode(
     const res = await fetch(`${V2}/${competition}/seasons/${season}/clubs`, {
       headers: { Accept: 'application/json' },
     });
-    if (!res.ok) return crests;
+    if (!res.ok) return warnHttp('euroleague-standings.crests', res, crests);
     const body = (await res.json()) as {
       data?: { code?: string; images?: { crest?: string } }[];
     };

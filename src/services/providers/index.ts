@@ -9,6 +9,7 @@ import type {
     ProviderTeam,
     TeamListProvider,
 } from './types.ts';
+import { warnProviderFailure } from './log.ts';
 import { wikipediaProvider } from './wikipedia.ts';
 
 export type {
@@ -25,6 +26,7 @@ export type {
 /** Ordered by preference: primary first, fallbacks after. */
 export const providers = [theSportsDbProvider, espnProvider];
 
+
 /**
  * Fetches upcoming events for a league, trying each provider in order until
  * one returns data. A provider that throws or returns nothing simply hands
@@ -39,8 +41,8 @@ export async function fetchUpcomingEvents(
     try {
       const events = await provider.fetchUpcomingEvents(league, days);
       if (events.length > 0) return events;
-    } catch {
-      // Fall through to the next provider.
+    } catch (error) {
+      warnProviderFailure('fetchUpcomingEvents', provider.name, `league ${league.leagueId}`, error);
     }
   }
   return [];
@@ -58,8 +60,8 @@ export async function fetchSeason(league: LeagueRef): Promise<ProviderSeason | n
     try {
       const season = await provider.fetchSeason(league);
       if (season) return season;
-    } catch {
-      // Fall through to the next provider.
+    } catch (error) {
+      warnProviderFailure('fetchSeason', provider.name, `league ${league.leagueId}`, error);
     }
   }
   return null;
@@ -94,8 +96,8 @@ export async function fetchLeagueTeams(
     try {
       const teams = await provider.fetchLeagueTeams(league);
       if (teams.length > 0) return { provider: provider.name, teams };
-    } catch {
-      // Fall through to the next provider.
+    } catch (error) {
+      warnProviderFailure('fetchLeagueTeams', provider.name, `league ${league.leagueId}`, error);
     }
   }
   return { provider: null, teams: [] };
@@ -123,8 +125,8 @@ export async function fetchEventLineup(
     try {
       const lineup = await provider.fetchLineup(externalId);
       if (lineup) return lineup;
-    } catch {
-      // Fall through to the next provider.
+    } catch (error) {
+      warnProviderFailure('fetchLineup', provider.name, `event ${externalId}`, error);
     }
   }
   return null;

@@ -1,3 +1,4 @@
+import { warnHttp } from './log.ts';
 import { f1DriverPhoto, f1TeamLogo } from './motorsport-brands.ts';
 import type { StandingEntry, Standings } from './types.ts';
 
@@ -18,7 +19,7 @@ const MOTOGP_CATEGORY = 'e8c110ad-64aa-4e8e-8a86-f2f152f6a942';
 async function getJson<T>(url: string): Promise<T | null> {
   try {
     const res = await fetch(url, { headers: { 'User-Agent': UA } });
-    if (!res.ok) return null;
+    if (!res.ok) return warnHttp('standings', res, null);
     return (await res.json()) as T;
   } catch {
     return null;

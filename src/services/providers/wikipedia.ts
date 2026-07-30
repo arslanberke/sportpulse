@@ -1,3 +1,4 @@
+import { warnHttp } from './log.ts';
 import type { LeagueRef, ProviderTeam, TeamListProvider } from './types.ts';
 
 /**
@@ -37,7 +38,7 @@ async function getJson<T>(params: Record<string, string>): Promise<T | null> {
   const query = new URLSearchParams({ format: 'json', origin: '*', ...params });
   try {
     const res = await fetch(`${API}?${query}`, { headers: HEADERS });
-    if (!res.ok) return null;
+    if (!res.ok) return warnHttp('wikipedia.api', res, null);
     return (await res.json()) as T;
   } catch {
     return null;
@@ -122,7 +123,7 @@ async function crests(articles: string[]): Promise<Map<string, string>> {
 async function crestByName(name: string, sportId: string): Promise<string | null> {
   try {
     const res = await fetch(TSDB_SEARCH + encodeURIComponent(name));
-    if (!res.ok) return null;
+    if (!res.ok) return warnHttp('wikipedia.crest', res, null);
     const data = (await res.json()) as {
       teams?: { strSport?: string; strBadge?: string }[] | null;
     };

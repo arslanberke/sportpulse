@@ -1,3 +1,4 @@
+import { warnHttp } from './log.ts';
 import { fetchEuroleagueTable } from './euroleague-standings.ts';
 import type { LeagueTableGroup, LeagueTableRow } from './types.ts';
 
@@ -39,7 +40,7 @@ interface EspnStandingsResponse {
 async function getJson<T>(url: string): Promise<T | null> {
   try {
     const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
-    if (!res.ok) return null;
+    if (!res.ok) return warnHttp('league-tables', res, null);
     return (await res.json()) as T;
   } catch {
     return null;

@@ -12,6 +12,7 @@
  * the same `{row, col}` shape the pitch view expects.
  */
 
+import { warnHttp } from './log.ts';
 import type { EventLineup, LineupPlayer } from './types.ts';
 
 const BASE = 'https://apiv3.apifootball.com';
@@ -53,7 +54,7 @@ interface AfTeam {
 
 async function afFetch<T>(path: string): Promise<T[] | null> {
   const res = await fetch(`${BASE}${path}`);
-  if (!res.ok) return null;
+  if (!res.ok) return warnHttp('apifootball', res, null);
   const body = (await res.json()) as unknown;
   // Errors come back as an object with an `error` field, not an array.
   if (!Array.isArray(body)) return null;
@@ -342,7 +343,7 @@ export async function fetchApiFootballContext(
   const res = await fetch(
     `${BASE}/?action=get_H2H&firstTeamId=${m.match_hometeam_id}&secondTeamId=${m.match_awayteam_id}&APIkey=${apiKey}`,
   );
-  if (!res.ok) return null;
+  if (!res.ok) return warnHttp('apifootball.h2h', res, null);
   const body = (await res.json()) as unknown;
   if (Array.isArray(body) || body == null) return null;
   const h2h = body as AfH2H;

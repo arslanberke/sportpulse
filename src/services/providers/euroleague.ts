@@ -1,3 +1,4 @@
+import { warnHttp } from './log.ts';
 import type { LeagueRef, ProviderTeam, TeamListProvider } from './types.ts';
 
 /**
@@ -51,7 +52,7 @@ async function fetchClubs(competition: string, season: string): Promise<Provider
   const url = `${BASE}/${competition}/seasons/${season}/clubs`;
   try {
     const res = await fetch(url, { headers: { Accept: 'application/json' } });
-    if (!res.ok) return [];
+    if (!res.ok) return warnHttp('euroleague.clubs', res, []);
     const data = (await res.json()) as ClubsResponse;
     return (data.data ?? [])
       .filter((club) => club.name && club.code)

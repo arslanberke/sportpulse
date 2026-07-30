@@ -1,3 +1,4 @@
+import { warnHttp } from './log.ts';
 import { f1DriverPhoto, f1TeamLogo } from './motorsport-brands.ts';
 import type { SessionEntry, SessionResults } from './types.ts';
 
@@ -39,7 +40,7 @@ function sessionFromTitle(title: string): string {
 async function getJson<T>(url: string): Promise<T | null> {
   try {
     const res = await fetch(url);
-    if (!res.ok) return null;
+    if (!res.ok) return warnHttp('espn-racing', res, null);
     return (await res.json()) as T;
   } catch {
     return null;

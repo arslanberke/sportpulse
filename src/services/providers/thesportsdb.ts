@@ -1,3 +1,4 @@
+import { warnHttp } from './log.ts';
 import type {
     EventLineup,
     FixtureProvider,
@@ -162,7 +163,7 @@ async function getJson(url: string): Promise<unknown> {
     lastRequestAt = Date.now();
     response = await fetch(url);
   }
-  if (!response.ok) return null;
+  if (!response.ok) return warnHttp('thesportsdb', response, null);
   return await response.json();
 }
 

@@ -1,3 +1,4 @@
+import { warnHttp } from './log.ts';
 import type {
   ConferenceStandings,
   LeagueStandings,
@@ -37,7 +38,7 @@ interface EspnStandings {
 async function getJson<T>(url: string): Promise<T | null> {
   try {
     const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
-    if (!res.ok) return null;
+    if (!res.ok) return warnHttp('basketball-standings', res, null);
     return (await res.json()) as T;
   } catch {
     return null;

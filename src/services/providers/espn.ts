@@ -1,3 +1,4 @@
+import { warnHttp } from './log.ts';
 import type { FixtureProvider, LeagueRef, ProviderEvent, ProviderSeason, ProviderTeam } from './types.ts';
 
 /**
@@ -139,7 +140,7 @@ export const espnProvider: FixtureProvider = {
     if (!url) return [];
 
     const response = await fetch(url);
-    if (!response.ok) return [];
+    if (!response.ok) return warnHttp('espn.scoreboard', response, []);
     const data = (await response.json()) as { events?: EspnEvent[] };
     return (data.events ?? []).map(normalize);
   },
@@ -157,7 +158,7 @@ export const espnProvider: FixtureProvider = {
     if (!url) return null;
 
     const response = await fetch(url);
-    if (!response.ok) return null;
+    if (!response.ok) return warnHttp('espn.season', response, null);
     const data = (await response.json()) as {
       leagues?: { season?: { endDate?: string }; calendar?: unknown }[];
     };
@@ -179,7 +180,7 @@ export const espnProvider: FixtureProvider = {
     const url = teamsUrl(league);
     if (!url) return [];
     const response = await fetch(url);
-    if (!response.ok) return [];
+    if (!response.ok) return warnHttp('espn.teams', response, []);
     const data = (await response.json()) as {
       sports?: { leagues?: { teams?: EspnTeamEntry[] }[] }[];
     };
