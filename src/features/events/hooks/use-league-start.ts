@@ -29,7 +29,20 @@ function hasPassed(date: Date): boolean {
  * Sezon bilgisi olmayan yarismalarda (saglayici takvimi yayinlamiyorsa) bilinen
  * ilk macin uzakligina dusulur.
  */
-export function useLeagueStart(league: League | undefined) {
+interface LeagueStart {
+  startsAt: Date | null;
+  daysUntil: number | null;
+  /**
+   * Tarihin saati anlamli mi. Sezon takvimi yalnizca gunu bildirir (saat alani
+   * saglayicinin gun sinirini tasir, mac saatini degil); fikstur satirindan
+   * gelen tarihte ise gercek baslama saati vardir.
+   */
+  hasTime: boolean;
+}
+
+const NONE: LeagueStart = { startsAt: null, daysUntil: null, hasTime: false };
+
+export function useLeagueStart(league: League | undefined): LeagueStart {
   const { data: nextEvent, isLoading } = useQuery({
     queryKey: ['league-next-event', league?.id],
     queryFn: () => fetchLeagueNextEvent(league!.id),
@@ -43,16 +56,18 @@ export function useLeagueStart(league: League | undefined) {
     const started = hasPassed(seasonStart);
     const ended = seasonEnd !== null && hasPassed(seasonEnd);
     // Sezon suruyor: geri sayim yok.
-    if (started && !ended) return { startsAt: null, daysUntil: null };
-    if (!started) return { startsAt: seasonStart, daysUntil: daysFromNow(seasonStart) };
+    if (started && !ended) return NONE;
+    if (!started) {
+      return { startsAt: seasonStart, daysUntil: daysFromNow(seasonStart), hasTime: false };
+    }
     // Sezon bitmis: siradaki sezonun tarihi henuz bilinmiyor, alta dusulur.
   }
 
-  if (isLoading || !nextEvent) return { startsAt: null, daysUntil: null };
+  if (isLoading || !nextEvent) return NONE;
 
   const startsAt = new Date(nextEvent.startsAt);
   const daysUntil = daysFromNow(startsAt);
-  if (daysUntil < BREAK_THRESHOLD_DAYS) return { startsAt: null, daysUntil: null };
+  if (daysUntil < BREAK_THRESHOLD_DAYS) return NONE;
 
-  return { startsAt, daysUntil };
+  return { startsAt, daysUntil, hasTime: true };
 }

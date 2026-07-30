@@ -8,13 +8,13 @@ import { Screen } from '@/components/ui/screen';
 import { useThemeColors } from '@/constants/theme';
 import { useLeagues, useTeams } from '@/features/catalog/hooks/use-catalog';
 import { hasTeams } from '@/features/catalog/lib/team-sports';
+import { useLeagueStart } from '@/features/events/hooks/use-league-start';
 import { FollowRow } from '@/features/follows/components/follow-row';
 import {
     useFollowActions,
     type FollowGroup,
 } from '@/features/follows/hooks/use-follow-actions';
-import { useLeagueStart } from '@/features/events/hooks/use-league-start';
-import { formatDayTime } from '@/lib/dates';
+import { formatDay, formatDayTime } from '@/lib/dates';
 import { useI18n } from '@/lib/i18n';
 
 /** Teams inside one league, plus a toggle for the league as a whole. */
@@ -58,7 +58,7 @@ export default function LeagueFollowScreen() {
       <Stack.Screen options={{ title: league?.name ?? '' }} />
       <View className="pt-4">
         {/* Yarisma ara donemdeyken ilk maca kalan sure; lig oynanirken gizli. */}
-        {leagueStart.startsAt && (
+        {leagueStart.startsAt && leagueStart.daysUntil !== null && (
           <Card className="mb-4" index={0}>
             <View className="flex-row items-center gap-3">
               <Ionicons name="hourglass-outline" size={22} color={colors.primary} />
@@ -69,14 +69,18 @@ export default function LeagueFollowScreen() {
                     : t('explore.startsInDays', { count: leagueStart.daysUntil })}
                 </Text>
                 <Text className="mt-0.5 text-sm text-ink-secondary">
-                  {t('explore.firstMatch', { date: formatDayTime(leagueStart.startsAt.toISOString()) })}
+                  {t('explore.firstMatch', {
+                    date: leagueStart.hasTime
+                      ? formatDayTime(leagueStart.startsAt.toISOString())
+                      : formatDay(leagueStart.startsAt),
+                  })}
                 </Text>
               </View>
             </View>
           </Card>
         )}
 
-        <Card className="mb-4" index={0}>
+        <Card className="mb-4" index={1}>
           <FollowRow
             label={t('explore.followWholeLeague')}
             imageUrl={league?.logoUrl}
@@ -96,7 +100,7 @@ export default function LeagueFollowScreen() {
         </Card>
 
         {teamLevel && (
-        <Card className="mb-4" index={1}>
+        <Card className="mb-4" index={2}>
           <Text className="mb-2 text-lg font-semibold text-ink">{t('explore.teams')}</Text>
           {(teams ?? []).length > 6 && (
             <TextInput
