@@ -149,6 +149,18 @@ export interface Standings {
   entries: StandingEntry[];
 }
 
+/**
+ * Bir yarismanin sezon araligi.
+ *
+ * `startsAtUtc` sezonun ilk maci, `endsAtUtc` sezonun bittigi tarihtir. Ikisi
+ * de bagimsizca eksik olabilir: saglayicilar takvimi her lig icin ayni
+ * duzgunlukte yayinlamiyor.
+ */
+export interface ProviderSeason {
+  startsAtUtc: string | null;
+  endsAtUtc: string | null;
+}
+
 /** A league to fetch, with the provider-specific ids we know for it. */
 export interface LeagueRef {
   /** Our own league UUID. */
@@ -186,4 +198,9 @@ export interface FixtureProvider {
    * fixture list, so it works between seasons too.
    */
   fetchLeagueTeams?(league: LeagueRef): Promise<ProviderTeam[]>;
+  /**
+   * Sezonun ilk maci ve bitis tarihi. Fikstur listesi yalnizca yakin gunleri
+   * kapsadigi icin, ligin ne zaman basladigi ancak buradan bilinebilir.
+   */
+  fetchSeason?(league: LeagueRef): Promise<ProviderSeason | null>;
 }

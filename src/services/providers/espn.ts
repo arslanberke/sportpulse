@@ -1,4 +1,4 @@
-import type { FixtureProvider, LeagueRef, ProviderEvent, ProviderTeam } from './types.ts';
+import type { FixtureProvider, LeagueRef, ProviderEvent, ProviderSeason, ProviderTeam } from './types.ts';
 
 /**
  * ESPN hidden API (site.api.espn.com) — fallback provider.
@@ -60,7 +60,28 @@ function scoreboardUrl(league: LeagueRef, dates: string): string | null {
   const needsSlug = ['football', 'basketball', 'tennis'].includes(league.sportId);
   if (needsSlug && !slug) return null;
   const full = needsSlug ? `${path}/${slug}` : path;
-  return `${BASE}/${full}/scoreboard?dates=${dates}`;
+  // Tarih verilmezse ESPN o anin tablosunu doner; sezon bilgisi icin bu yeter.
+  return `${BASE}/${full}/scoreboard${dates ? `?dates=${dates}` : ''}`;
+}
+
+/**
+ * Takvimdeki en erken tarih.
+ *
+ * Takvimin bicimi lige gore degisiyor: gun listesi olarak ISO dizgeleri
+ * ("2026-08-21T07:00Z") ya da etkinlik listesi olarak baslangic/bitis tasiyan
+ * nesneler gelebilir.
+ */
+function earliestCalendarDate(calendar: unknown): string | null {
+  if (!Array.isArray(calendar) || calendar.length === 0) return null;
+  const dates = calendar
+    .map((entry) =>
+      typeof entry === 'string' ? entry : ((entry as { startDate?: string })?.startDate ?? null),
+    )
+    .filter((value): value is string => typeof value === 'string' && value !== '');
+  if (dates.length === 0) return null;
+  const earliest = dates.reduce((a, b) => (a < b ? a : b));
+  const parsed = new Date(earliest);
+  return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
 }
 
 function normalize(event: EspnEvent): ProviderEvent {
@@ -103,6 +124,37 @@ export const espnProvider: FixtureProvider = {
     if (!response.ok) return [];
     const data = (await response.json()) as { events?: EspnEvent[] };
     return (data.events ?? []).map(normalize);
+  },
+
+  /**
+   * Sezon araligi.
+   *
+   * `season.endDate` idari sezon sonudur ve guvenilirdir. Baslangic icin ayni
+   * nesnedeki `startDate` kullanilmaz: Premier Lig'de 1 Haziran'i gosterirken
+   * ilk mac 21 Agustos'tadir. Takvimdeki en erken tarih gercek ilk maca cok
+   * daha yakin oldugu icin o tercih edilir.
+   */
+  async fetchSeason(league: LeagueRef): Promise<ProviderSeason | null> {
+    const url = scoreboardUrl(league, '');
+    if (!url) return null;
+
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    const data = (await response.json()) as {
+      leagues?: { season?: { endDate?: string }; calendar?: unknown }[];
+    };
+
+    const league0 = data.leagues?.[0];
+    if (!league0) return null;
+
+    const startsAtUtc = earliestCalendarDate(league0.calendar);
+    const rawEnd = league0.season?.endDate;
+    const parsedEnd = rawEnd ? new Date(rawEnd) : null;
+    const endsAtUtc =
+      parsedEnd && !Number.isNaN(parsedEnd.getTime()) ? parsedEnd.toISOString() : null;
+
+    if (!startsAtUtc && !endsAtUtc) return null;
+    return { startsAtUtc, endsAtUtc };
   },
 
   async fetchLeagueTeams(league: LeagueRef): Promise<ProviderTeam[]> {

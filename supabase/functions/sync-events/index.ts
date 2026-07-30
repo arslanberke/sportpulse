@@ -11,7 +11,7 @@
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
-import { fetchUpcomingEvents } from '../../../src/services/providers/index.ts';
+import { fetchSeason, fetchUpcomingEvents } from '../../../src/services/providers/index.ts';
 import type { LeagueRef } from '../../../src/services/providers/types.ts';
 
 const SYNC_DAYS = 14;
@@ -21,6 +21,9 @@ const SYNC_DAYS = 14;
 // chunk, cycling through the whole catalog every LEAGUE_CHUNKS half-hours.
 const LEAGUE_CHUNKS = 8;
 const CHUNK_SLOT_MS = 1_800_000; // 30 min, must match the cron cadence
+// Sezon araligi yilda birkac kez degisir; her senkronda saglayiciya sormak
+// gereksiz istek olur. Bilgi bu sureden eskiyse ya da sezon bitmisse yenilenir.
+const SEASON_REFRESH_MS = 7 * 86_400_000;
 const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
 const EXPO_PUSH_BATCH = 100;
 
@@ -28,6 +31,19 @@ interface LeagueRow {
   id: string;
   sport_id: string;
   external_ids: Record<string, string>;
+  season_end: string | null;
+  season_synced_at: string | null;
+}
+
+/**
+ * Sezon bilgisi yenilenmeli mi: hic alinmadiysa, uzerinden bir haftadan fazla
+ * gectiyse ya da kayitli sezon bittiyse.
+ */
+function needsSeason(league: LeagueRow): boolean {
+  if (!league.season_synced_at) return true;
+  const age = Date.now() - new Date(league.season_synced_at).getTime();
+  if (age > SEASON_REFRESH_MS) return true;
+  return league.season_end !== null && new Date(league.season_end).getTime() < Date.now();
 }
 
 interface UpsertResult {
@@ -115,7 +131,7 @@ Deno.serve(async (request) => {
 
   const { data: leagues, error } = await supabase
     .from('leagues')
-    .select('id, sport_id, external_ids')
+    .select('id, sport_id, external_ids, season_end, season_synced_at')
     .order('id');
   if (error) return new Response(error.message, { status: 500 });
 
@@ -175,6 +191,25 @@ Deno.serve(async (request) => {
       }
     } catch (fetchError) {
       failures.push(`league ${league.id}: ${String(fetchError)}`);
+    }
+
+    if (needsSeason(league)) {
+      try {
+        const season = await fetchSeason(ref);
+        // Bulunamadiginda da zaman damgasi yazilir, aksi halde her kosuda ayni
+        // sonucsuz istek tekrarlanir.
+        const { error: seasonError } = await supabase
+          .from('leagues')
+          .update({
+            season_start: season?.startsAtUtc ?? null,
+            season_end: season?.endsAtUtc ?? null,
+            season_synced_at: new Date().toISOString(),
+          })
+          .eq('id', league.id);
+        if (seasonError) failures.push(`season ${league.id}: ${seasonError.message}`);
+      } catch (seasonFetchError) {
+        failures.push(`season ${league.id}: ${String(seasonFetchError)}`);
+      }
     }
   }
 

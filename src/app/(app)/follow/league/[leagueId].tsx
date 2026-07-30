@@ -26,9 +26,9 @@ export default function LeagueFollowScreen() {
   const { data: teams } = useTeams(leagueId);
   const { isFollowing, toggleAll, toggleWithin } = useFollowActions();
   const [search, setSearch] = useState('');
-  const leagueStart = useLeagueStart(leagueId);
 
   const league = (leagues ?? []).find((l) => l.id === leagueId);
+  const leagueStart = useLeagueStart(league);
   // Reachable by deep link even for sports that have no team level.
   const teamLevel = hasTeams(league?.sportId);
   const leagueFollowed = isFollowing('league', leagueId);

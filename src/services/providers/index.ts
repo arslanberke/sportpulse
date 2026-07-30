@@ -5,6 +5,7 @@ import type {
     EventLineup,
     LeagueRef,
     ProviderEvent,
+    ProviderSeason,
     ProviderTeam,
     TeamListProvider,
 } from './types.ts';
@@ -16,6 +17,7 @@ export type {
     LeagueRef,
     LineupPlayer,
     ProviderEvent,
+    ProviderSeason,
     ProviderTeam,
     TeamListProvider
 } from './types.ts';
@@ -42,6 +44,25 @@ export async function fetchUpcomingEvents(
     }
   }
   return [];
+}
+
+/**
+ * Sezon araligi, bilen ilk saglayicidan.
+ *
+ * Fikstur listesi yalnizca yakin gunleri kapsadigi icin ligin ne zaman
+ * basladigi bu bilgi olmadan cikarilamaz.
+ */
+export async function fetchSeason(league: LeagueRef): Promise<ProviderSeason | null> {
+  for (const provider of providers) {
+    if (!provider.fetchSeason || !provider.supports(league)) continue;
+    try {
+      const season = await provider.fetchSeason(league);
+      if (season) return season;
+    } catch {
+      // Fall through to the next provider.
+    }
+  }
+  return null;
 }
 
 /**

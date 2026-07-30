@@ -30,6 +30,13 @@ export interface League {
   countryCode: string | null; // null = international
   logoUrl: string | null;
   externalIds: Record<string, string>; // per-provider ids, e.g. { thesportsdb: '4339' }
+  /**
+   * Sezonun ilk maci ve bitisi. Fikstur yalnizca yakin gunleri kapsadigi icin
+   * ligin ne zaman basladigi ancak bunlardan bilinir; saglayici takvimi her lig
+   * icin duzgun yayinlamadigindan null olabilir.
+   */
+  seasonStart: string | null;
+  seasonEnd: string | null;
 }
 
 export interface Team {

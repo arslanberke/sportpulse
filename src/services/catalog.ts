@@ -19,6 +19,8 @@ interface LeagueRow {
   country_code: string | null;
   logo_url: string | null;
   external_ids: Record<string, string>;
+  season_start: string | null;
+  season_end: string | null;
 }
 
 interface TeamRow {
@@ -48,7 +50,7 @@ export async function fetchSports(): Promise<Sport[]> {
 export async function fetchLeagues(): Promise<League[]> {
   const { data, error } = await supabase
     .from('leagues')
-    .select('id, sport_id, name, country_code, logo_url, external_ids')
+    .select('id, sport_id, name, country_code, logo_url, external_ids, season_start, season_end')
     .order('name');
   if (error) throw error;
   return (data as LeagueRow[]).map((row) => ({
@@ -58,6 +60,8 @@ export async function fetchLeagues(): Promise<League[]> {
     countryCode: row.country_code,
     logoUrl: row.logo_url,
     externalIds: row.external_ids,
+    seasonStart: row.season_start,
+    seasonEnd: row.season_end,
   }));
 }
 
@@ -125,7 +129,7 @@ export async function fetchTeam(teamId: string): Promise<Team | null> {
 export async function fetchTeamLeagues(teamId: string): Promise<League[]> {
   const { data, error } = await supabase
     .from('league_teams')
-    .select('leagues (id, sport_id, name, country_code, logo_url, external_ids)')
+    .select('leagues (id, sport_id, name, country_code, logo_url, external_ids, season_start, season_end)')
     .eq('team_id', teamId);
   if (error) throw error;
   return (data as unknown as { leagues: LeagueRow | null }[])
@@ -138,6 +142,8 @@ export async function fetchTeamLeagues(teamId: string): Promise<League[]> {
       countryCode: row.country_code,
       logoUrl: row.logo_url,
       externalIds: row.external_ids,
+      seasonStart: row.season_start,
+      seasonEnd: row.season_end,
     }))
     .sort((a, b) => a.name.localeCompare(b.name));
 }
@@ -154,7 +160,7 @@ export async function searchCatalog(
   const [leagueResult, teamResult] = await Promise.all([
     supabase
       .from('leagues')
-      .select('id, sport_id, name, country_code, logo_url, external_ids')
+      .select('id, sport_id, name, country_code, logo_url, external_ids, season_start, season_end')
       .ilike('name', pattern)
       .order('name')
       .limit(SEARCH_LIMIT),
@@ -176,6 +182,8 @@ export async function searchCatalog(
       countryCode: row.country_code,
       logoUrl: row.logo_url,
       externalIds: row.external_ids,
+      seasonStart: row.season_start,
+      seasonEnd: row.season_end,
     })),
     teams: (teamResult.data as TeamRow[]).map((row) => ({
       id: row.id,
