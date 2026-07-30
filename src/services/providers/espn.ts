@@ -64,16 +64,34 @@ function scoreboardUrl(league: LeagueRef, dates: string): string | null {
   return `${BASE}/${full}/scoreboard${dates ? `?dates=${dates}` : ''}`;
 }
 
+/** Bir takvim ogesinin kac gun surdugu; hesaplanamiyorsa null. */
+function entrySpanDays(entry: unknown): number | null {
+  if (typeof entry !== 'object' || entry === null) return null;
+  const { startDate, endDate } = entry as { startDate?: string; endDate?: string };
+  if (!startDate || !endDate) return null;
+  const span = new Date(endDate).getTime() - new Date(startDate).getTime();
+  return Number.isNaN(span) ? null : span / 86_400_000;
+}
+
 /**
- * Takvimdeki en erken tarih.
+ * Takvimdeki en erken tarih; yalnizca takvim mac gunu ayrintisinda ise.
  *
- * Takvimin bicimi lige gore degisiyor: gun listesi olarak ISO dizgeleri
- * ("2026-08-21T07:00Z") ya da etkinlik listesi olarak baslangic/bitis tasiyan
- * nesneler gelebilir.
+ * Takvimin bicimi lige gore degisiyor. Ligler gun listesi olarak ISO dizgeleri
+ * ("2026-08-21T07:00Z") ya da yaris basina bir oge (Formula 1) verir; bunlar
+ * gercek ilk maci gosterir. Kupalarda ise tum sezonu kapsayan tek bir idari
+ * oge gelir (DFB-Pokal icin 1 Temmuz 2026 - 1 Temmuz 2027) ve bu tarih ilk mac
+ * degildir: oyle bir tarihi ilk mac saymak, henuz baslamamis kupanin oynandigi
+ * sonucunu verirdi. Bu yuzden kaba ogeler yok sayilir.
  */
+const COARSE_ENTRY_DAYS = 60;
+
 function earliestCalendarDate(calendar: unknown): string | null {
   if (!Array.isArray(calendar) || calendar.length === 0) return null;
   const dates = calendar
+    .filter((entry) => {
+      const span = entrySpanDays(entry);
+      return span === null || span <= COARSE_ENTRY_DAYS;
+    })
     .map((entry) =>
       typeof entry === 'string' ? entry : ((entry as { startDate?: string })?.startDate ?? null),
     )
