@@ -156,7 +156,10 @@ export async function fetchTeamLeagues(teamId: string): Promise<League[]> {
 export async function searchCatalog(
   term: string,
 ): Promise<{ leagues: League[]; teams: Team[] }> {
-  const pattern = `%${term.trim()}%`;
+  // ilike'in joker karakterleri kacirilir: aksi halde "%" yazan kullaniciya tum
+  // katalog, "_" yazana ise tek harfli her ad eslesir.
+  const escaped = term.trim().replace(/[\\%_]/g, (char) => `\\${char}`);
+  const pattern = `%${escaped}%`;
   const [leagueResult, teamResult] = await Promise.all([
     supabase
       .from('leagues')

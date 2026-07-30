@@ -413,15 +413,19 @@ export default function EventDetailScreen() {
           )}
         </Card>
 
+        {/* Her karta kendi sirasi verilir. Ayni index'i paylasan iki kardes,
+            ayni gecikmeyle ayni karede acildiginda giris animasyonunda opaklik
+            0'da takilip bos alan olarak goruntuleniyor. Motorsporda sonuclar ve
+            puan durumu, basketbolda ozet ve puan durumu birlikte cikar. */}
         <BriefingCard event={event} index={1} />
 
-        <ResultsCard event={event} index={1} />
+        <ResultsCard event={event} index={2} />
 
-        <StandingsCard event={event} index={1} />
+        <StandingsCard event={event} index={3} />
 
-        <LeagueStandingsCard event={event} index={1} />
+        <LeagueStandingsCard event={event} index={4} />
 
-        <Card className="mb-4" index={2}>
+        <Card className="mb-4" index={5}>
           <SectionHeader
             icon="tv"
             label={t("event.channel")}
@@ -474,9 +478,9 @@ export default function EventDetailScreen() {
           </View>
         </Card>
 
-        <LineupCard event={event} index={3} />
+        <LineupCard event={event} index={6} />
 
-        <Card className="mb-4" index={4}>
+        <Card className="mb-4" index={7}>
           <SectionHeader
             icon="notifications"
             label={t("event.reminders")}
