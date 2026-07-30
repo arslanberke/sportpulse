@@ -34,12 +34,28 @@ export function f1TeamLogo(team: string | null): string | null {
 }
 
 /**
+ * Saglayicinin kullandigi ad, formula1.com'un dosya semasindaki addan
+ * ayrilabiliyor: ESPN "Kimi Antonelli" derken fotograf "Andrea Kimi Antonelli"
+ * adiyla saklaniyor ve turetilen adres 404 donuyor. Ergast ayni surucuye tam
+ * adiyla dediginden sampiyona tablosunda fotograf cikiyor, seans sonuclarinda
+ * cikmiyordu.
+ *
+ * Burada yalnizca fotografi gercekten var olan surucler tutulur. Yedek ve test
+ * pilotlarinin (Aron, Lindblad, Herta, Iwasa, ...) F1 sitesinde fotografi hic
+ * yok; onlarda bas harflere dusmek dogru davranis.
+ */
+const F1_DRIVER_ALIASES: Record<string, string> = {
+  'kimi antonelli': 'Andrea Kimi Antonelli',
+};
+
+/**
  * formula1.com driver headshot from a full name, e.g. "Lando Norris" ->
  * .../drivers/L/LANNOR01_Lando_Norris/lannor01.png. Uses the first given name
  * for the 3-letter prefix, matching F1's own scheme.
  */
 export function f1DriverPhoto(fullName: string): string | null {
-  const clean = ascii(fullName).trim();
+  const canonical = F1_DRIVER_ALIASES[ascii(fullName).trim().toLowerCase()] ?? fullName;
+  const clean = ascii(canonical).trim();
   const parts = clean.split(/\s+/);
   if (parts.length < 2) return null;
   const given = parts.slice(0, -1).join(' ');
