@@ -50,6 +50,33 @@ dokunmaz. Sistem ayarini kalici duzeltmek istersen (sudo gerekir):
 sudo xcode-select -s /Applications/Xcode-beta.app/Contents/Developer
 ```
 
+### Imza profili suresi dolunca
+
+Ucretsiz hesabin profili 7 gunde doler. Once uygulama cihazda "erisilebilir
+degil" der, sonra `npm run dev:phone` su hatayla durur:
+
+```
+No profiles for 'com.berkearslan.sportpulse' were found
+```
+
+`expo run:ios` xcodebuild'e `-allowProvisioningUpdates` gecmedigi icin profili
+kendisi yenileyemez. Profil bir kez elle yenilenir, sonra normal akisa donulur:
+
+```bash
+cd ios && xcodebuild -workspace sportpulse.xcworkspace -scheme sportpulse \
+  -configuration Debug -destination "id=$(idevice_id -l | head -1)" \
+  -allowProvisioningUpdates build
+```
+
+Ardindan **telefonda** yeni sertifikaya guvenilmeli (Ayarlar > Genel > VPN ve
+Cihaz Yonetimi > Geliştirici Uygulaması > Guven), aksi halde `devicectl`
+"invalid code signature ... not been explicitly trusted" ile baslatmaz.
+
+Bu xcodebuild cagrisi yalnizca profili yenilemek icindir; kurulum icin
+`npm run dev:phone` kullanilmali. Elle derlenen paket cihaza kurulursa
+`dev.sh`'nin verdigi Metro adresi gomulmedigi icin uygulama gomulu bundle'a
+duser ("Cannot create devtools websocket connections in embedded environments").
+
 ### Cihazi uzaktan kontrol
 
 `devicectl` (Xcode 27 ile gelir) fiziksel cihazda calisir; telefonun **kilidi
