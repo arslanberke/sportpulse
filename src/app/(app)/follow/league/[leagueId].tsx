@@ -11,11 +11,12 @@ import { hasTeams } from '@/features/catalog/lib/team-sports';
 import { useLeagueStart } from '@/features/events/hooks/use-league-start';
 import { FollowRow } from '@/features/follows/components/follow-row';
 import {
-    useFollowActions,
-    type FollowGroup,
+  useFollowActions,
+  type FollowGroup,
 } from '@/features/follows/hooks/use-follow-actions';
 import { formatDay, formatDayTime } from '@/lib/dates';
 import { useI18n } from '@/lib/i18n';
+import { matchesAny, searchNeedles } from '@/lib/search';
 
 /** Teams inside one league, plus a toggle for the league as a whole. */
 export default function LeagueFollowScreen() {
@@ -25,22 +26,27 @@ export default function LeagueFollowScreen() {
   const { data: leagues } = useLeagues();
   const { data: teams } = useTeams(leagueId);
   const { isFollowing, toggleAll, toggleWithin } = useFollowActions();
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState('fenerbahçe');
 
   const league = (leagues ?? []).find((l) => l.id === leagueId);
   const leagueStart = useLeagueStart(league);
+
+  // Kupalarda kadro tutulmaz (sync_teams kapali), dolayisiyla takim listesi
+  // hicbir zaman dolmaz; "kadro senkronlaninca gorunecek" demek yaniltir. Yine
+  // de fiksturden bazi takimlar eklenmis olabilir, liste bos degilse gosterilir.
+  //
   // Reachable by deep link even for sports that have no team level.
-  const teamLevel = hasTeams(league?.sportId);
+  const rosterKept = league?.syncTeams !== false;
+  const hasRoster = (teams ?? []).length > 0;
+  const teamLevel = hasTeams(league?.sportId) && (rosterKept || hasRoster);
   const leagueFollowed = isFollowing('league', leagueId);
   // Following the parent sport already brings in every team below it.
   const sportFollowed = league ? isFollowing('sport', league.sportId) : false;
   const covered = leagueFollowed || sportFollowed;
 
   const visibleTeams = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    const list = teams ?? [];
-    if (!term) return list;
-    return list.filter((team) => team.name.toLowerCase().includes(term));
+    const needles = searchNeedles(search);
+    return (teams ?? []).filter((team) => matchesAny([team.name], needles));
   }, [teams, search]);
 
   const group: FollowGroup = useMemo(
@@ -80,7 +86,10 @@ export default function LeagueFollowScreen() {
           </Card>
         )}
 
-        <Card className="mb-4" index={1}>
+        <Card
+          className="mb-4"
+          index={leagueStart.startsAt && leagueStart.daysUntil !== null ? 1 : 0}
+        >
           <FollowRow
             label={t('explore.followWholeLeague')}
             imageUrl={league?.logoUrl}

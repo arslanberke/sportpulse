@@ -1,3 +1,4 @@
+import { searchNeedles } from '@/lib/search';
 import { supabase } from '@/services/supabase';
 import type { Channel, League, Sport, Team } from '@/types';
 
@@ -21,6 +22,7 @@ interface LeagueRow {
   external_ids: Record<string, string>;
   season_start: string | null;
   season_end: string | null;
+  sync_teams: boolean;
 }
 
 interface TeamRow {
@@ -50,7 +52,7 @@ export async function fetchSports(): Promise<Sport[]> {
 export async function fetchLeagues(): Promise<League[]> {
   const { data, error } = await supabase
     .from('leagues')
-    .select('id, sport_id, name, country_code, logo_url, external_ids, season_start, season_end')
+    .select('id, sport_id, name, country_code, logo_url, external_ids, season_start, season_end, sync_teams')
     .order('name');
   if (error) throw error;
   return (data as LeagueRow[]).map((row) => ({
@@ -62,6 +64,7 @@ export async function fetchLeagues(): Promise<League[]> {
     externalIds: row.external_ids,
     seasonStart: row.season_start,
     seasonEnd: row.season_end,
+    syncTeams: row.sync_teams,
   }));
 }
 
@@ -129,7 +132,7 @@ export async function fetchTeam(teamId: string): Promise<Team | null> {
 export async function fetchTeamLeagues(teamId: string): Promise<League[]> {
   const { data, error } = await supabase
     .from('league_teams')
-    .select('leagues (id, sport_id, name, country_code, logo_url, external_ids, season_start, season_end)')
+    .select('leagues (id, sport_id, name, country_code, logo_url, external_ids, season_start, season_end, sync_teams)')
     .eq('team_id', teamId);
   if (error) throw error;
   return (data as unknown as { leagues: LeagueRow | null }[])
@@ -144,6 +147,7 @@ export async function fetchTeamLeagues(teamId: string): Promise<League[]> {
       externalIds: row.external_ids,
       seasonStart: row.season_start,
       seasonEnd: row.season_end,
+      syncTeams: row.sync_teams,
     }))
     .sort((a, b) => a.name.localeCompare(b.name));
 }
@@ -153,29 +157,68 @@ export async function fetchTeamLeagues(teamId: string): Promise<League[]> {
  * "Galatasaray" without walking sport → league → team. Sports are matched in
  * the client (there are seven of them and they are already loaded).
  */
+/**
+ * Aramanin sunucuya sorulacak yazilislari.
+ *
+ * Kullanicinin yazdigi bicim veritabanindaki bicimle ortusmeyebilir: futbol
+ * Fenerbahce'si "Fenerbahce", voleybol ve basketbol takimlari "Fenerbahçe"
+ * olarak kayitli. ilike sunucuda calistigi icin istemcideki sadelestirme burada
+ * ise yaramaz; bunun yerine hem yazilan hem sadelestirilmis bicim (ve varsa
+ * yarismanin ingilizce adi) ayri ayri sorulur.
+ *
+ * Joker karakterler kacirilir: aksi halde "%" yazan kullaniciya tum katalog,
+ * "_" yazana ise tek harfli her ad eslesir.
+ */
+function searchPatterns(term: string): string[] {
+  const variants = [term.trim(), ...searchNeedles(term)].filter((value) => value !== '');
+  const unique = Array.from(new Set(variants));
+  return unique.map((value) => `%${value.replace(/[\\%_]/g, (char: string) => `\\${char}`)}%`);
+}
+
+/** Ayni satirin birden fazla yazilistan gelmesi tek sonuca indirilir. */
+function byId<T extends { id: string }>(rows: T[]): T[] {
+  return Array.from(new Map(rows.map((row) => [row.id, row])).values());
+}
+
 export async function searchCatalog(
   term: string,
 ): Promise<{ leagues: League[]; teams: Team[] }> {
-  // ilike'in joker karakterleri kacirilir: aksi halde "%" yazan kullaniciya tum
-  // katalog, "_" yazana ise tek harfli her ad eslesir.
-  const escaped = term.trim().replace(/[\\%_]/g, (char) => `\\${char}`);
-  const pattern = `%${escaped}%`;
-  const [leagueResult, teamResult] = await Promise.all([
-    supabase
-      .from('leagues')
-      .select('id, sport_id, name, country_code, logo_url, external_ids, season_start, season_end')
-      .ilike('name', pattern)
-      .order('name')
-      .limit(SEARCH_LIMIT),
-    supabase
-      .from('teams')
-      .select('id, sport_id, league_id, name, logo_url, external_ids')
-      .ilike('name', pattern)
-      .order('name')
-      .limit(SEARCH_LIMIT),
+  const patterns = searchPatterns(term);
+  const [leagueRows, teamRows] = await Promise.all([
+    Promise.all(
+      patterns.map((pattern) =>
+        supabase
+          .from('leagues')
+          .select(
+            'id, sport_id, name, country_code, logo_url, external_ids, season_start, season_end, sync_teams',
+          )
+          .ilike('name', pattern)
+          .order('name')
+          .limit(SEARCH_LIMIT),
+      ),
+    ),
+    Promise.all(
+      patterns.map((pattern) =>
+        supabase
+          .from('teams')
+          .select('id, sport_id, league_id, name, logo_url, external_ids')
+          .ilike('name', pattern)
+          .order('name')
+          .limit(SEARCH_LIMIT),
+      ),
+    ),
   ]);
-  if (leagueResult.error) throw leagueResult.error;
-  if (teamResult.error) throw teamResult.error;
+
+  for (const result of [...leagueRows, ...teamRows]) {
+    if (result.error) throw result.error;
+  }
+
+  const leagueResult = {
+    data: byId(leagueRows.flatMap((result) => (result.data ?? []) as LeagueRow[])),
+  };
+  const teamResult = {
+    data: byId(teamRows.flatMap((result) => (result.data ?? []) as TeamRow[])),
+  };
 
   return {
     leagues: (leagueResult.data as LeagueRow[]).map((row) => ({
@@ -187,6 +230,7 @@ export async function searchCatalog(
       externalIds: row.external_ids,
       seasonStart: row.season_start,
       seasonEnd: row.season_end,
+      syncTeams: row.sync_teams,
     })),
     teams: (teamResult.data as TeamRow[]).map((row) => ({
       id: row.id,

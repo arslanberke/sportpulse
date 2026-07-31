@@ -37,6 +37,11 @@ export interface League {
    */
   seasonStart: string | null;
   seasonEnd: string | null;
+  /**
+   * Yarismanin kadrosu tutuluyor mu. Kupalarda kapali: katilimci listesi cok
+   * genis ve takim takip etmeye elverisli degil (bkz. migration 0030).
+   */
+  syncTeams: boolean;
 }
 
 export interface Team {
