@@ -22,6 +22,12 @@ interface FollowRowProps {
   coveredByParent?: boolean;
   /** Position in the list; staggers the entrance so rows fan in one by one. */
   index?: number;
+  /**
+   * Adin yanina yazilan ikincil bilgi. Aramada ayni ad birden fazla bransta
+   * gecebiliyor ("Fenerbahce" futbol, basketbol ve voleybolda), satirlar da
+   * yalnizca armayla ayirt edilemiyor.
+   */
+  meta?: string;
 }
 
 /**
@@ -38,6 +44,7 @@ export function FollowRow({
   onPress,
   coveredByParent = false,
   index = 0,
+  meta,
 }: FollowRowProps) {
   const colors = useThemeColors();
   const ticked = coveredByParent || following;
@@ -99,9 +106,16 @@ export function FollowRow({
             />
           )
         )}
-        <Text className="flex-1 text-base font-medium text-ink" numberOfLines={1}>
+        <Text className="shrink text-base font-medium text-ink" numberOfLines={1}>
           {label}
         </Text>
+        {/* Ad uzunsa once ad kisalir; bransin tamami okunur kalir. */}
+        {meta && (
+          <Text className="shrink-0 text-sm text-ink-tertiary" numberOfLines={1}>
+            {meta}
+          </Text>
+        )}
+        <View className="flex-1" />
         {onPress && (
           <Ionicons name="chevron-forward" size={18} color={colors.inkTertiary} />
         )}

@@ -36,6 +36,16 @@ export function FollowSearch() {
           ),
         )
       : [];
+  /**
+   * Takim satirlarinda bransin adi. Ayni ad birden fazla bransta gecebiliyor
+   * ("Fenerbahce"), armalar da birbirine benziyor.
+   */
+  const sportName = (sportId: string) => {
+    const sport = (sports ?? []).find((s) => s.id === sportId);
+    if (!sport) return undefined;
+    return language === 'tr' ? sport.nameTr : sport.nameEn;
+  };
+
   const leagueHits = results?.leagues ?? [];
   const teamHits = results?.teams ?? [];
   const empty =
@@ -124,6 +134,7 @@ export function FollowSearch() {
               key={team.id}
               index={i}
               label={team.name}
+              meta={sportName(team.sportId)}
               imageUrl={team.logoUrl}
               following={isFollowing('team', team.id)}
               coveredByParent={
