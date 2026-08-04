@@ -76,6 +76,7 @@ export default function HomeScreen() {
   const [sportFilter, setSportFilter] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchExpanded, setSearchExpanded] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Kullanici kaydirmaya basladiginda alan kapanir: liste tam ekran kalir, terim
   // basliktaki dugmede gorunur olmaya devam eder.
@@ -118,11 +119,21 @@ export default function HomeScreen() {
     }
   }, [followsFetched, follows, router]);
 
+  // Gosterge kendi durumundan besleniyor. Onceden `queryClient.isFetching()`
+  // okunuyordu: bu deger degistiginde React'e haber vermedigi icin gosterge
+  // donmeye baslayip bir daha durmuyordu -- yenilemek icin asagi ceken kullanici
+  // sonsuza kadar donen bir carkla kaliyordu.
   const handleRefresh = useCallback(async () => {
-    await Promise.all([
-      queryClient.refetchQueries({ queryKey: ['events'] }),
-      queryClient.refetchQueries({ queryKey: ['follows'] }),
-    ]);
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: ['events'] }),
+        queryClient.refetchQueries({ queryKey: ['follows'] }),
+      ]);
+    } finally {
+      // Istek basarisiz olsa da gosterge durmali.
+      setRefreshing(false);
+    }
   }, [queryClient]);
 
   const today = new Date();
@@ -139,7 +150,7 @@ export default function HomeScreen() {
   return (
     <Screen
       onRefresh={handleRefresh}
-      refreshing={queryClient.isFetching() > 0}
+      refreshing={refreshing}
       onScrollBeginDrag={collapseOnScroll}
     >
       <View className="pt-4">
