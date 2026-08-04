@@ -57,6 +57,7 @@
     "start": "expo start",
     "dev": "./scripts/dev.sh start",
     "dev:phone": "./scripts/dev.sh phone",
+    "release:phone": "./scripts/dev.sh release",
     "phone:launch": "./scripts/dev.sh launch",
     "phone:shot": "./scripts/dev.sh shot",
     "phone:log": "./scripts/dev.sh log",

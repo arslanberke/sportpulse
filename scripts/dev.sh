@@ -10,10 +10,15 @@
 #
 # Kullanim:
 #   ./scripts/dev.sh start    Metro sunucusunu baslatir
-#   ./scripts/dev.sh phone    Uygulamayi derleyip cihaza kurar ve baslatir
-#   ./scripts/dev.sh launch   Kurulu uygulamayi cihazda baslatir
+#   ./scripts/dev.sh phone    Gelistirme surumunu derleyip cihaza kurar
+#   ./scripts/dev.sh release  Gunluk kullanim surumunu kurar (JS gomulu)
+#   ./scripts/dev.sh launch   Kurulu gelistirme surumunu cihazda baslatir
 #   ./scripts/dev.sh shot     Cihazin ekran goruntusunu alir
 #   ./scripts/dev.sh log      Cihazdan uygulama loglarini akitir
+#
+# Telefonda iki uygulama yan yana durur: "sportpulse" (gunluk kullanim, Metro'ya
+# ihtiyac duymaz) ve "sportpulse dev" (Metro'ya bagli, kod degisikliklerini
+# aninda gosterir). Ayri paket kimlikleri oldugu icin biri digerini ezmez.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -32,7 +37,9 @@ fi
 
 export REACT_NATIVE_PACKAGER_HOSTNAME="${REACT_NATIVE_PACKAGER_HOSTNAME:-$(scutil --get LocalHostName).local}"
 
-BUNDLE_ID=com.berkearslan.sportpulse
+# devicectl komutlari gelistirme surumunu hedefler; gunluk kullanim surumune
+# dokunulmamasi bilincli, o surum bozulmadan telefonda kalmali.
+BUNDLE_ID=com.berkearslan.sportpulse.dev
 
 # devicectl, USB udid'inden farkli bir CoreDevice tanimlayicisi kullanir.
 # Bagli tek fiziksel cihazin tanimlayicisini tablodan okuruz.
@@ -49,21 +56,45 @@ physical_device() {
   printf '%s' "$id"
 }
 
+# Cihaz belirtilmediyse USB ile bagli olani kullan; aksi halde expo secim sorar
+# ve komut etkilesim bekler.
+attached_device() {
+  idevice_id -l 2>/dev/null | head -1
+}
+
+# `expo run:ios`, ios/ klasoru varsa prebuild'i atlar; paket kimligi ve ad
+# APP_VARIANT'a gore degistigi icin native proje her derleme oncesi yeniden
+# uretilmeli, aksi halde iki surum ayni kimlikle derlenip birbirini ezer.
+sync_native_project() {
+  npx expo prebuild -p ios
+}
+
 case "${1:-start}" in
 start)
   shift || true
+  export APP_VARIANT=dev
   echo "Metro adresi: http://$REACT_NATIVE_PACKAGER_HOSTNAME:8081"
   exec npx expo start "$@"
   ;;
 phone)
   shift || true
+  export APP_VARIANT=dev
   echo "Cihaza gomulecek Metro adresi: http://$REACT_NATIVE_PACKAGER_HOSTNAME:8081"
-  # Cihaz belirtilmediyse USB ile bagli olani kullan; aksi halde expo secim
-  # sorar ve komut etkilesim bekler.
-  if [[ $# -eq 0 ]] && udid=$(idevice_id -l 2>/dev/null | head -1) && [[ -n "$udid" ]]; then
+  if [[ $# -eq 0 ]] && udid=$(attached_device) && [[ -n "$udid" ]]; then
     set -- "$udid"
   fi
+  sync_native_project
   exec npx expo run:ios --device "$@"
+  ;;
+release)
+  shift || true
+  # APP_VARIANT verilmez: gunluk kullanilan surum derlenir. JS paketi gomulu
+  # geldigi icin Metro'ya ihtiyac duymaz, Mac kapaliyken de acilir.
+  if [[ $# -eq 0 ]] && udid=$(attached_device) && [[ -n "$udid" ]]; then
+    set -- "$udid"
+  fi
+  sync_native_project
+  exec npx expo run:ios --configuration Release --device "$@"
   ;;
 launch)
   xcrun devicectl device process launch --terminate-existing \
