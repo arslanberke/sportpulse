@@ -23,10 +23,26 @@ const MAX_STEPS = 8;
  * aciyordu (ayni gorsel ikinci aciliste netti). Oteleme bu sorunu
  * tetiklemiyor.
  */
-export function listEntering(index = 0): EntryExitAnimationFunction {
-  const delay = Math.min(index, MAX_STEPS) * STAGGER_MS;
+/**
+ * Adim basina tek bir animasyon fonksiyonu tutulur.
+ *
+ * Her cagride yeni bir fonksiyon dondurmek, bileseni yeniden render eden her
+ * seyde (deep link ile acilan ekranda verinin sonradan gelmesi gibi) reanimated
+ * icin farkli bir `entering` demek oluyordu: animasyon yeniden kuruluyor,
+ * baslangic degerlerine (opacity 0) donuyor ama mount olmadigi icin bir daha
+ * baslamiyordu -- kart kalici olarak gorunmez kaliyordu. Referans sabit olunca
+ * animasyon bir kez kurulup tamamlaniyor.
+ */
+const byStep = new Map<number, EntryExitAnimationFunction>();
 
-  return () => {
+export function listEntering(index = 0): EntryExitAnimationFunction {
+  const stepIndex = Math.min(index, MAX_STEPS);
+  const cached = byStep.get(stepIndex);
+  if (cached) return cached;
+
+  const delay = stepIndex * STAGGER_MS;
+
+  const entering: EntryExitAnimationFunction = () => {
     'worklet';
     const config = {
       duration: DURATION_MS,
@@ -45,4 +61,7 @@ export function listEntering(index = 0): EntryExitAnimationFunction {
       },
     };
   };
+
+  byStep.set(stepIndex, entering);
+  return entering;
 }

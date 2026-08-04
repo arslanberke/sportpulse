@@ -86,10 +86,7 @@ export default function LeagueFollowScreen() {
           </Card>
         )}
 
-        <Card
-          className="mb-4"
-          index={leagueStart.startsAt && leagueStart.daysUntil !== null ? 1 : 0}
-        >
+        <Card className="mb-4" index={1}>
           <FollowRow
             label={t('explore.followWholeLeague')}
             imageUrl={league?.logoUrl}
