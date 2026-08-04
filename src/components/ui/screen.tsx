@@ -19,6 +19,12 @@ interface ScreenProps {
   refreshing?: boolean;
   /** Reanimated scroll handler (enables e.g. hero parallax on the screen). */
   onScroll?: AnimatedScrollViewProps['onScroll'];
+  /**
+   * Kullanici parmagiyla kaydirmaya basladi. `onScroll`'dan farki: icerik
+   * yuksekligi degistiginde (liste suzulunce) tetiklenmez, yani "kullanici
+   * kaydiriyor" niyetini dogru temsil eder.
+   */
+  onScrollBeginDrag?: AnimatedScrollViewProps['onScrollBeginDrag'];
 }
 
 /** In dark mode the flat background is replaced with a subtle vertical fade. */
@@ -38,6 +44,7 @@ export function Screen({
   onRefresh,
   refreshing = false,
   onScroll,
+  onScrollBeginDrag,
 }: ScreenProps) {
   const colors = useThemeColors();
 
@@ -65,6 +72,7 @@ export function Screen({
         contentContainerClassName="px-6 pb-12"
         keyboardShouldPersistTaps="handled"
         onScroll={onScroll}
+        onScrollBeginDrag={onScrollBeginDrag}
         scrollEventThrottle={16}
         refreshControl={
           onRefresh ? (

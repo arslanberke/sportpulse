@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, Text, View, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
 
@@ -77,14 +77,14 @@ export default function HomeScreen() {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchExpanded, setSearchExpanded] = useState(false);
 
-  // Kaydirma basladiginda alan kapanir: liste tam ekran kalir, terim basliktaki
-  // dugmede gorunur olmaya devam eder.
-  const collapseOnScroll = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      if (event.nativeEvent.contentOffset.y > 24) setSearchExpanded(false);
-    },
-    [],
-  );
+  // Kullanici kaydirmaya basladiginda alan kapanir: liste tam ekran kalir, terim
+  // basliktaki dugmede gorunur olmaya devam eder.
+  //
+  // Kaydirma konumuna degil dokunma hareketine bakiliyor: yazarken liste
+  // suzuldugu icin icerik yuksekligi degisiyor ve bu da kaydirma olayi
+  // uretiyordu. Sonuc olarak kullanici yazmaya baslar baslamaz alan kapaniyor,
+  // yazdigi metni goremiyordu.
+  const collapseOnScroll = useCallback(() => setSearchExpanded(false), []);
 
   // Only offer tabs for sports that actually have events this week.
   const sportTabs = useMemo<Sport[]>(() => {
@@ -140,7 +140,7 @@ export default function HomeScreen() {
     <Screen
       onRefresh={handleRefresh}
       refreshing={queryClient.isFetching() > 0}
-      onScroll={collapseOnScroll}
+      onScrollBeginDrag={collapseOnScroll}
     >
       <View className="pt-4">
         <WeekHeader
