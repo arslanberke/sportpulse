@@ -1,10 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { Pressable, Text, View } from 'react-native';
-import Animated from 'react-native-reanimated';
 
 import { useThemeColors } from '@/constants/theme';
-import { listEntering } from '@/lib/animations';
 
 interface FollowRowProps {
   label: string;
@@ -20,7 +18,7 @@ interface FollowRowProps {
    * picked individually. Shown as ticked but muted, and not togglable.
    */
   coveredByParent?: boolean;
-  /** Position in the list; staggers the entrance so rows fan in one by one. */
+  /** Listedeki sira; giris animasyonu kaldirildigi icin cizime etki etmiyor. */
   index?: number;
   /**
    * Adin yanina yazilan ikincil bilgi. Aramada ayni ad birden fazla bransta
@@ -43,17 +41,13 @@ export function FollowRow({
   onToggleFollow,
   onPress,
   coveredByParent = false,
-  index = 0,
   meta,
 }: FollowRowProps) {
   const colors = useThemeColors();
   const ticked = coveredByParent || following;
 
   return (
-    <Animated.View
-      entering={listEntering(index)}
-      className="flex-row items-center rounded-2xl"
-    >
+    <View className="flex-row items-center rounded-2xl">
       <Pressable
         onPress={coveredByParent ? undefined : onToggleFollow}
         disabled={coveredByParent}
@@ -120,6 +114,6 @@ export function FollowRow({
           <Ionicons name="chevron-forward" size={18} color={colors.inkTertiary} />
         )}
       </Pressable>
-    </Animated.View>
+    </View>
   );
 }

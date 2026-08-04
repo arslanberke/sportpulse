@@ -3,7 +3,6 @@ import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Link } from "expo-router";
 import { Pressable, Text, View } from "react-native";
-import Animated from "react-native-reanimated";
 
 import { Chip } from "@/components/ui/chip";
 import { useThemeColors } from "@/constants/theme";
@@ -20,7 +19,6 @@ import {
 } from "@/features/events/lib/event-theme";
 import { leagueBanner } from "@/features/events/lib/league-banner";
 import { splitUfcTitle } from "@/features/events/lib/ufc-title";
-import { listEntering } from "@/lib/animations";
 import { formatDayTime, formatTime } from "@/lib/dates";
 import { useI18n, type Translate } from "@/lib/i18n";
 import type { SportEvent } from "@/types";
@@ -116,7 +114,7 @@ export function FeaturedEventCard({
   const banner = leagueBanner(event.leagueName);
 
   return (
-    <Animated.View entering={listEntering(index)}>
+    <View>
       <Link href={`/event/${event.id}`} asChild>
         <Pressable className="mb-4 overflow-hidden rounded-card bg-surface shadow-md active:scale-[0.99] active:opacity-90">
           <View style={{ height: 200 }}>
@@ -311,7 +309,7 @@ export function FeaturedEventCard({
           )}
         </Pressable>
       </Link>
-    </Animated.View>
+    </View>
   );
 }
 
@@ -332,7 +330,7 @@ export function EventCard({
   const theme = eventTheme(event.sportId, event.leagueName);
 
   return (
-    <Animated.View entering={listEntering(index)}>
+    <View>
       <Link href={`/event/${event.id}`} asChild>
         <Pressable className="mb-3 flex-row overflow-hidden rounded-card border border-line bg-surface active:scale-[0.99] active:opacity-90">
         <View
@@ -406,6 +404,6 @@ export function EventCard({
         </View>
         </Pressable>
       </Link>
-    </Animated.View>
+    </View>
   );
 }
