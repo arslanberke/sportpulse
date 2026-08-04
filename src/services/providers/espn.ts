@@ -54,15 +54,39 @@ function teamsUrl(league: LeagueRef): string | null {
   return `${BASE}/${path}/${slug}/teams`;
 }
 
-function scoreboardUrl(league: LeagueRef, dates: string): string | null {
+function scoreboardUrlFor(
+  league: LeagueRef,
+  slug: string | undefined,
+  dates: string,
+): string | null {
   const path = SPORT_PATHS[league.sportId];
   if (!path) return null;
-  const slug = league.externalIds.espn;
   const needsSlug = ['football', 'basketball', 'tennis'].includes(league.sportId);
   if (needsSlug && !slug) return null;
   const full = needsSlug ? `${path}/${slug}` : path;
   // Tarih verilmezse ESPN o anin tablosunu doner; sezon bilgisi icin bu yeter.
   return `${BASE}/${full}/scoreboard${dates ? `?dates=${dates}` : ''}`;
+}
+
+function scoreboardUrl(league: LeagueRef, dates: string): string | null {
+  return scoreboardUrlFor(league, league.externalIds.espn, dates);
+}
+
+/**
+ * Ayni yarismanin ESPN'de ayri kod altinda duran bolumleri.
+ *
+ * ESPN eleme turlarini bagimsiz bir lig sayiyor: `uefa.europa` Agustos basinda
+ * bos donerken maclar `uefa.europa_qual` altinda duruyor. Bunlari ayri bir
+ * yarisma olarak katalogda tutmak, ligi takip eden kullanicinin eleme maclarini
+ * kacirmasi anlamina gelirdi; bu yuzden ayni lig icin ikinci bir kod okunur ve
+ * sonuclar birlestirilir.
+ *
+ * Sezon araligi ve kadro icin yalnizca ana kod kullanilir: eleme turunun
+ * takvimi ve katilimcilari yarismanin kendisini temsil etmez.
+ */
+function scoreboardSlugs(league: LeagueRef): (string | undefined)[] {
+  const { espn, espnQualifying } = league.externalIds;
+  return espnQualifying ? [espn, espnQualifying] : [espn];
 }
 
 /** Bir takvim ogesinin kac gun surdugu; hesaplanamiyorsa null. */
@@ -110,7 +134,12 @@ function normalize(event: EspnEvent): ProviderEvent {
   return {
     externalId: event.id,
     provider: 'espn',
-    title: event.name,
+    // ESPN basligi "deplasman at ev sahibi" biciminde yaziyor ("Besiktas at FC
+    // Hradec Kralove"). Diger kaynaklar ve arayuzun tamami "ev sahibi vs
+    // deplasman" duzenini kullaniyor; ayni listede iki bicim yan yana gelince
+    // hangi takimin sahasinda oynadigi okunamiyor. Takimlar ayri ayri
+    // bilindigi icin baslik tutarli bicimde kurulur.
+    title: home && away ? `${home} vs ${away}` : event.name,
     startsAtUtc: new Date(event.date).toISOString(),
     homeTeam: home,
     awayTeam: away,
@@ -136,13 +165,20 @@ export const espnProvider: FixtureProvider = {
     const from = new Date();
     const to = new Date(from.getTime() + days * 86_400_000);
     const fmt = (d: Date) => d.toISOString().slice(0, 10).replace(/-/g, '');
-    const url = scoreboardUrl(league, `${fmt(from)}-${fmt(to)}`);
-    if (!url) return [];
+    const dates = `${fmt(from)}-${fmt(to)}`;
 
-    const response = await fetch(url);
-    if (!response.ok) return warnHttp('espn.scoreboard', response, []);
-    const data = (await response.json()) as { events?: EspnEvent[] };
-    return (data.events ?? []).map(normalize);
+    const pages = await Promise.all(
+      scoreboardSlugs(league).map(async (slug) => {
+        const url = scoreboardUrlFor(league, slug, dates);
+        if (!url) return [];
+        const response = await fetch(url);
+        if (!response.ok) return warnHttp('espn.scoreboard', response, []);
+        const data = (await response.json()) as { events?: EspnEvent[] };
+        return (data.events ?? []).map(normalize);
+      }),
+    );
+
+    return pages.flat();
   },
 
   /**

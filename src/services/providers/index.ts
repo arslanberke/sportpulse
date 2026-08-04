@@ -1,5 +1,6 @@
 import { espnProvider } from './espn.ts';
 import { euroleagueProvider } from './euroleague.ts';
+import { warnProviderFailure } from './log.ts';
 import { theSportsDbProvider } from './thesportsdb.ts';
 import type {
     EventLineup,
@@ -9,7 +10,6 @@ import type {
     ProviderTeam,
     TeamListProvider,
 } from './types.ts';
-import { warnProviderFailure } from './log.ts';
 import { wikipediaProvider } from './wikipedia.ts';
 
 export type {
@@ -31,21 +31,32 @@ export const providers = [theSportsDbProvider, espnProvider];
  * Fetches upcoming events for a league, trying each provider in order until
  * one returns data. A provider that throws or returns nothing simply hands
  * over to the next one.
+ *
+ * Eleme turu ayri kod altinda duran yarismalar (bkz. `espnQualifying`) istisna:
+ * orada tek kaynak yetmiyor. TheSportsDB bu maclarin cogunu hic vermiyordu, ilk
+ * veri donduren saglayicida durdugumuz icin de ESPN hic okunmuyordu ve eleme
+ * maclari fiksturde gorunmuyordu. Bu yarismalarda butun saglayicilar okunup
+ * sonuclar birlestirilir; ayni macin iki kaynaktan gelmesi veritabaninda tek
+ * kayda indiriliyor (bkz. migration 0035).
  */
 export async function fetchUpcomingEvents(
   league: LeagueRef,
   days: number,
 ): Promise<ProviderEvent[]> {
+  const mergeEveryProvider = Boolean(league.externalIds.espnQualifying);
+  const collected: ProviderEvent[] = [];
+
   for (const provider of providers) {
     if (!provider.supports(league)) continue;
     try {
-      const events = await provider.fetchUpcomingEvents(league, days);
-      if (events.length > 0) return events;
+      collected.push(...(await provider.fetchUpcomingEvents(league, days)));
     } catch (error) {
       warnProviderFailure('fetchUpcomingEvents', provider.name, `league ${league.leagueId}`, error);
     }
+    if (collected.length > 0 && !mergeEveryProvider) break;
   }
-  return [];
+
+  return collected;
 }
 
 /**
