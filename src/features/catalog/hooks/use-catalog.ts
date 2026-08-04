@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 
+import { useDebounced } from '@/lib/use-debounced';
 import {
     fetchLeagueChannels,
     fetchLeagues,
@@ -14,6 +15,8 @@ import { fetchTeamTables } from '@/services/standings';
 const CATALOG_STALE_MS = 60 * 60 * 1000; // the catalog changes rarely
 /** Below this a search matches almost everything, so it isn't worth a round trip. */
 const MIN_SEARCH_LENGTH = 2;
+/** Yazma duraklamasi; tus basina istek acmayi engeller. */
+const SEARCH_DEBOUNCE_MS = 300;
 
 export function useSports() {
   return useQuery({ queryKey: ['sports'], queryFn: fetchSports, staleTime: CATALOG_STALE_MS });
@@ -69,9 +72,14 @@ export function useTeamTables(teamId: string | undefined) {
  * Leagues and teams matching a free-text term. Idle until the term is long
  * enough to be selective; results are kept briefly so backspacing feels
  * instant.
+ *
+ * Terim durulana kadar beklenir: her harf ayri bir sorgu anahtari oldugu icin
+ * "besiktas" yazmak sekiz tur demekti ve her tur birden fazla yazilis
+ * soruluyordu (Turkce karakter karsiliklari), yani onlarca istek. Arayuz bu
+ * sirada kilitleniyordu.
  */
 export function useCatalogSearch(term: string) {
-  const trimmed = term.trim();
+  const trimmed = useDebounced(term.trim(), SEARCH_DEBOUNCE_MS);
   return useQuery({
     queryKey: ['catalog-search', trimmed.toLowerCase()],
     queryFn: () => searchCatalog(trimmed),
