@@ -12,15 +12,30 @@ export function showAlert(title: string, message?: string) {
   }
 }
 
+interface ConfirmOptions {
+  confirmLabel?: string;
+  cancelLabel?: string;
+  /** Onay dugmesini kirmizi goster: geri alinamayan islemler icin. */
+  destructive?: boolean;
+}
+
 /** Cross-platform confirm dialog. Resolves true if the user confirms. */
-export function confirmAsync(title: string, message: string): Promise<boolean> {
+export function confirmAsync(
+  title: string,
+  message: string,
+  { confirmLabel = 'OK', cancelLabel = 'Cancel', destructive = false }: ConfirmOptions = {},
+): Promise<boolean> {
   if (Platform.OS === 'web') {
     return Promise.resolve(window.confirm(`${title}\n\n${message}`));
   }
   return new Promise((resolve) => {
     Alert.alert(title, message, [
-      { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
-      { text: 'OK', onPress: () => resolve(true) },
+      { text: cancelLabel, style: 'cancel', onPress: () => resolve(false) },
+      {
+        text: confirmLabel,
+        style: destructive ? 'destructive' : 'default',
+        onPress: () => resolve(true),
+      },
     ]);
   });
 }

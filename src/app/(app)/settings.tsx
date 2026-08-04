@@ -7,10 +7,10 @@ import { Screen } from '@/components/ui/screen';
 import { CountryPicker } from '@/features/settings/components/country-picker';
 import { ExtraAlertsSection } from '@/features/settings/components/extra-alerts-section';
 import { ReminderPrefsSection } from '@/features/settings/components/reminder-prefs-section';
-import { showAlert } from '@/lib/alert';
+import { confirmAsync, showAlert } from '@/lib/alert';
 import { useI18n, useLanguageStore, type Language } from '@/lib/i18n';
 import { useThemeStore, type ThemePreference } from '@/lib/theme';
-import { signOut } from '@/services/auth';
+import { deleteAccount, signOut } from '@/services/auth';
 
 const languages: { value: Language; label: string }[] = [
   { value: 'tr', label: 'Türkçe' },
@@ -88,7 +88,34 @@ function ThemeSection() {
 
 export default function SettingsScreen() {
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const { t } = useI18n();
+
+  // Hesap silme uygulama icinden sunulmak zorunda (App Store 5.1.1(v), ayrica
+  // KVKK m.11 silme hakki). Geri alinamadigi icin once onay istenir.
+  const handleDeleteAccount = async () => {
+    const confirmed = await confirmAsync(
+      t('settings.deleteAccountConfirm'),
+      t('settings.deleteAccountConfirmBody'),
+      {
+        confirmLabel: t('settings.deleteAccount'),
+        cancelLabel: t('common.cancel'),
+        destructive: true,
+      },
+    );
+    if (!confirmed) return;
+
+    setIsDeleting(true);
+    try {
+      await deleteAccount();
+    } catch (error) {
+      showAlert(
+        t('settings.deleteAccountFailed'),
+        error instanceof Error ? error.message : t('common.tryAgain'),
+      );
+      setIsDeleting(false);
+    }
+  };
 
   const handleSignOut = async () => {
     setIsSigningOut(true);
@@ -137,6 +164,21 @@ export default function SettingsScreen() {
           variant="danger"
           loading={isSigningOut}
         />
+
+        <Card className="mb-6 mt-6">
+          <Text className="mb-1 text-lg font-semibold text-ink">
+            {t('settings.deleteAccount')}
+          </Text>
+          <Text className="mb-3 text-sm leading-5 text-ink-secondary">
+            {t('settings.deleteAccountBody')}
+          </Text>
+          <Button
+            title={t('settings.deleteAccount')}
+            onPress={handleDeleteAccount}
+            variant="danger"
+            loading={isDeleting}
+          />
+        </Card>
       </View>
     </Screen>
   );

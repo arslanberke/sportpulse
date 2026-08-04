@@ -231,13 +231,20 @@ const en = {
   'settings.logOut': 'Log out',
   'settings.signOutFailed': 'Sign out failed',
   'settings.saved': 'Saved',
+  'settings.deleteAccount': 'Delete account',
+  'settings.deleteAccountBody':
+    'Removes your account together with your follows, reminder preferences and notifications. This cannot be undone.',
+  'settings.deleteAccountConfirm': 'Delete your account?',
+  'settings.deleteAccountConfirmBody':
+    'Your account and everything tied to it will be deleted for good. This cannot be undone.',
+  'settings.deleteAccountFailed': 'Could not delete the account',
   'settings.legal': 'Legal',
   // Marka hukukunda "nominative use": bir yarismadan soz etmek icin adini ve
   // amblemini kullanmak, onay/baglanti izlenimi verilmedigi surece mesru
   // sayilir. Bu yuzden ilisiksizlik acikca yazilir (ayni ifade uygulamanin
   // App Store aciklamasinda da bulunmali).
   'settings.legalMarks':
-    'Team, league and competition names and crests are used for identification purposes only. No club, league or federation endorses, sponsors or is associated with this application.',
+    'Team, league and competition names and crests are used for identification purposes only. No club, league or federation endorses, sponsors, collaborates with or is affiliated with this application.',
   'settings.legalSources':
     'Fixtures, results and standings are compiled from apifootball.com, ESPN, MotoGP, EuroLeague, Jolpica and TheSportsDB. Broadcast listings may change without notice.',
 
@@ -453,9 +460,16 @@ const tr: Record<TranslationKey, string> = {
   'settings.logOut': 'Çıkış yap',
   'settings.signOutFailed': 'Çıkış başarısız',
   'settings.saved': 'Kaydedildi',
+  'settings.deleteAccount': 'Hesabı sil',
+  'settings.deleteAccountBody':
+    'Hesabını; takiplerin, hatırlatma tercihlerin ve bildirimlerinle birlikte siler. Bu işlem geri alınamaz.',
+  'settings.deleteAccountConfirm': 'Hesabını silmek istiyor musun?',
+  'settings.deleteAccountConfirmBody':
+    'Hesabın ve ona bağlı her şey kalıcı olarak silinecek. Bu işlem geri alınamaz.',
+  'settings.deleteAccountFailed': 'Hesap silinemedi',
   'settings.legal': 'Yasal',
   'settings.legalMarks':
-    'Takım, lig ve turnuva adları ile amblemleri yalnızca tanımlama amacıyla kullanılır. Hiçbir kulüp, lig ya da federasyon bu uygulamayı onaylamaz, desteklemez veya uygulamayla ilişkili değildir.',
+    'Takım, lig ve turnuva adları ile amblemleri yalnızca tanımlama amacıyla kullanılır. Hiçbir kulüp, lig ya da federasyon bu uygulamayı onaylamaz, desteklemez, uygulamayla işbirliği içinde değildir ve uygulamayla herhangi bir ilişkisi yoktur.',
   'settings.legalSources':
     'Fikstür, sonuç ve puan durumları apifootball.com, ESPN, MotoGP, EuroLeague, Jolpica ve TheSportsDB kaynaklarından derlenir. Yayın bilgileri önceden haber verilmeksizin değişebilir.',
 
