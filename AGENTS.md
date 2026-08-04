@@ -119,6 +119,23 @@ npx tsc --noEmit     # tip kontrolu
 npm run lint
 ```
 
+## Yasal metinler
+
+Aydinlatma metninin kaynagi `src/features/legal/privacy-notice.ts`. Metin
+degistiginde barindirilan surum de yenilenmeli:
+
+```bash
+npm run legal:html   # -> docs/privacy.html
+```
+
+Iki surum gerekiyor cunku App Store Connect gizlilik politikasi icin **URL**
+istiyor ve uygulama icindeki ekran bu alanin yerine gecmiyor. `docs/privacy.html`
+git'te tutulur (GitHub Pages depodan yayinlar) ve elle duzenlenmez.
+
+Amblem/ad kullanimina iliskin feragat `settings.legalMarks` icinde. Ayni ifade
+App Store aciklamasinda da bulunmali; saglayici sozlesmesi amblem haklarinin
+sorumlulugunu tumuyle bize birakiyor.
+
 ## Notlar
 
 - `ios/` ve `android/` uretilen klasorlerdir, git'te tutulmaz (`expo prebuild`).

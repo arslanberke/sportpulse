@@ -60,6 +60,7 @@
     "phone:shot": "./scripts/dev.sh shot",
     "phone:log": "./scripts/dev.sh log",
     "reset-project": "node ./scripts/reset-project.js",
+    "legal:html": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON ./scripts/build-privacy-html.mjs",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
