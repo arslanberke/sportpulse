@@ -119,6 +119,31 @@ npx tsc --noEmit     # tip kontrolu
 npm run lint
 ```
 
+## Yayin derlemesi
+
+`eas.json` uc profil tanimlar. Production profili `APP_ENV=production` verir;
+`app.config.js` buna bakip yerel ag izinlerini, Metro adresi eklentisini ve push
+entitlement kaldirmasini devre disi birakir.
+
+```bash
+npx eas build -p ios --profile production
+```
+
+Ilk kullanimdan once yapilmasi gerekenler (Expo hesabi girisi ister, bu yuzden
+elle):
+
+- `npx eas init` -- `projectId` ve `updates.url` degerlerini yazar; expo-updates
+  bunlar olmadan calismaz.
+- `EXPO_PUBLIC_SUPABASE_URL` ve `EXPO_PUBLIC_SUPABASE_ANON_KEY` degerleri EAS
+  ortam degiskeni olarak tanimlanmali: `.env` git'te tutulmadigi icin bulut
+  derlemesine kendiliginden gitmez.
+
+`expo-updates` yayindan sonra JS duzeltmesini App Store incelemesini beklemeden
+gondermek icindir. `runtimeVersion` politikasi `fingerprint`: native bagimliliklar
+degisince runtime kimligi de degisir, boylece uyumsuz bir paket eski derlemeye
+gonderilemez. Yalnizca JS/varlik degisiklikleri boyle gonderilebilir; native
+degisiklik yeni bir derleme gerektirir.
+
 ## Yasal metinler
 
 Aydinlatma metninin kaynagi `src/features/legal/privacy-notice.ts`. Metin
