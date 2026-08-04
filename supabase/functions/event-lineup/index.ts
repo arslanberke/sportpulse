@@ -8,12 +8,13 @@
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
-import type { EventLineup } from '../../../src/services/providers/types.ts';
-import { fetchEventLineup } from '../../../src/services/providers/index.ts';
 import {
-  fetchApiFootballLineup,
-  resolveApiFootballFixture,
+    fetchApiFootballLineup,
+    resolveApiFootballFixture,
 } from '../../../src/services/providers/apifootball.ts';
+import { fetchEventLineup } from '../../../src/services/providers/index.ts';
+import type { EventLineup } from '../../../src/services/providers/types.ts';
+import { hasUser } from '../_shared/require-user.ts';
 
 // Reuse a cached lineup for this long before hitting the provider again.
 const CACHE_TTL_MS = 10 * 60 * 1000;
@@ -59,6 +60,8 @@ Deno.serve(async (request) => {
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
   );
+
+  if (!(await hasUser(supabase, request))) return json({ error: 'unauthorized' }, 401);
 
   const { data, error } = await supabase
     .from('events')

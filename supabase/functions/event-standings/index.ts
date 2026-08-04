@@ -7,6 +7,8 @@
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
+import { hasUser } from '../_shared/require-user.ts';
+
 import { fetchBasketballStandings } from '../../../src/services/providers/basketball-standings.ts';
 import { fetchEuroleagueStandings } from '../../../src/services/providers/euroleague-standings.ts';
 import { fetchMotorsportStandings } from '../../../src/services/providers/standings.ts';
@@ -75,6 +77,8 @@ Deno.serve(async (request) => {
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
   );
+
+  if (!(await hasUser(supabase, request))) return json({ error: 'unauthorized' }, 401);
 
   const { data, error } = await supabase
     .from('events')

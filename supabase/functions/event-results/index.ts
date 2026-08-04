@@ -5,9 +5,11 @@
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
-import type { SessionResults } from '../../../src/services/providers/types.ts';
+import { hasUser } from '../_shared/require-user.ts';
+
 import { fetchRacingResults } from '../../../src/services/providers/espn-racing.ts';
 import { fetchMotoGpResults } from '../../../src/services/providers/motogp.ts';
+import type { SessionResults } from '../../../src/services/providers/types.ts';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -54,6 +56,8 @@ Deno.serve(async (request) => {
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
   );
+
+  if (!(await hasUser(supabase, request))) return json({ error: 'unauthorized' }, 401);
 
   const { data, error } = await supabase
     .from('events')
