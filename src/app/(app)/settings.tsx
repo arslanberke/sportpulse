@@ -1,3 +1,4 @@
+import { Link } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
@@ -156,6 +157,9 @@ export default function SettingsScreen() {
           <Text className="mt-3 text-sm leading-5 text-ink-tertiary">
             {t('settings.legalSources')}
           </Text>
+          <Link href="/privacy" className="mt-3 text-sm font-semibold text-primary">
+            {t('settings.privacy')}
+          </Link>
         </Card>
 
         <Button

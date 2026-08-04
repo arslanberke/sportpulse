@@ -231,6 +231,8 @@ const en = {
   'settings.logOut': 'Log out',
   'settings.signOutFailed': 'Sign out failed',
   'settings.saved': 'Saved',
+  'privacy.title': 'Privacy notice',
+  'settings.privacy': 'Read the privacy notice',
   'settings.deleteAccount': 'Delete account',
   'settings.deleteAccountBody':
     'Removes your account together with your follows, reminder preferences and notifications. This cannot be undone.',
@@ -460,6 +462,8 @@ const tr: Record<TranslationKey, string> = {
   'settings.logOut': 'Çıkış yap',
   'settings.signOutFailed': 'Çıkış başarısız',
   'settings.saved': 'Kaydedildi',
+  'privacy.title': 'Aydınlatma metni',
+  'settings.privacy': 'Aydınlatma metnini oku',
   'settings.deleteAccount': 'Hesabı sil',
   'settings.deleteAccountBody':
     'Hesabını; takiplerin, hatırlatma tercihlerin ve bildirimlerinle birlikte siler. Bu işlem geri alınamaz.',

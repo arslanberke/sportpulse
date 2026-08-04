@@ -31,6 +31,7 @@ export default function AppLayout() {
       <Stack.Screen name="(tabs)" options={{ headerShown: false, title: t('tabs.home') }} />
       <Stack.Screen name="settings" options={{ title: t('common.settings') }} />
       <Stack.Screen name="setup" options={{ title: t('setup.title') }} />
+      <Stack.Screen name="privacy" options={{ title: t('privacy.title') }} />
       <Stack.Screen name="event/[id]" options={{ title: t('event.title') }} />
       {/* The club's own name is set by the screen once it loads. */}
       <Stack.Screen name="team/[teamId]" options={{ title: '' }} />
