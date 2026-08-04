@@ -7,6 +7,7 @@ import { ActivityIndicator, View } from 'react-native';
 import { Colors } from '@/constants/theme';
 import { useAuthDeepLink } from '@/features/auth/hooks/use-auth-deep-link';
 import { useAuthListener } from '@/features/auth/hooks/use-auth-listener';
+import { NowProvider } from '@/lib/now';
 import { queryClient } from '@/lib/query-client';
 import { useAuthStore } from '@/store/auth-store';
 
@@ -30,15 +31,17 @@ export default function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Stack screenOptions={{ headerShown: false }}>
-        {/* Protected routes: expo-router only renders the group that matches. */}
-        <Stack.Protected guard={isLoggedIn}>
-          <Stack.Screen name="(app)" />
-        </Stack.Protected>
-        <Stack.Protected guard={!isLoggedIn}>
-          <Stack.Screen name="(auth)" />
-        </Stack.Protected>
-      </Stack>
+      <NowProvider>
+        <Stack screenOptions={{ headerShown: false }}>
+          {/* Protected routes: expo-router only renders the group that matches. */}
+          <Stack.Protected guard={isLoggedIn}>
+            <Stack.Screen name="(app)" />
+          </Stack.Protected>
+          <Stack.Protected guard={!isLoggedIn}>
+            <Stack.Screen name="(auth)" />
+          </Stack.Protected>
+        </Stack>
+      </NowProvider>
     </QueryClientProvider>
   );
 }

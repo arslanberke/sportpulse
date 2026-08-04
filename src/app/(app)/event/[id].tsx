@@ -4,11 +4,11 @@ import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { Platform, Share, Text, View } from "react-native";
 import Animated, {
-  FadeIn,
-  FadeOut,
-  useAnimatedScrollHandler,
-  useAnimatedStyle,
-  useSharedValue,
+    FadeIn,
+    FadeOut,
+    useAnimatedScrollHandler,
+    useAnimatedStyle,
+    useSharedValue,
 } from "react-native-reanimated";
 
 import { LinearGradient } from "expo-linear-gradient";
@@ -19,13 +19,12 @@ import { Lottie } from "@/components/ui/lottie";
 import { Screen } from "@/components/ui/screen";
 import { EmptyCard, LoadingCard } from "@/components/ui/states";
 import { useThemeColors } from "@/constants/theme";
-import { formatCountdown } from "@/features/events/components/event-card";
-import { channelLogo } from "@/features/events/lib/channel-logo";
-import {
-  CircuitOutline,
-  findCircuitPath,
-} from "@/features/events/components/circuit-outline";
 import { BriefingCard } from "@/features/events/components/briefing-card";
+import {
+    CircuitOutline,
+    findCircuitPath,
+} from "@/features/events/components/circuit-outline";
+import { formatCountdown } from "@/features/events/components/event-card";
 import { EventEffect } from "@/features/events/components/event-effects";
 import { LeagueStandingsCard } from "@/features/events/components/league-standings-card";
 import { LineupCard } from "@/features/events/components/lineup-card";
@@ -33,10 +32,11 @@ import { MatchupArt } from "@/features/events/components/matchup-art";
 import { ResultsCard } from "@/features/events/components/results-card";
 import { StandingsCard } from "@/features/events/components/standings-card";
 import { useEvent } from "@/features/events/hooks/use-events";
+import { channelLogo } from "@/features/events/lib/channel-logo";
 import {
-  artworkStyle,
-  eventTheme,
-  overlayColors,
+    artworkStyle,
+    eventTheme,
+    overlayColors,
 } from "@/features/events/lib/event-theme";
 import { leagueBanner } from "@/features/events/lib/league-banner";
 import { reminderTimes } from "@/features/events/lib/reminder-times";
@@ -46,9 +46,10 @@ import { showAlert } from "@/lib/alert";
 import { formatDateTime } from "@/lib/dates";
 import { useI18n } from "@/lib/i18n";
 import { shareEventIcs } from "@/lib/ics";
+import { useNow } from "@/lib/now";
 import {
-  areLiveActivitiesEnabled,
-  startEventActivity,
+    areLiveActivitiesEnabled,
+    startEventActivity,
 } from "../../../../modules/live-activity";
 
 const successAnimation = require("../../../../assets/lottie/success.json");
@@ -80,6 +81,7 @@ function SectionHeader({
 export default function EventDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t } = useI18n();
+  const now = useNow();
   const colors = useThemeColors();
   const { event, isLoading } = useEvent(id);
   const { data: prefs } = useReminderPrefs();
@@ -366,7 +368,7 @@ export default function EventDetailScreen() {
                 }}
               >
                 {event.status === "scheduled"
-                  ? formatCountdown(event.startsAt, t)
+                  ? formatCountdown(event.startsAt, t, now)
                   : t(
                       event.status === "postponed"
                         ? "home.postponed"

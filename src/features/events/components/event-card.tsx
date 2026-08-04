@@ -21,6 +21,7 @@ import { leagueBanner } from "@/features/events/lib/league-banner";
 import { splitUfcTitle } from "@/features/events/lib/ufc-title";
 import { formatDayTime, formatTime } from "@/lib/dates";
 import { useI18n, type Translate } from "@/lib/i18n";
+import { useNow } from "@/lib/now";
 import type { SportEvent } from "@/types";
 
 /** Compact human countdown like "2d 4h" / "45m". */
@@ -54,10 +55,13 @@ function StatusChip({
   t: Translate;
   accent?: string;
 }) {
+  // Paylasilan saat: dakika ilerledikce sure kendiliginden tazelenir.
+  const now = useNow();
+
   if (event.status === "scheduled") {
     return (
       <Chip
-        label={formatCountdown(event.startsAt, t)}
+        label={formatCountdown(event.startsAt, t, now)}
         icon="hourglass-outline"
         iconColor="#FFFFFF"
         className={accent ? undefined : "bg-primary"}
