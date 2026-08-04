@@ -121,6 +121,16 @@ export default function SettingsScreen() {
         <LanguageSection />
         <ThemeSection />
 
+        <Card className="mb-6">
+          <Text className="mb-2 text-lg font-semibold text-ink">{t('settings.legal')}</Text>
+          <Text className="text-sm leading-5 text-ink-secondary">
+            {t('settings.legalMarks')}
+          </Text>
+          <Text className="mt-3 text-sm leading-5 text-ink-tertiary">
+            {t('settings.legalSources')}
+          </Text>
+        </Card>
+
         <Button
           title={t('settings.logOut')}
           onPress={handleSignOut}

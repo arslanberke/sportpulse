@@ -231,6 +231,15 @@ const en = {
   'settings.logOut': 'Log out',
   'settings.signOutFailed': 'Sign out failed',
   'settings.saved': 'Saved',
+  'settings.legal': 'Legal',
+  // Marka hukukunda "nominative use": bir yarismadan soz etmek icin adini ve
+  // amblemini kullanmak, onay/baglanti izlenimi verilmedigi surece mesru
+  // sayilir. Bu yuzden ilisiksizlik acikca yazilir (ayni ifade uygulamanin
+  // App Store aciklamasinda da bulunmali).
+  'settings.legalMarks':
+    'Team, league and competition names and crests are used for identification purposes only. No club, league or federation endorses, sponsors or is associated with this application.',
+  'settings.legalSources':
+    'Fixtures, results and standings are compiled from apifootball.com, ESPN, MotoGP, EuroLeague, Jolpica and TheSportsDB. Broadcast listings may change without notice.',
 
   // Profile
   'profile.title': 'Profile',
@@ -444,6 +453,11 @@ const tr: Record<TranslationKey, string> = {
   'settings.logOut': 'Çıkış yap',
   'settings.signOutFailed': 'Çıkış başarısız',
   'settings.saved': 'Kaydedildi',
+  'settings.legal': 'Yasal',
+  'settings.legalMarks':
+    'Takım, lig ve turnuva adları ile amblemleri yalnızca tanımlama amacıyla kullanılır. Hiçbir kulüp, lig ya da federasyon bu uygulamayı onaylamaz, desteklemez veya uygulamayla ilişkili değildir.',
+  'settings.legalSources':
+    'Fikstür, sonuç ve puan durumları apifootball.com, ESPN, MotoGP, EuroLeague, Jolpica ve TheSportsDB kaynaklarından derlenir. Yayın bilgileri önceden haber verilmeksizin değişebilir.',
 
   'profile.title': 'Profil',
   'profile.edit': 'Profili düzenle',
