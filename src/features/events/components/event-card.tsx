@@ -95,6 +95,7 @@ export function FeaturedEventCard({
   index?: number;
 }) {
   const { t } = useI18n();
+  const now = useNow();
   const colors = useThemeColors();
   const channelNames = (event.channels ?? []).map((c) => c.name).join(", ");
   const theme = eventTheme(event.sportId, event.leagueName);
@@ -274,7 +275,7 @@ export function FeaturedEventCard({
             <View className="flex-row flex-wrap items-center gap-2 px-4 pb-4 pt-3">
               {event.status === "scheduled" ? (
                 <Chip
-                  label={formatCountdown(event.startsAt, t)}
+                  label={formatCountdown(event.startsAt, t, now)}
                   icon="hourglass-outline"
                   iconColor={theme.accent}
                   className="bg-surface-raised border border-line"
@@ -329,6 +330,7 @@ export function EventCard({
   index?: number;
 }) {
   const { t } = useI18n();
+  const now = useNow();
   const colors = useThemeColors();
   const channelNames = (event.channels ?? []).map((c) => c.name).join(", ");
   const theme = eventTheme(event.sportId, event.leagueName);
@@ -369,7 +371,7 @@ export function EventCard({
           <View className="flex-row flex-wrap items-center gap-2">
             {event.status === "scheduled" ? (
               <Chip
-                label={formatCountdown(event.startsAt, t)}
+                label={formatCountdown(event.startsAt, t, now)}
                 icon="hourglass-outline"
                 iconColor={theme.accent}
                 className="bg-surface-raised border border-line"

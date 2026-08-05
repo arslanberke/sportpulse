@@ -15,6 +15,7 @@ import { useUpcomingEvents } from '@/features/events/hooks/use-events';
 import { useFollows } from '@/features/follows/hooks/use-follows';
 import { formatDay, isSameDay } from '@/lib/dates';
 import { useI18n } from '@/lib/i18n';
+import { useNow } from '@/lib/now';
 import { matchesAny, searchNeedles } from '@/lib/search';
 import type { Sport, SportEvent } from '@/types';
 
@@ -77,6 +78,7 @@ export default function HomeScreen() {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const now = useNow();
 
   // Kullanici kaydirmaya basladiginda alan kapanir: liste tam ekran kalir, terim
   // basliktaki dugmede gorunur olmaya devam eder.
@@ -136,7 +138,9 @@ export default function HomeScreen() {
     }
   }, [queryClient]);
 
-  const today = new Date();
+  // Paylasilan saatten: aksi halde gece yarisi gecildiginde dunun maclari
+  // "BUGUN" basligi altinda kalirdi.
+  const today = now;
   const tomorrow = new Date(today.getTime() + 86_400_000);
   const dayLabel = (day: Date) => {
     if (isSameDay(day, today)) return t('home.today');
