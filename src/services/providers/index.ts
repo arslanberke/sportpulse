@@ -23,8 +23,18 @@ export type {
     TeamListProvider
 } from './types.ts';
 
-/** Ordered by preference: primary first, fallbacks after. */
-export const providers = [theSportsDbProvider, espnProvider];
+/**
+ * Ordered by preference: primary first, fallbacks after.
+ *
+ * ESPN once denenir. TheSportsDB'nin ucretsiz katmani fiksturu eksik veriyor:
+ * Avrupa kupalarinin eleme turlarini hic dondurmuyor ve ayni gun icin ESPN 10
+ * mac verirken 3 mac veriyordu. Ustelik ilk veri donduren saglayicida
+ * durdugumuz icin bu eksiklik ESPN'i tamamen devre disi birakiyordu.
+ *
+ * TheSportsDB yedek olarak kaliyor: ESPN resmi olmayan bir API ve her an
+ * kirilabilir ya da 403 donebilir, o zaman fikstur tumden durmasin.
+ */
+export const providers = [espnProvider, theSportsDbProvider];
 
 
 /**
@@ -32,31 +42,25 @@ export const providers = [theSportsDbProvider, espnProvider];
  * one returns data. A provider that throws or returns nothing simply hands
  * over to the next one.
  *
- * Eleme turu ayri kod altinda duran yarismalar (bkz. `espnQualifying`) istisna:
- * orada tek kaynak yetmiyor. TheSportsDB bu maclarin cogunu hic vermiyordu, ilk
- * veri donduren saglayicida durdugumuz icin de ESPN hic okunmuyordu ve eleme
- * maclari fiksturde gorunmuyordu. Bu yarismalarda butun saglayicilar okunup
- * sonuclar birlestirilir; ayni macin iki kaynaktan gelmesi veritabaninda tek
- * kayda indiriliyor (bkz. migration 0035).
+ * Tek kaynakta durmak bilincli: ayni mac iki kaynaktan gelirse iki kayit riski
+ * dogar (kaynaklar takimlari farkli adlandirdiginda veritabanindaki eslestirme
+ * de tutmuyor, bkz. migration 0035). Eleme turlari icin ikinci bir saglayiciya
+ * gerek kalmadi -- ESPN ayni yarismanin eleme kodunu da kendisi okuyor.
  */
 export async function fetchUpcomingEvents(
   league: LeagueRef,
   days: number,
 ): Promise<ProviderEvent[]> {
-  const mergeEveryProvider = Boolean(league.externalIds.espnQualifying);
-  const collected: ProviderEvent[] = [];
-
   for (const provider of providers) {
     if (!provider.supports(league)) continue;
     try {
-      collected.push(...(await provider.fetchUpcomingEvents(league, days)));
+      const events = await provider.fetchUpcomingEvents(league, days);
+      if (events.length > 0) return events;
     } catch (error) {
       warnProviderFailure('fetchUpcomingEvents', provider.name, `league ${league.leagueId}`, error);
     }
-    if (collected.length > 0 && !mergeEveryProvider) break;
   }
-
-  return collected;
+  return [];
 }
 
 /**
