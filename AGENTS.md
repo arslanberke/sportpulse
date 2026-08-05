@@ -161,16 +161,68 @@ Amblem/ad kullanimina iliskin feragat `settings.legalMarks` icinde. Ayni ifade
 App Store aciklamasinda da bulunmali; saglayici sozlesmesi amblem haklarinin
 sorumlulugunu tumuyle bize birakiyor.
 
+## Fikstur kaynaklari
+
+Sira `src/services/providers/index.ts` icinde: **ESPN birincil**, TheSportsDB
+yedek. TheSportsDB'nin ucretsiz katmani eksik veriyor (Avrupa kupalarinin eleme
+turlarini hic dondurmuyor); ESPN resmi olmayan bir API oldugu icin de tek basina
+birakilmiyor.
+
+ESPN eleme turunu bagimsiz bir lig sayar: `uefa.europa` bos donerken maclar
+`uefa.europa_qual` altindadir. Lig satirindaki `external_ids.espnQualifying` bu
+ikinci kodu tasir, saglayici ikisini birlikte okur.
+
+Bir maci iki kaynaktan almak iki kayit uretir: `upsert_event` once saglayicinin
+kendi kimligine, bulamazsa "ayni spor + ayni iki takim + ayni gun" olcutune bakar
+(bkz. migration 0035). Takim adlari kaynaklar arasinda farkliysa (`AGF` /
+`AGF Aarhus`) bu olcut de tutmaz, o yuzden tek kaynakta durulur.
+
+Cift kayit ararken **ayni lig + ayni saat yeterli degildir**: Konferans Ligi'nde
+ayni saatte 8 mac oynanir. Ev sahibi ayni olmali. Takim adlarinda "biri digerini
+iceriyor" testi de yanlis eslesir: `Angers` ⊂ `Queens Park Rangers`.
+
+Turkce takim adlari icin lig `external_ids.wikipedia` ile tr.wikipedia sezon
+makalesine baglanir ("Süper Lig" -> "2026-27 Süper Lig"); saglayicilarin hicbiri
+adlari dogru yazmiyor. Yeniden adlandirma kurali migration 0037'de: yalnizca
+sadelestirmeyle ayni kulup oldugu dogrulanmis ve mevcut ad duz ASCII iken
+aksanli yazilis kabul edilir.
+
+Senkron fonksiyonlari ligleri parcalara boler ve her cagride bir parca isler
+(`sync-events` 8, `sync-teams` 4). Elle tetiklerken hepsini dolasmak gerekir:
+
+```sql
+-- SYNC_SECRET ekrana yazilmadan, cron kaydindan okunur
+do $$ declare tok text; i int; begin
+  select substring(command from 'Bearer ([a-f0-9]+)') into tok
+    from cron.job where jobid = 1;   -- 1: sync-events, 2: sync-teams
+  for i in 0..7 loop
+    perform net.http_post(
+      url := 'https://vyqkpnhhjjbvcprdncnx.supabase.co/functions/v1/sync-events?chunk=' || i,
+      headers := jsonb_build_object('Authorization', 'Bearer ' || tok));
+    perform pg_sleep(2);
+  end loop;
+end $$;
+```
+
 ## Notlar
 
 - `ios/` ve `android/` uretilen klasorlerdir, git'te tutulmaz (`expo prebuild`).
+- Giris animasyonu kaldirildi: reanimated'in `entering` animasyonu listenin ilk
+  kartlarinda yarida kaliyordu ve bedeli gorunur bozukluk oluyordu (once
+  `opacity: 0`'da asili kalan kartlar, sonra 24 piksel kaymis duranlar). Sebep
+  bulunamadi; `index` proplari yerinde durdugu icin guvenilir bir animasyon
+  ileride geri getirilebilir.
+- Geri sayimlar `useNow()` ile paylasilan saatten beslenir (`src/lib/now.tsx`).
+  Yeni bir sure gosterimi eklerken oraya baglanmali: aksi halde deger ilk
+  cizimde donar ve ekran acik beklerken bayatlar.
 - Ucretsiz Apple hesabi kullaniliyor: push yetkisi yok (bkz.
   `plugins/withoutPushEntitlement.js`) ve cihaza kurulan uygulama 7 gunde
   suresi doler, sonrasinda `npm run dev:phone` ile yeniden kurulmasi gerekir.
 - Gorseller bulanik gorunuyorsa iki bilinen sebep var. Birincisi: reanimated
   giris animasyonlarinda `rotate`/`scale` kullanmak, animasyon sirasinda
-  yuklenen gorselleri kalici olarak yumusatiyor (bkz. `src/lib/animations.ts`).
-  Ikincisi: `expo-image` gorseli gorunum boyutuna indirger ve bu bitmap'i URL
+  yuklenen gorselleri kalici olarak yumusatiyordu; animasyon artik yok ama geri
+  getirilirse bu ikisinden kacinilmali. Ikincisi: `expo-image` gorseli gorunum
+  boyutuna indirger ve bu bitmap'i URL
   ile onbelleklerse, ayni gorsel baska bir boyutta cizildiginde eski bitmap
   olceklenir; kucuk rozetlerde `allowDownscaling={false}` kullanilir.
 - Arama yaparken `src/lib/search.ts` kullanilmali: saglayici verisi Turkce
