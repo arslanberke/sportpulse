@@ -1,4 +1,5 @@
 import { warnHttp } from './log.ts';
+import { searchTeamCrest } from './thesportsdb.ts';
 import type { LeagueRef, ProviderTeam, TeamListProvider } from './types.ts';
 
 /**
@@ -16,8 +17,6 @@ import type { LeagueRef, ProviderTeam, TeamListProvider } from './types.ts';
  */
 
 const API = 'https://tr.wikipedia.org/w/api.php';
-/** Single-team lookups aren't capped the way the list endpoints are. */
-const TSDB_SEARCH = 'https://www.thesportsdb.com/api/v1/json/3/searchteams.php?t=';
 /** Wikipedia asks for a descriptive agent; anonymous scrapers get throttled. */
 const HEADERS = { 'User-Agent': 'SportPulse/1.0 (fixture app; contact: app)' };
 /** Crest size that still looks sharp on a 3x screen row. */
@@ -119,18 +118,16 @@ async function crests(articles: string[]): Promise<Map<string, string>> {
 /**
  * Crest for the handful of clubs whose Wikipedia article carries no image.
  * TheSportsDB is useless for listing a league but fine for one club by name.
+ *
+ * Arama `searchTeamCrest` uzerinden yapiliyor. Buradaki onceki kopya bransi
+ * kaynagin adiyla degil bizim kimligimizle karsilastiriyordu ("Soccer" ile
+ * "football"), yani futbolda hicbir zaman eslesmiyor ve bu yedek sessizce bos
+ * donuyordu.
  */
 async function crestByName(name: string, sportId: string): Promise<string | null> {
   try {
-    const res = await fetch(TSDB_SEARCH + encodeURIComponent(name));
-    if (!res.ok) return warnHttp('wikipedia.crest', res, null);
-    const data = (await res.json()) as {
-      teams?: { strSport?: string; strBadge?: string }[] | null;
-    };
-    const match = (data.teams ?? []).find(
-      (team) => (team.strSport ?? '').toLowerCase() === sportId && team.strBadge,
-    );
-    return match?.strBadge ?? null;
+    const hit = await searchTeamCrest(name, sportId);
+    return hit?.crestUrl ?? null;
   } catch {
     return null;
   }
