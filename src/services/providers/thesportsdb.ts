@@ -20,6 +20,21 @@ import type {
 const API_KEY = '3';
 const BASE = `https://www.thesportsdb.com/api/v1/json/${API_KEY}`;
 
+/**
+ * Kaynagin brans adlari bizim kimliklerimizle ayni degil ("Soccer" / football).
+ * Arama sonucunu bransa gore suzmek icin gerekli: ayni ad birden fazla bransta
+ * gecebiliyor ve yanlis bransin armasi yazilabilir.
+ */
+const SPORT_NAMES: Record<string, string> = {
+  football: 'Soccer',
+  basketball: 'Basketball',
+  volleyball: 'Volleyball',
+  tennis: 'Tennis',
+  f1: 'Motorsport',
+  motogp: 'Motorsport',
+  ufc: 'Fighting',
+};
+
 interface TsdbEvent {
   idEvent: string;
   strEvent: string;
@@ -267,3 +282,33 @@ export const theSportsDbProvider: FixtureProvider = {
     };
   },
 };
+
+/**
+ * Bir kulubun armasi, adiyla aranarak.
+ *
+ * Fikstur ucu her takim icin arma vermiyor (ESPN'de bazi kuluplerin alani bos
+ * geliyor) ve arma olmayinca kartin ust bolumu yer tutucuya dusuyor. Tek kulup
+ * aramasi listeleme uclari gibi kirpilmiyor, bu yuzden eksikleri kapatmak icin
+ * uygun.
+ *
+ * Donen ad da veriliyor: cagiran taraf bulunanin gercekten ayni kulup oldugunu
+ * dogrulamadan armayi yazmamali. Arama benzer adli baska bir kulubu
+ * dondurebilir ve yanlis arma, eksik armadan kotudur.
+ */
+export async function searchTeamCrest(
+  name: string,
+  sportId: string,
+): Promise<{ name: string; crestUrl: string } | null> {
+  const url = `${BASE}/searchteams.php?t=${encodeURIComponent(name)}`;
+  const data = (await getJson(url)) as {
+    teams?: { strTeam?: string; strSport?: string; strBadge?: string }[] | null;
+  } | null;
+
+  const sport = SPORT_NAMES[sportId];
+  for (const team of data?.teams ?? []) {
+    if (!team.strBadge || !team.strTeam) continue;
+    if (sport && (team.strSport ?? '').toLowerCase() !== sport.toLowerCase()) continue;
+    return { name: team.strTeam, crestUrl: team.strBadge };
+  }
+  return null;
+}
