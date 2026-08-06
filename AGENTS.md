@@ -190,23 +190,66 @@ aksanli yazilis kabul edilir.
 Senkron fonksiyonlari ligleri parcalara boler ve her cagride bir parca isler
 (`sync-events` 8, `sync-teams` 4). Elle tetiklerken hepsini dolasmak gerekir:
 
+Sir ekrana yazilmadan, cron kaydinin komutu oldugu gibi calistirilir. Token'i
+regex ile ayiklamaya calismak yanlis: hex degil, `Bearer ([a-f0-9]+)` gibi bir
+kalip yalnizca bir parcasini yakalar ve istek `UNAUTHORIZED_INVALID_JWT_FORMAT`
+ile doner.
+
 ```sql
--- SYNC_SECRET ekrana yazilmadan, cron kaydindan okunur
-do $$ declare tok text; i int; begin
-  select substring(command from 'Bearer ([a-f0-9]+)') into tok
-    from cron.job where jobid = 1;   -- 1: sync-events, 2: sync-teams
+do $$ declare cmd text; i int; begin
+  select command into cmd from cron.job where jobid = 1;  -- 1: sync-events
   for i in 0..7 loop
-    perform net.http_post(
-      url := 'https://vyqkpnhhjjbvcprdncnx.supabase.co/functions/v1/sync-events?chunk=' || i,
-      headers := jsonb_build_object('Authorization', 'Bearer ' || tok));
+    execute replace(cmd, '/sync-events', '/sync-events?chunk=' || i);
     perform pg_sleep(2);
   end loop;
 end $$;
 ```
 
+Baska bir isi ayni sirla tetiklemek icin adres degistirilir:
+`execute replace(cmd, 'sync-events', 'sync-broadcasts')`.
+
+Yanit `net._http_response` icinde birikir:
+`select status_code, content from net._http_response order by created desc limit 1;`
+
+## Yayin kanallari
+
+Iki katman var. `league_channels` lig basina sabit esleme yapar (varsayim),
+`event_broadcasts` mac bazinda yazar ve varsa lig eslemesini **gecersiz kilar**
+(bkz. `useUpcomingEvents`). Ikinci katman bugune kadar bostu, yani kanal bilgisi
+tumuyle varsayimdi ve Turk takimlarinin Avrupa maclarinda yaniliyordu: yayin
+hakki lig genelinde TRT'de olsa da o maclar TV100'de yayinlandi.
+
+Kaynak `src/services/providers/sporekrani.ts`: sayfanin sunucu tarafinda gomdugu
+`__INITIAL_STATE__` icinde gunun butun yayinlari duruyor. `sync-broadcasts` isi
+bunu okuyup `set_event_broadcast` (migration 0039) ile yaziyor; eslestirme
+veritabaninda cunku ad sadelestirmesi orada.
+
+Denenip elenen kaynaklar -- tekrar aranmasin diye: Nesine bulteninde yayin alani
+var ama tum maclarda bos, iddaa yayin bilgisi tasimiyor, Sofascore 403,
+FotMob uc noktasi kapali, apifootball ve TheSportsDB'de yayin verisi hic yok.
+Ucretli secenekler Sportmonks (29 EUR/ay, TV verisi tum planlarda) ve Broadage
+(cok sporlu, ozel fiyat).
+
+Iki bilinen sinir:
+
+- Kaynak yalnizca icinde bulunulan gunu veriyor. Tarih parametresi, tarih bazli
+  adres ve API uc noktasi denendi, hepsi ayni gunu donduruyor.
+- Eslestirme tam ad esitligine dayanir. Kaynak Turkce yaziyor ("Dinamo Kiev",
+  "Karabağ"), katalog ozgun yazimi tutuyor ("Dynamo Kyiv", "FK Qarabag"); bu
+  ciftler eslesmiyor. Trigram benzerligi cozmuyor: dogru cift 0.26 verirken
+  alakasiz bir cift (Angers / Queens Park Rangers) 0.23 veriyor.
+
+Ayrica kaynak yalnizca Turkiye'de yayinlanan maclari listeliyor. Yayinlanmayan
+bir mac icin lig eslemesi devreye girip yanlis kanal gosterir; bugun katalogdaki
+40 Avrupa macindan yalnizca 2'si Turkiye'de yayinlaniyordu.
+
 ## Notlar
 
 - `ios/` ve `android/` uretilen klasorlerdir, git'te tutulmaz (`expo prebuild`).
+- Yeni bir Edge Function cron'dan cagrilacaksa `supabase/config.toml` icine
+  `verify_jwt = false` eklenmeli; yoksa platformun JWT kapisi istegi fonksiyona
+  hic ulastirmadan `UNAUTHORIZED_INVALID_JWT_FORMAT` doner. Isler paylasilan
+  `SYNC_SECRET` ile korunur, kullanici JWT'siyle degil.
 - Giris animasyonu kaldirildi: reanimated'in `entering` animasyonu listenin ilk
   kartlarinda yarida kaliyordu ve bedeli gorunur bozukluk oluyordu (once
   `opacity: 0`'da asili kalan kartlar, sonra 24 piksel kaymis duranlar). Sebep
