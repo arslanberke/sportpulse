@@ -113,9 +113,11 @@ export function FeaturedEventCard({
   const circuit =
     event.sportId === "f1" ? findCircuitPath(event.venue, event.title) : null;
   const ufc = event.sportId === "ufc" ? splitUfcTitle(event.title) : null;
-  const hasMatchup = Boolean(
-    event.homeTeamLogoUrl && event.awayTeamLogoUrl,
-  );
+  // Iki takimli bir karsilasma: rozet duzeni kullanilir. Tek armanin eksik
+  // olmasi yeterli sayilmiyordu ve kart bastan asagi lig afisine dusuyordu --
+  // afis kartin oranina oturmadigi icin ortada bir serit gibi duruyor, baslik da
+  // uzerine biniyordu. Eksik arma artik yer tutucuyla gosteriliyor.
+  const hasMatchup = Boolean(event.homeTeamName && event.awayTeamName);
   const banner = leagueBanner(event.leagueName);
 
   return (
@@ -161,8 +163,8 @@ export function FeaturedEventCard({
           ) : hasMatchup ? (
             <MatchupArt
               banner={banner}
-              homeLogoUrl={event.homeTeamLogoUrl!}
-              awayLogoUrl={event.awayTeamLogoUrl!}
+              homeLogoUrl={event.homeTeamLogoUrl ?? null}
+              awayLogoUrl={event.awayTeamLogoUrl ?? null}
               badgeSize={100}
             />
           ) : (

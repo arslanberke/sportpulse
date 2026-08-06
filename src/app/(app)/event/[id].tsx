@@ -197,7 +197,10 @@ export default function EventDetailScreen() {
   const circuit =
     event.sportId === "f1" ? findCircuitPath(event.venue, event.title) : null;
   const ufc = event.sportId === "ufc" ? splitUfcTitle(event.title) : null;
-  const hasMatchup = Boolean(event.homeTeamLogoUrl && event.awayTeamLogoUrl);
+  // Rozet duzeni icin takim adlari yeterli: eksik arma yer tutucuyla cizilir.
+  // Tek armanin eksikligi tum kartin lig afisine dusmesine yol aciyordu ve afis
+  // kartin oranina oturmadigi icin bozuk gorunuyordu.
+  const hasMatchup = Boolean(event.homeTeamName && event.awayTeamName);
   const banner = leagueBanner(event.leagueName);
 
   return (
@@ -247,8 +250,8 @@ export default function EventDetailScreen() {
             ) : hasMatchup ? (
               <MatchupArt
                 banner={banner}
-                homeLogoUrl={event.homeTeamLogoUrl!}
-                awayLogoUrl={event.awayTeamLogoUrl!}
+                homeLogoUrl={event.homeTeamLogoUrl ?? null}
+                awayLogoUrl={event.awayTeamLogoUrl ?? null}
                 badgeSize={116}
               />
             ) : (

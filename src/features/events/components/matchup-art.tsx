@@ -1,7 +1,35 @@
+import type { LeagueBanner } from '@/features/events/lib/league-banner';
+import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Text, View } from 'react-native';
-import type { LeagueBanner } from '@/features/events/lib/league-banner';
+
+/**
+ * Bir armanin yerini tutan daire.
+ *
+ * Kaynak bazi kuluplerin armasini vermiyor. Once tek arma eksik oldugunda kart
+ * bastan asagi lig afisine dusuyordu: afis kartin oranina oturmadigi icin
+ * ortada bir serit gibi duruyor ve baslik uzerine biniyordu. Eksik armanin
+ * yerini tutmak, duzeni bozmadan durumu goruntuluyor.
+ */
+function BadgePlaceholder({ size }: { size: number }) {
+  return (
+    <View
+      style={{
+        width: size,
+        height: size,
+        borderRadius: size / 2,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'rgba(255,255,255,0.12)',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.25)',
+      }}
+    >
+      <Ionicons name="shield-outline" size={size * 0.42} color="rgba(255,255,255,0.6)" />
+    </View>
+  );
+}
 
 /**
  * Hero artwork for a two-team fixture: a league banner backdrop with the home
@@ -9,6 +37,8 @@ import type { LeagueBanner } from '@/features/events/lib/league-banner';
  * and sit inside a padded safe area so no crest is ever clipped. The backdrop
  * honours the banner's own `fit` (full-bleed `cover` vs. fully-visible
  * `contain` with a matching fill).
+ *
+ * Arma adresleri bos gelebilir; eksik olanin yerine yer tutucu cizilir.
  */
 export function MatchupArt({
   banner,
@@ -17,8 +47,8 @@ export function MatchupArt({
   badgeSize,
 }: {
   banner: LeagueBanner | null;
-  homeLogoUrl: string;
-  awayLogoUrl: string;
+  homeLogoUrl: string | null;
+  awayLogoUrl: string | null;
   /** Rendered width/height of each badge box. */
   badgeSize: number;
 }) {
@@ -63,12 +93,16 @@ export function MatchupArt({
           gap: 16,
         }}
       >
-        <Image
-          source={{ uri: homeLogoUrl }}
-          style={{ width: badgeSize, height: badgeSize }}
-          contentFit="contain"
-          transition={200}
-        />
+        {homeLogoUrl ? (
+          <Image
+            source={{ uri: homeLogoUrl }}
+            style={{ width: badgeSize, height: badgeSize }}
+            contentFit="contain"
+            transition={200}
+          />
+        ) : (
+          <BadgePlaceholder size={badgeSize} />
+        )}
         <Text
           style={{
             color: 'rgba(255,255,255,0.85)',
@@ -79,12 +113,16 @@ export function MatchupArt({
         >
           VS
         </Text>
-        <Image
-          source={{ uri: awayLogoUrl }}
-          style={{ width: badgeSize, height: badgeSize }}
-          contentFit="contain"
-          transition={200}
-        />
+        {awayLogoUrl ? (
+          <Image
+            source={{ uri: awayLogoUrl }}
+            style={{ width: badgeSize, height: badgeSize }}
+            contentFit="contain"
+            transition={200}
+          />
+        ) : (
+          <BadgePlaceholder size={badgeSize} />
+        )}
       </View>
     </View>
   );

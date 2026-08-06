@@ -22,7 +22,12 @@ const SPORT_PATHS: Record<string, string> = {
 
 interface EspnCompetitor {
   homeAway: 'home' | 'away';
-  team?: { displayName?: string };
+  team?: {
+    id?: string;
+    displayName?: string;
+    /** Fikstur ucundaki tek gorsel alani; bos gelebilir. */
+    logo?: string;
+  };
 }
 
 interface EspnEvent {
@@ -129,8 +134,10 @@ function earliestCalendarDate(calendar: unknown): string | null {
 
 function normalize(event: EspnEvent): ProviderEvent {
   const competitors = event.competitions?.[0]?.competitors ?? [];
-  const home = competitors.find((c) => c.homeAway === 'home')?.team?.displayName ?? null;
-  const away = competitors.find((c) => c.homeAway === 'away')?.team?.displayName ?? null;
+  const homeTeam = competitors.find((c) => c.homeAway === 'home')?.team;
+  const awayTeam = competitors.find((c) => c.homeAway === 'away')?.team;
+  const home = homeTeam?.displayName ?? null;
+  const away = awayTeam?.displayName ?? null;
   return {
     externalId: event.id,
     provider: 'espn',
@@ -143,10 +150,14 @@ function normalize(event: EspnEvent): ProviderEvent {
     startsAtUtc: new Date(event.date).toISOString(),
     homeTeam: home,
     awayTeam: away,
-    homeTeamExternalId: null,
-    awayTeamExternalId: null,
-    homeTeamLogoUrl: null,
-    awayTeamLogoUrl: null,
+    // Fikstur ucu takim kimligini ve armasini da veriyor. Bunlari almamak
+    // ESPN birincil kaynak olunca gorunur bir bosluga donusmustu: maclarindan
+    // olusan takimlar armasiz kaliyor, arma olmayinca kartin ust bolumu
+    // takim rozetleri yerine lig afisine dusuyordu.
+    homeTeamExternalId: homeTeam?.id ?? null,
+    awayTeamExternalId: awayTeam?.id ?? null,
+    homeTeamLogoUrl: homeTeam?.logo || null,
+    awayTeamLogoUrl: awayTeam?.logo || null,
     imageUrl: null,
     venue: null,
     venueImageUrl: null,
