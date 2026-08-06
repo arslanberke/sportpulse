@@ -5,6 +5,7 @@ import { useLeagueChannels } from '@/features/catalog/hooks/use-catalog';
 import { useFollows } from '@/features/follows/hooks/use-follows';
 import { useProfile } from '@/features/profile/hooks/use-profile';
 import {
+    fetchBroadcastCoverage,
     fetchEvent,
     fetchEventBriefing,
     fetchEventBroadcasts,
@@ -15,9 +16,43 @@ import {
     fetchEvents,
     fetchTeamEvents,
 } from '@/services/events';
-import type { SportEvent, UserFollow } from '@/types';
+import type { Channel, SportEvent, UserFollow } from '@/types';
 
 const HOUR_MS = 3_600_000;
+
+/** Yayin kaynagi gunleri Turkiye saatine gore yazar; mac da o gune gore aranmali. */
+const ISTANBUL_DAY = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Istanbul' });
+
+/**
+ * Bir macin gosterecegi kanallar.
+ *
+ * Uc basamak: mac icin dogrulanmis kayit varsa o; yoksa ama macin gunu yayin
+ * kaynaginca kapsanmissa hicbiri -- kaynak o maci listelemiyorsa buyuk
+ * olasilikla bu ulkede yayinlanmiyordur ve lig varsayimini gostermek yanlis
+ * bilgi olur (katalogdaki 40 Avrupa macindan yalnizca 2'sinin yayinlandigi bir
+ * gunde 38 mac "TRT 1" yaziyordu); kapsanmayan gunlerde lig varsayimi.
+ */
+function resolveChannels(
+  event: SportEvent,
+  eventBroadcasts: Map<string, Channel[]> | undefined,
+  leagueChannels: Map<string, Channel[]> | undefined,
+  coveredDays: Set<string> | undefined,
+): Channel[] {
+  const confirmed = eventBroadcasts?.get(event.id);
+  if (confirmed && confirmed.length > 0) return confirmed;
+  if (coveredDays?.has(ISTANBUL_DAY.format(new Date(event.startsAt)))) return [];
+  return event.leagueId ? (leagueChannels?.get(event.leagueId) ?? []) : [];
+}
+
+/** Yayin kaynaginin kapsadigi gunler; kapsam ulke bazlidir. */
+function useBroadcastCoverage(countryCode: string | undefined) {
+  return useQuery({
+    queryKey: ['broadcast-coverage', countryCode],
+    queryFn: () => fetchBroadcastCoverage(countryCode!),
+    enabled: Boolean(countryCode),
+    staleTime: HOUR_MS,
+  });
+}
 
 /** Raw events for a window, driven by the user's follow list. */
 function useRawEvents(from: Date, to: Date, follows: UserFollow[] | undefined) {
@@ -45,6 +80,7 @@ export function useUpcomingEvents(days = 7) {
 
   const eventsQuery = useRawEvents(from, to, follows);
   const { data: leagueChannels } = useLeagueChannels(profile?.countryCode);
+  const { data: coveredDays } = useBroadcastCoverage(profile?.countryCode);
 
   const eventIds = (eventsQuery.data ?? []).map((e) => e.id);
   const { data: eventBroadcasts } = useQuery({
@@ -58,11 +94,9 @@ export function useUpcomingEvents(days = 7) {
     () =>
       (eventsQuery.data ?? []).map((event) => ({
         ...event,
-        channels:
-          eventBroadcasts?.get(event.id) ??
-          (event.leagueId ? (leagueChannels?.get(event.leagueId) ?? []) : []),
+        channels: resolveChannels(event, eventBroadcasts, leagueChannels, coveredDays),
       })),
-    [eventsQuery.data, eventBroadcasts, leagueChannels],
+    [eventsQuery.data, eventBroadcasts, leagueChannels, coveredDays],
   );
 
   return { ...eventsQuery, events };
@@ -76,6 +110,7 @@ export function useUpcomingEvents(days = 7) {
 export function useTeamEvents(teamId: string | undefined, days = 120) {
   const { data: profile } = useProfile();
   const { data: leagueChannels } = useLeagueChannels(profile?.countryCode);
+  const { data: coveredDays } = useBroadcastCoverage(profile?.countryCode);
 
   const eventsQuery = useQuery({
     queryKey: ['team-events', teamId, days],
@@ -96,11 +131,9 @@ export function useTeamEvents(teamId: string | undefined, days = 120) {
     () =>
       (eventsQuery.data ?? []).map((event) => ({
         ...event,
-        channels:
-          eventBroadcasts?.get(event.id) ??
-          (event.leagueId ? (leagueChannels?.get(event.leagueId) ?? []) : []),
+        channels: resolveChannels(event, eventBroadcasts, leagueChannels, coveredDays),
       })),
-    [eventsQuery.data, eventBroadcasts, leagueChannels],
+    [eventsQuery.data, eventBroadcasts, leagueChannels, coveredDays],
   );
 
   return { ...eventsQuery, events };
@@ -110,6 +143,7 @@ export function useTeamEvents(teamId: string | undefined, days = 120) {
 export function useEvent(id: string | undefined) {
   const { data: profile } = useProfile();
   const { data: leagueChannels } = useLeagueChannels(profile?.countryCode);
+  const { data: coveredDays } = useBroadcastCoverage(profile?.countryCode);
 
   const eventQuery = useQuery({
     queryKey: ['event', id],
@@ -128,11 +162,9 @@ export function useEvent(id: string | undefined) {
     if (!raw) return null;
     return {
       ...raw,
-      channels:
-        eventBroadcasts?.get(raw.id) ??
-        (raw.leagueId ? (leagueChannels?.get(raw.leagueId) ?? []) : []),
+      channels: resolveChannels(raw, eventBroadcasts, leagueChannels, coveredDays),
     };
-  }, [eventQuery.data, eventBroadcasts, leagueChannels]);
+  }, [eventQuery.data, eventBroadcasts, leagueChannels, coveredDays]);
 
   return { ...eventQuery, event };
 }

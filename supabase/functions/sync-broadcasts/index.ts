@@ -39,7 +39,18 @@ Deno.serve(async (request) => {
     return new Response(`source failed: ${String(error)}`, { status: 502 });
   }
 
+  // Kaynak okunabildi: bu gun kapsanmis sayilir. Istemci, kapsanan gunde mac
+  // bazli kaydi olmayan maclarda lig varsayimini gostermez -- kaynak o maclari
+  // listelemiyorsa buyuk olasilikla Turkiye'de yayinlanmiyorlar. Kayit yazma
+  // eslestirmeden once yapiliyor: kaynagin bos dondugu (mac olmayan) bir gun de
+  // kapsanmis bir gundur.
+  const day = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Istanbul' }).format(new Date());
+  const { error: coverageError } = await supabase
+    .from('broadcast_coverage')
+    .upsert({ country_code: COUNTRY, day, synced_at: new Date().toISOString() });
+
   const failures: string[] = [];
+  if (coverageError) failures.push(`coverage: ${coverageError.message}`);
   let matched = 0;
   let skipped = 0;
 

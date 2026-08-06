@@ -253,3 +253,22 @@ export async function fetchEventBroadcasts(params: {
   }
   return byEvent;
 }
+
+/**
+ * Yayin kaynaginin kapsadigi gunler ("YYYY-MM-DD").
+ *
+ * Kapsanan bir gune dusen ama mac bazli kaydi olmayan mac buyuk olasilikla o
+ * ulkede yayinlanmiyordur; boyle maclarda lig varsayimini gostermek yanlis
+ * bilgi olur. Gunler yerine yalnizca son birkaci okunur: kaynak gunluk yazar,
+ * eski gunlerin gecmis maclara etkisi yoktur.
+ */
+export async function fetchBroadcastCoverage(countryCode: string): Promise<Set<string>> {
+  const since = new Date(Date.now() - 2 * 86_400_000).toISOString().slice(0, 10);
+  const { data, error } = await supabase
+    .from('broadcast_coverage')
+    .select('day')
+    .eq('country_code', countryCode)
+    .gte('day', since);
+  if (error) throw error;
+  return new Set((data ?? []).map((row: { day: string }) => row.day));
+}
