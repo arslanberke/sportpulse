@@ -394,6 +394,9 @@ verify_jwt = false
 [functions.sync-teams]
 verify_jwt = false
 
+[functions.sync-broadcasts]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327

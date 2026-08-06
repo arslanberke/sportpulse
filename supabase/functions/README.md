@@ -108,3 +108,42 @@ select cron.schedule(
 ```
 
 Pass `?limit=<n>` to work through a backlog faster.
+
+## sync-broadcasts
+
+Turkiye'deki yayin kanallarini mac bazinda yazar.
+
+Kanal bilgisi lig basina sabit bir eslemeden geliyordu ("UEFA kupalari -> TRT 1,
+TABii"). Bu varsayim Turk takimlarinin Avrupa maclarinda yaniliyor: yayin hakki
+lig genelinde TRT'de olsa da Fenerbahce - Sturm Graz ve Hradec Kralove -
+Besiktas TV100'de yayinlandi.
+
+Kaynak (`src/services/providers/sporekrani.ts`) gunun yayin akisini takim
+adlari ve kanallariyla veriyor. Eslesen maclara `event_broadcasts` uzerinden
+kanal yazilir ve bu kayit lig eslemesini gecersiz kilar; eslesmeyenler lig
+eslemesiyle gosterilmeye devam eder, yani kaynak bozulursa uygulama eski
+davranisina doner.
+
+Iki sinir var. Kaynak yalnizca icinde bulunulan gunu veriyor (tarih parametresi,
+tarih bazli adres ve API uc noktasi denendi, hepsi ayni gunu donduruyor), bu
+yuzden is gun icinde birkac kez calisir. Ve eslestirme tam ad esitligine dayanir:
+kaynak Turkce yaziyor ("Dinamo Kiev", "Karabağ"), katalog ozgun yazimi tutuyor
+("Dynamo Kyiv", "FK Qarabag"), bu ciftler eslesmiyor. Trigram benzerligi cozum
+degil: dogru cift 0.26 verirken alakasiz bir cift (Angers / Queens Park Rangers)
+0.23 veriyor, yani ayirt edilemiyor.
+
+### Schedule (every 4 hours) with pg_cron
+
+```sql
+select cron.schedule(
+  'sync-broadcasts',
+  '10 */4 * * *',
+  $$
+  select net.http_post(
+    url := 'https://<project-ref>.supabase.co/functions/v1/sync-broadcasts',
+    headers := jsonb_build_object('Authorization', 'Bearer <random-string>'),
+    timeout_milliseconds := 150000
+  );
+  $$
+);
+```
