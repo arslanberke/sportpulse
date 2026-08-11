@@ -17,8 +17,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Lottie } from "@/components/ui/lottie";
 import { Screen } from "@/components/ui/screen";
+import { SectionHeader } from "@/components/ui/section-header";
 import { EmptyCard, LoadingCard } from "@/components/ui/states";
 import { useThemeColors } from "@/constants/theme";
+import { BracketCard } from "@/features/events/components/bracket-card";
 import { BriefingCard } from "@/features/events/components/briefing-card";
 import {
     CircuitOutline,
@@ -54,28 +56,6 @@ import {
 
 const successAnimation = require("../../../../assets/lottie/success.json");
 
-/** Card section header: a tinted icon tile next to the section title. */
-function SectionHeader({
-  icon,
-  label,
-  tint,
-}: {
-  icon: keyof typeof Ionicons.glyphMap;
-  label: string;
-  tint: string;
-}) {
-  return (
-    <View className="mb-3 flex-row items-center gap-3">
-      <View
-        className="h-9 w-9 items-center justify-center rounded-xl"
-        style={{ backgroundColor: `${tint}1F` }}
-      >
-        <Ionicons name={icon} size={18} color={tint} />
-      </View>
-      <Text className="text-base font-semibold text-ink">{label}</Text>
-    </View>
-  );
-}
 
 /** Event detail: when, where to watch, calendar export, reminder times. */
 export default function EventDetailScreen() {
@@ -429,6 +409,8 @@ export default function EventDetailScreen() {
         <StandingsCard event={event} index={3} />
 
         <LeagueStandingsCard event={event} index={4} />
+
+        <BracketCard event={event} index={4} />
 
         <Card className="mb-4" index={5}>
           <SectionHeader

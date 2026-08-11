@@ -213,6 +213,7 @@ Deno.serve(async (request) => {
             p_starts_at: match.startsAtUtc,
             p_status: match.postponed ? 'postponed' : 'scheduled',
             p_round: match.round,
+            p_bracket: match.bracket,
             p_home_name: home.name,
             p_home_ext: home.externalId,
             p_home_flag: home.countryFlagUrl,

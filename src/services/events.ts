@@ -87,6 +87,10 @@ export async function fetchEvents(params: {
       'id, sport_id, league_id, home_team_id, away_team_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url)',
     )
     .lt('starts_at', to.toISOString())
+    // Kura maclari listeye girmez: bir tenis turnuvasi yuzlerce karsilasma
+    // demek (Toronto 217) ve bunlar takip edilen futbol maclarini bogar. Liste
+    // turnuvanin kendisini gosteriyor, kura turnuvanin icinde.
+    .is('parent_event_id', null)
     .or(clauses.join(','))
     // Devam edenler de listede kalir. Yalnizca baslangica bakildiginda cok
     // gunlu bir etkinlik baslar baslamaz dusuyordu: Cincinnati Open sabah
@@ -276,4 +280,44 @@ export async function fetchBroadcastCoverage(countryCode: string): Promise<Set<s
     .gte('day', since);
   if (error) throw error;
   return new Set((data ?? []).map((row: { day: string }) => row.day));
+}
+
+/**
+ * Bir turnuvanin kurasi: ana tablodaki tekler maclari.
+ *
+ * Eleme turlari ve ciftler suzuluyor. Kaynak hepsini ayni ucta veriyor ve
+ * Toronto'da 217 mac cikiyor; "Sinner ceyrek finalde" bir sey ifade ederken
+ * "eleme 1. tur, 180. siradaki iki oyuncu" pek etmiyor. Kayitlar silinmedi,
+ * yalnizca burada suzuluyor -- ciftleri isteyen bir ekran ayni satirlari
+ * kullanabilir.
+ */
+export async function fetchTournamentBracket(tournamentId: string): Promise<SportEvent[]> {
+  const { data, error } = await supabase
+    .from('events')
+    .select(
+      'id, sport_id, league_id, home_team_id, away_team_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, round, bracket, home_player:players!home_player_id (name, country_flag_url, rank), away_player:players!away_player_id (name, country_flag_url, rank), leagues (name, artwork_url, logo_url)',
+    )
+    .eq('parent_event_id', tournamentId)
+    .not('bracket', 'ilike', '%Doubles%')
+    .not('round', 'ilike', 'Qualifying%')
+    .order('starts_at');
+  if (error) throw error;
+
+  return (data as unknown as (EventRow & {
+    round: string | null;
+    bracket: string | null;
+    home_player: { name: string; country_flag_url: string | null; rank: number | null } | null;
+    away_player: { name: string; country_flag_url: string | null; rank: number | null } | null;
+  })[]).map((row) => ({
+    ...mapRow(row),
+    round: row.round,
+    bracket: row.bracket,
+    // Kura kartlari kisi adini ve bayragini gosteriyor; kulup alanlari bos.
+    homeTeamName: row.home_player?.name ?? null,
+    awayTeamName: row.away_player?.name ?? null,
+    homeTeamLogoUrl: row.home_player?.country_flag_url ?? null,
+    awayTeamLogoUrl: row.away_player?.country_flag_url ?? null,
+    homePlayerRank: row.home_player?.rank ?? null,
+    awayPlayerRank: row.away_player?.rank ?? null,
+  }));
 }

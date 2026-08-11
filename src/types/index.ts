@@ -93,6 +93,13 @@ export interface SportEvent {
   awayTeamLogoUrl?: string | null;
   sport?: Sport | null;
   channels?: Channel[];
+  /** Kurada nerede oynandigi ("Quarterfinals"); yalnizca bireysel sporlarda. */
+  round?: string | null;
+  /** "Men's Singles" / "Women's Doubles". */
+  bracket?: string | null;
+  /** Karsilasan kisilerin siralamasi; bilinmiyorsa null. */
+  homePlayerRank?: number | null;
+  awayPlayerRank?: number | null;
 }
 
 /** A single player in a confirmed lineup (starting XI or bench). */
