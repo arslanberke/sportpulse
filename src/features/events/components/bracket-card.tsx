@@ -12,13 +12,31 @@ import { formatDayTime } from '@/lib/dates';
 import { useI18n } from '@/lib/i18n';
 import type { SportEvent } from '@/types';
 
-/** Turlar kronolojik degil alfabetik gelebiliyor; okunur bir sira icin. */
-const ROUND_ORDER = ['1st Round', '2nd Round', '3rd Round', 'Round of 16', 'Quarterfinals', 'Semifinals', 'Final'];
+/**
+ * Turun onemi: buyuk sayi daha onemli.
+ *
+ * Kaynak turlari kronolojik sirada vermiyor ve eleme maclari ana tabloyla ayni
+ * listede geliyor. Onem sirasi kullanilmadiginda kartin tepesinde "eleme 1. tur"
+ * duruyor, ceyrek final asagida kaliyor.
+ */
+const ROUND_WEIGHT: [string, number][] = [
+  ['Final', 7],
+  ['Semifinal', 6],
+  ['Quarterfinal', 5],
+  ['Round of 16', 4],
+  ['3rd Round', 3],
+  ['2nd Round', 2],
+  ['1st Round', 1],
+];
 
-function roundRank(round: string | null | undefined): number {
-  if (!round) return ROUND_ORDER.length;
-  const index = ROUND_ORDER.findIndex((name) => round.includes(name));
-  return index === -1 ? ROUND_ORDER.length : index;
+function roundWeight(round: string | null | undefined): number {
+  if (!round) return 0;
+  // Eleme turlari ana tablonun altinda kalir: "Qualifying Final" bir final
+  // degil, ana tabloya girme macidir.
+  const qualifying = /qualif/i.test(round);
+  const match = ROUND_WEIGHT.find(([name]) => round.includes(name));
+  const weight = match ? match[1] : 0;
+  return qualifying ? weight - 10 : weight;
 }
 
 function PlayerLine({
@@ -78,7 +96,7 @@ export function BracketCard({ event, index = 0 }: { event: SportEvent; index?: n
   if (!matches || matches.length === 0) return null;
 
   const sorted = [...matches].sort((a, b) => {
-    const byRound = roundRank(b.round) - roundRank(a.round);
+    const byRound = roundWeight(b.round) - roundWeight(a.round);
     return byRound !== 0 ? byRound : a.startsAt.localeCompare(b.startsAt);
   });
 

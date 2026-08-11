@@ -283,13 +283,16 @@ export async function fetchBroadcastCoverage(countryCode: string): Promise<Set<s
 }
 
 /**
- * Bir turnuvanin kurasi: ana tablodaki tekler maclari.
+ * Bir turnuvanin kurasi: tekler maclari.
  *
- * Eleme turlari ve ciftler suzuluyor. Kaynak hepsini ayni ucta veriyor ve
- * Toronto'da 217 mac cikiyor; "Sinner ceyrek finalde" bir sey ifade ederken
- * "eleme 1. tur, 180. siradaki iki oyuncu" pek etmiyor. Kayitlar silinmedi,
- * yalnizca burada suzuluyor -- ciftleri isteyen bir ekran ayni satirlari
- * kullanabilir.
+ * Ciftler suzuluyor, eleme turlari suzulmuyor. Ilk halinde eleme de gizlenmisti
+ * ama yeni baslayan turnuvalarda kart bombos kaliyor: ana tablo kurasi sonradan
+ * cekildigi icin Cincinnati'nin ilk gunu 48 macin tamami elemeydi. Bunun yerine
+ * siralama tur onemine gore yapiliyor -- final ve ceyrek final ustte, eleme
+ * altta.
+ *
+ * Kayitlar silinmiyor, yalnizca burada suzuluyor: ciftleri isteyen bir ekran
+ * ayni satirlari kullanabilir.
  */
 export async function fetchTournamentBracket(tournamentId: string): Promise<SportEvent[]> {
   const { data, error } = await supabase
@@ -299,7 +302,6 @@ export async function fetchTournamentBracket(tournamentId: string): Promise<Spor
     )
     .eq('parent_event_id', tournamentId)
     .not('bracket', 'ilike', '%Doubles%')
-    .not('round', 'ilike', 'Qualifying%')
     .order('starts_at');
   if (error) throw error;
 
