@@ -14,6 +14,8 @@ interface EventRow {
   sport_id: string;
   league_id: string | null;
   home_team_id: string | null;
+  home_player_id?: string | null;
+  away_player_id?: string | null;
   away_team_id: string | null;
   title: string;
   starts_at: string;
@@ -26,6 +28,8 @@ interface EventRow {
   external_ids: Record<string, string>;
   leagues: { name: string; artwork_url: string | null; logo_url: string | null } | null;
   home_team: { name: string; logo_url: string | null } | null;
+  home_player?: { name: string; country_flag_url: string | null } | null;
+  away_player?: { name: string; country_flag_url: string | null } | null;
   away_team: { name: string; logo_url: string | null } | null;
 }
 
@@ -40,6 +44,8 @@ function mapRow(row: EventRow): SportEvent {
     sportId: row.sport_id,
     leagueId: row.league_id,
     homeTeamId: row.home_team_id,
+    homePlayerId: row.home_player_id ?? null,
+    awayPlayerId: row.away_player_id ?? null,
     awayTeamId: row.away_team_id,
     title: row.title,
     startsAt: row.starts_at,
@@ -53,10 +59,10 @@ function mapRow(row: EventRow): SportEvent {
     leagueName: row.leagues?.name ?? null,
     leagueArtworkUrl: row.leagues?.artwork_url ?? null,
     leagueBadgeUrl: row.leagues?.logo_url ?? null,
-    homeTeamName: row.home_team?.name ?? null,
-    awayTeamName: row.away_team?.name ?? null,
-    homeTeamLogoUrl: row.home_team?.logo_url ?? null,
-    awayTeamLogoUrl: row.away_team?.logo_url ?? null,
+    homeTeamName: row.home_team?.name ?? row.home_player?.name ?? null,
+    awayTeamName: row.away_team?.name ?? row.away_player?.name ?? null,
+    homeTeamLogoUrl: row.home_team?.logo_url ?? row.home_player?.country_flag_url ?? null,
+    awayTeamLogoUrl: row.away_team?.logo_url ?? row.away_player?.country_flag_url ?? null,
   };
 }
 
@@ -65,6 +71,12 @@ export async function fetchEvents(params: {
   from: Date;
   to: Date;
   follows: UserFollow[];
+  /**
+   * Yildizlanan sporcular. Kura maclari listeye girmiyor ama bu oyuncularin
+   * maclari istisna: kullanici Sinner'i yildizladiysa onun macini listede
+   * gormek istiyor, turnuvanin 163 macini degil.
+   */
+  favoritePlayerIds?: string[];
 }): Promise<SportEvent[]> {
   const { from, to, follows } = params;
 
@@ -81,16 +93,24 @@ export async function fetchEvents(params: {
     clauses.push(`away_team_id.in.(${teamIds.join(',')})`);
   }
 
+  // Kura maclari listeye girmez: bir tenis turnuvasi yuzlerce karsilasma demek
+  // (Toronto 217) ve bunlar takip edilen futbol maclarini bogar. Liste
+  // turnuvanin kendisini gosteriyor, kura turnuvanin icinde. Istisna yildizlanan
+  // sporcular: onlarin maclari listede gorunuyor.
+  const favoriteIds = params.favoritePlayerIds ?? [];
+  const bracketClauses = ['parent_event_id.is.null'];
+  if (favoriteIds.length > 0) {
+    bracketClauses.push(`home_player_id.in.(${favoriteIds.join(',')})`);
+    bracketClauses.push(`away_player_id.in.(${favoriteIds.join(',')})`);
+  }
+
   const { data, error } = await supabase
     .from('events')
     .select(
-      'id, sport_id, league_id, home_team_id, away_team_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url)',
+      'id, sport_id, league_id, home_team_id, away_team_id, home_player_id, away_player_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url), home_player:players!home_player_id (name, country_flag_url), away_player:players!away_player_id (name, country_flag_url)',
     )
+    .or(bracketClauses.join(','))
     .lt('starts_at', to.toISOString())
-    // Kura maclari listeye girmez: bir tenis turnuvasi yuzlerce karsilasma
-    // demek (Toronto 217) ve bunlar takip edilen futbol maclarini bogar. Liste
-    // turnuvanin kendisini gosteriyor, kura turnuvanin icinde.
-    .is('parent_event_id', null)
     .or(clauses.join(','))
     // Devam edenler de listede kalir. Yalnizca baslangica bakildiginda cok
     // gunlu bir etkinlik baslar baslamaz dusuyordu: Cincinnati Open sabah
@@ -115,7 +135,7 @@ export async function fetchTeamEvents(params: {
   const { data, error } = await supabase
     .from('events')
     .select(
-      'id, sport_id, league_id, home_team_id, away_team_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url)',
+      'id, sport_id, league_id, home_team_id, away_team_id, home_player_id, away_player_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url)',
     )
     .gte('starts_at', from.toISOString())
     .lt('starts_at', to.toISOString())
@@ -136,7 +156,7 @@ export async function fetchLeagueNextEvent(leagueId: string): Promise<SportEvent
   const { data, error } = await supabase
     .from('events')
     .select(
-      'id, sport_id, league_id, home_team_id, away_team_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url)',
+      'id, sport_id, league_id, home_team_id, away_team_id, home_player_id, away_player_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url)',
     )
     .eq('league_id', leagueId)
     .eq('status', 'scheduled')
@@ -152,7 +172,7 @@ export async function fetchEvent(id: string): Promise<SportEvent | null> {
   const { data, error } = await supabase
     .from('events')
     .select(
-      'id, sport_id, league_id, home_team_id, away_team_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url)',
+      'id, sport_id, league_id, home_team_id, away_team_id, home_player_id, away_player_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url)',
     )
     .eq('id', id)
     .maybeSingle();
@@ -298,7 +318,7 @@ export async function fetchTournamentBracket(tournamentId: string): Promise<Spor
   const { data, error } = await supabase
     .from('events')
     .select(
-      'id, sport_id, league_id, home_team_id, away_team_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, round, bracket, home_player:players!home_player_id (name, country_flag_url, rank), away_player:players!away_player_id (name, country_flag_url, rank), leagues (name, artwork_url, logo_url)',
+      'id, sport_id, league_id, home_team_id, away_team_id, home_player_id, away_player_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, round, bracket, home_player:players!home_player_id (name, country_flag_url, rank), away_player:players!away_player_id (name, country_flag_url, rank), leagues (name, artwork_url, logo_url)',
     )
     .eq('parent_event_id', tournamentId)
     .not('bracket', 'ilike', '%Doubles%')
@@ -334,7 +354,7 @@ export async function fetchPlayerEvents(playerId: string): Promise<SportEvent[]>
   const { data, error } = await supabase
     .from('events')
     .select(
-      'id, sport_id, league_id, home_team_id, away_team_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, round, bracket, parent:events!events_parent_event_id_fkey (title), home_player:players!home_player_id (name, country_flag_url, rank), away_player:players!away_player_id (name, country_flag_url, rank), leagues (name, artwork_url, logo_url)',
+      'id, sport_id, league_id, home_team_id, away_team_id, home_player_id, away_player_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, round, bracket, parent:events!events_parent_event_id_fkey (title), home_player:players!home_player_id (name, country_flag_url, rank), away_player:players!away_player_id (name, country_flag_url, rank), leagues (name, artwork_url, logo_url)',
     )
     .or(`home_player_id.eq.${playerId},away_player_id.eq.${playerId}`)
     .gte('starts_at', new Date(Date.now() - 3 * 3_600_000).toISOString())

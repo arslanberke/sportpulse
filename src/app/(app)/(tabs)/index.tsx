@@ -15,7 +15,7 @@ import { useUpcomingEvents } from '@/features/events/hooks/use-events';
 import { useFollows } from '@/features/follows/hooks/use-follows';
 import { formatDay, isSameDay } from '@/lib/dates';
 import { FavoritesSection } from '@/features/events/components/favorites-section';
-import { isFavoriteEvent, useFavoriteTeams } from '@/features/follows/hooks/use-favorites';
+import { isFavoriteEvent, useFavorites } from '@/features/follows/hooks/use-favorites';
 import { useI18n } from '@/lib/i18n';
 import { useNow } from '@/lib/now';
 import { useStoredFlag } from '@/lib/use-stored-flag';
@@ -94,7 +94,7 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const now = useNow();
-  const { favoriteTeamIds } = useFavoriteTeams();
+  const { favoriteTeamIds, favoritePlayerIds } = useFavorites();
   const favoritesCollapsed = useStoredFlag('home.favoritesCollapsed');
 
   // Kullanici kaydirmaya basladiginda alan kapanir: liste tam ekran kalir, terim
@@ -131,23 +131,23 @@ export default function HomeScreen() {
       ? searchedEvents.filter((e) => e.sportId === activeFilter)
       : searchedEvents;
     return favoritesOnly
-      ? bySport.filter((e) => isFavoriteEvent(e, favoriteTeamIds))
+      ? bySport.filter((e) => isFavoriteEvent(e, favoriteTeamIds, favoritePlayerIds))
       : bySport;
-  }, [searchedEvents, activeFilter, favoritesOnly, favoriteTeamIds]);
+  }, [searchedEvents, activeFilter, favoritesOnly, favoriteTeamIds, favoritePlayerIds]);
 
   // Tepedeki kisayol: yildizli kuluplerin yaklasan maclari. Asagidaki takvimden
   // cikarilmiyorlar; bolumu kapali tutan kullanici da maci kendi gununde gorur.
   const favoriteEvents = useMemo(
-    () => visibleEvents.filter((e) => isFavoriteEvent(e, favoriteTeamIds)),
-    [visibleEvents, favoriteTeamIds],
+    () => visibleEvents.filter((e) => isFavoriteEvent(e, favoriteTeamIds, favoritePlayerIds)),
+    [visibleEvents, favoriteTeamIds, favoritePlayerIds],
   );
 
   // Suzgec acikken `visibleEvents` zaten yalnizca favorileri tasiyor; dugmenin
   // gorunurlugu suzgecten bagimsiz olmali, yoksa kapatan kullanici dugmeyi de
   // kaybederdi.
   const hasFavoriteEvents = useMemo(
-    () => searchedEvents.some((e) => isFavoriteEvent(e, favoriteTeamIds)),
-    [searchedEvents, favoriteTeamIds],
+    () => searchedEvents.some((e) => isFavoriteEvent(e, favoriteTeamIds, favoritePlayerIds)),
+    [searchedEvents, favoriteTeamIds, favoritePlayerIds],
   );
 
   // First run after sign-up: send the user to the follow/country setup.

@@ -20,7 +20,7 @@ import {
 import { leagueBanner } from "@/features/events/lib/league-banner";
 import { splitUfcTitle } from "@/features/events/lib/ufc-title";
 import { formatDayTime, formatTime } from "@/lib/dates";
-import { useFavoriteTeams, isFavoriteEvent } from "@/features/follows/hooks/use-favorites";
+import { isFavoriteEvent, useFavorites } from "@/features/follows/hooks/use-favorites";
 import { useI18n, type Translate } from "@/lib/i18n";
 import { useNow } from "@/lib/now";
 import type { SportEvent } from "@/types";
@@ -41,9 +41,17 @@ export function formatCountdown(
   startsAt: string,
   t: Translate,
   now = new Date(),
+  endsAt?: string | null,
 ): string {
   const diffMs = new Date(startsAt).getTime() - now.getTime();
   const past = diffMs < 0;
+
+  // Cok gunlu etkinlikte gecen sureyi yazmak yanlis okunuyordu: bir hafta suren
+  // turnuvada "10g 5s once basladi" biteli 10 gun olmus gibi duruyor. Devam
+  // ediyorsa sure degil durum yazilir.
+  if (past && endsAt && new Date(endsAt).getTime() > now.getTime()) {
+    return t('home.ongoing');
+  }
   const totalMinutes = Math.max(1, Math.round(Math.abs(diffMs) / 60_000));
   const days = Math.floor(totalMinutes / 1440);
   const hours = Math.floor((totalMinutes % 1440) / 60);
@@ -73,7 +81,7 @@ function StatusChip({
   if (event.status === "scheduled") {
     return (
       <Chip
-        label={formatCountdown(event.startsAt, t, now)}
+        label={formatCountdown(event.startsAt, t, now, event.endsAt)}
         icon="hourglass-outline"
         iconColor="#FFFFFF"
         className={accent ? undefined : "bg-primary"}
@@ -108,7 +116,7 @@ export function FeaturedEventCard({
 }) {
   const { t } = useI18n();
   const now = useNow();
-  const { favoriteTeamIds } = useFavoriteTeams();
+  const { favoriteTeamIds, favoritePlayerIds } = useFavorites();
   const colors = useThemeColors();
   const channelNames = (event.channels ?? []).map((c) => c.name).join(", ");
   const theme = eventTheme(event.sportId, event.leagueName);
@@ -132,7 +140,7 @@ export function FeaturedEventCard({
   // uzerine biniyordu. Eksik arma artik yer tutucuyla gosteriliyor.
   const hasMatchup = Boolean(event.homeTeamName && event.awayTeamName);
   const banner = leagueBanner(event.leagueName);
-  const favorite = isFavoriteEvent(event, favoriteTeamIds);
+  const favorite = isFavoriteEvent(event, favoriteTeamIds, favoritePlayerIds);
 
   return (
     <View>
@@ -296,7 +304,7 @@ export function FeaturedEventCard({
             <View className="flex-row flex-wrap items-center gap-2 px-4 pb-4 pt-3">
               {event.status === "scheduled" ? (
                 <Chip
-                  label={formatCountdown(event.startsAt, t, now)}
+                  label={formatCountdown(event.startsAt, t, now, event.endsAt)}
                   icon="hourglass-outline"
                   iconColor={theme.accent}
                   className="bg-surface-raised border border-line"
@@ -352,11 +360,11 @@ export function EventCard({
 }) {
   const { t } = useI18n();
   const now = useNow();
-  const { favoriteTeamIds } = useFavoriteTeams();
+  const { favoriteTeamIds, favoritePlayerIds } = useFavorites();
   const colors = useThemeColors();
   const channelNames = (event.channels ?? []).map((c) => c.name).join(", ");
   const theme = eventTheme(event.sportId, event.leagueName);
-  const favorite = isFavoriteEvent(event, favoriteTeamIds);
+  const favorite = isFavoriteEvent(event, favoriteTeamIds, favoritePlayerIds);
 
   return (
     <View>
@@ -397,7 +405,7 @@ export function EventCard({
           <View className="flex-row flex-wrap items-center gap-2">
             {event.status === "scheduled" ? (
               <Chip
-                label={formatCountdown(event.startsAt, t, now)}
+                label={formatCountdown(event.startsAt, t, now, event.endsAt)}
                 icon="hourglass-outline"
                 iconColor={theme.accent}
                 className="bg-surface-raised border border-line"

@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 import { useLeagueChannels } from '@/features/catalog/hooks/use-catalog';
+import { useFavorites } from '@/features/follows/hooks/use-favorites';
 import { useFollows } from '@/features/follows/hooks/use-follows';
 import { useProfile } from '@/features/profile/hooks/use-profile';
 import {
@@ -54,12 +55,23 @@ function useBroadcastCoverage(countryCode: string | undefined) {
   });
 }
 
-/** Raw events for a window, driven by the user's follow list. */
-function useRawEvents(from: Date, to: Date, follows: UserFollow[] | undefined) {
+/**
+ * Raw events for a window, driven by the user's follow list.
+ *
+ * Yildizlanan sporcular da sorguya giriyor: kura maclari listeye girmiyor ama bu
+ * oyuncularin maclari istisna.
+ */
+function useRawEvents(
+  from: Date,
+  to: Date,
+  follows: UserFollow[] | undefined,
+  favoritePlayerIds: string[],
+) {
   const followsKey = (follows ?? []).map((f) => f.id).join(',');
+  const favoritesKey = [...favoritePlayerIds].sort().join(',');
   return useQuery({
-    queryKey: ['events', from.toISOString(), to.toISOString(), followsKey],
-    queryFn: () => fetchEvents({ from, to, follows: follows ?? [] }),
+    queryKey: ['events', from.toISOString(), to.toISOString(), followsKey, favoritesKey],
+    queryFn: () => fetchEvents({ from, to, follows: follows ?? [], favoritePlayerIds }),
     enabled: follows !== undefined,
   });
 }
@@ -78,7 +90,9 @@ export function useUpcomingEvents(days = 7) {
     return { from: now, to: new Date(now.getTime() + days * 86_400_000) };
   }, [days]);
 
-  const eventsQuery = useRawEvents(from, to, follows);
+  const { favoritePlayerIds } = useFavorites();
+  const favoritePlayerList = useMemo(() => [...favoritePlayerIds], [favoritePlayerIds]);
+  const eventsQuery = useRawEvents(from, to, follows, favoritePlayerList);
   const { data: leagueChannels } = useLeagueChannels(profile?.countryCode);
   const { data: coveredDays } = useBroadcastCoverage(profile?.countryCode);
 

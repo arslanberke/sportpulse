@@ -351,7 +351,7 @@ export default function EventDetailScreen() {
                 }}
               >
                 {event.status === "scheduled"
-                  ? formatCountdown(event.startsAt, t, now)
+                  ? formatCountdown(event.startsAt, t, now, event.endsAt)
                   : t(
                       event.status === "postponed"
                         ? "home.postponed"

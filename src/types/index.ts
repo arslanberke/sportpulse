@@ -117,6 +117,9 @@ export interface SportEvent {
   round?: string | null;
   /** "Men's Singles" / "Women's Doubles". */
   bracket?: string | null;
+  /** Karsilasan kisiler; yalnizca bireysel sporlarda dolu. */
+  homePlayerId?: string | null;
+  awayPlayerId?: string | null;
   /** Karsilasan kisilerin siralamasi; bilinmiyorsa null. */
   homePlayerRank?: number | null;
   awayPlayerRank?: number | null;

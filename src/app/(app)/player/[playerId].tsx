@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { Stack, useLocalSearchParams } from 'expo-router';
-import { Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { Card } from '@/components/ui/card';
 import { Screen } from '@/components/ui/screen';
@@ -9,6 +9,10 @@ import { SectionHeader } from '@/components/ui/section-header';
 import { EmptyCard, LoadingCard } from '@/components/ui/states';
 import { FAVORITE_COLOR, useThemeColors } from '@/constants/theme';
 import { EventCard } from '@/features/events/components/event-card';
+import {
+  useFavorites,
+  useToggleFavoritePlayer,
+} from '@/features/follows/hooks/use-favorites';
 import { usePlayer, usePlayerEvents } from '@/features/players/hooks/use-players';
 import { useI18n } from '@/lib/i18n';
 
@@ -35,6 +39,9 @@ export default function PlayerScreen() {
 
   const { data: player, isLoading } = usePlayer(playerId);
   const { data: events, isLoading: eventsLoading } = usePlayerEvents(playerId);
+  const { favoritePlayerIds } = useFavorites();
+  const toggleFavorite = useToggleFavoritePlayer();
+  const favorite = favoritePlayerIds.has(playerId);
 
   if (isLoading) {
     return (
@@ -90,6 +97,23 @@ export default function PlayerScreen() {
                 </Text>
               </View>
             </View>
+
+            {/* Yildiz: bir tenisci lig gibi takip edilmiyor, yildizlaniyor.
+                Yildizlaninca maclari ana listeye giriyor ve karti altin
+                cerceveyle ciziliyor. */}
+            <Pressable
+              onPress={() => toggleFavorite.mutate({ playerId, isFavorite: favorite })}
+              hitSlop={10}
+              className="p-2 active:opacity-60"
+              accessibilityRole="button"
+              accessibilityState={{ selected: favorite }}
+            >
+              <Ionicons
+                name={favorite ? 'star' : 'star-outline'}
+                size={26}
+                color={favorite ? FAVORITE_COLOR : colors.inkTertiary}
+              />
+            </Pressable>
           </View>
 
           {/* Siralama yalnizca listeye girmis oyuncularda var; kuradan gelen
