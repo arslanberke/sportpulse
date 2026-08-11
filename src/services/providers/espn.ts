@@ -261,3 +261,64 @@ export const espnProvider: FixtureProvider = {
       }));
   },
 };
+
+export interface RankedPlayer {
+  externalId: string;
+  name: string;
+  countryCode: string | null;
+  countryFlagUrl: string | null;
+  headshotUrl: string | null;
+  rank: number;
+  points: number | null;
+}
+
+/**
+ * Bir turun siralamasi (ATP/WTA).
+ *
+ * Bireysel sporlarda karsilasan taraf bir kulup degil kisi; bugune kadar bu
+ * branslarda yalnizca turnuvanin kendisi tutuluyordu, dolayisiyla bir oyuncuyu
+ * yildizlamak ya da profiline gitmek mumkun degildi. Siralama ucu 150 oyuncuyu
+ * sira, puan, ulke ve vesikalik ile birlikte veriyor.
+ */
+export async function fetchRankings(league: LeagueRef): Promise<RankedPlayer[]> {
+  const path = SPORT_PATHS[league.sportId];
+  const slug = league.externalIds.espn;
+  if (!path || !slug) return [];
+
+  const response = await fetch(`${BASE}/${path}/${slug}/rankings`);
+  if (!response.ok) return warnHttp('espn.rankings', response, []);
+
+  const data = (await response.json()) as {
+    rankings?: {
+      ranks?: {
+        current?: number;
+        points?: number;
+        athlete?: {
+          id?: string;
+          displayName?: string;
+          citizenshipCountry?: string;
+          flag?: { href?: string };
+          headshot?: string;
+        };
+      }[];
+    }[];
+  };
+
+  // Uc birden fazla liste dondurebiliyor (tekler, ciftler); ilki tekler.
+  const ranks = data.rankings?.[0]?.ranks ?? [];
+  const players: RankedPlayer[] = [];
+  for (const entry of ranks) {
+    const athlete = entry.athlete;
+    if (!athlete?.id || !athlete.displayName || !entry.current) continue;
+    players.push({
+      externalId: athlete.id,
+      name: athlete.displayName,
+      countryCode: athlete.citizenshipCountry ?? null,
+      countryFlagUrl: athlete.flag?.href ?? null,
+      headshotUrl: athlete.headshot ?? null,
+      rank: entry.current,
+      points: entry.points ?? null,
+    });
+  }
+  return players;
+}
