@@ -17,6 +17,7 @@ interface EventRow {
   away_team_id: string | null;
   title: string;
   starts_at: string;
+  ends_at: string | null;
   status: SportEvent['status'];
   image_url: string | null;
   venue: string | null;
@@ -42,6 +43,7 @@ function mapRow(row: EventRow): SportEvent {
     awayTeamId: row.away_team_id,
     title: row.title,
     startsAt: row.starts_at,
+    endsAt: row.ends_at ?? null,
     status: row.status,
     imageUrl: row.image_url,
     venue: row.venue,
@@ -82,11 +84,14 @@ export async function fetchEvents(params: {
   const { data, error } = await supabase
     .from('events')
     .select(
-      'id, sport_id, league_id, home_team_id, away_team_id, title, starts_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url)',
+      'id, sport_id, league_id, home_team_id, away_team_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url)',
     )
-    .gte('starts_at', from.toISOString())
     .lt('starts_at', to.toISOString())
     .or(clauses.join(','))
+    // Devam edenler de listede kalir. Yalnizca baslangica bakildiginda cok
+    // gunlu bir etkinlik baslar baslamaz dusuyordu: Cincinnati Open sabah
+    // basliyor, bir hafta suruyor ama ogleden sonra gorunmuyordu.
+    .or(`starts_at.gte.${from.toISOString()},ends_at.gte.${from.toISOString()}`)
     .order('starts_at');
   if (error) throw error;
   return (data as unknown as EventRow[]).map(mapRow);
@@ -106,7 +111,7 @@ export async function fetchTeamEvents(params: {
   const { data, error } = await supabase
     .from('events')
     .select(
-      'id, sport_id, league_id, home_team_id, away_team_id, title, starts_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url)',
+      'id, sport_id, league_id, home_team_id, away_team_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url)',
     )
     .gte('starts_at', from.toISOString())
     .lt('starts_at', to.toISOString())
@@ -127,7 +132,7 @@ export async function fetchLeagueNextEvent(leagueId: string): Promise<SportEvent
   const { data, error } = await supabase
     .from('events')
     .select(
-      'id, sport_id, league_id, home_team_id, away_team_id, title, starts_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url)',
+      'id, sport_id, league_id, home_team_id, away_team_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url)',
     )
     .eq('league_id', leagueId)
     .eq('status', 'scheduled')
@@ -143,7 +148,7 @@ export async function fetchEvent(id: string): Promise<SportEvent | null> {
   const { data, error } = await supabase
     .from('events')
     .select(
-      'id, sport_id, league_id, home_team_id, away_team_id, title, starts_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url)',
+      'id, sport_id, league_id, home_team_id, away_team_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url)',
     )
     .eq('id', id)
     .maybeSingle();

@@ -13,6 +13,14 @@ export interface ProviderEvent {
   provider: string; // 'thesportsdb' | 'espn'
   title: string;
   startsAtUtc: string; // ISO timestamp, always UTC
+  /**
+   * Cok gunlu etkinliklerin bitisi (turnuva, yaris hafta sonu).
+   *
+   * Yalnizca baslangica bakildiginda devam eden bir turnuva listeden dusuyordu:
+   * Cincinnati Open sabah basliyor, bir hafta suruyor ama ogleden sonra artik
+   * gorunmuyordu. Bilinmiyorsa null; o zaman davranis eskisi gibi.
+   */
+  endsAtUtc?: string | null;
   homeTeam: string | null;
   awayTeam: string | null;
   /** Provider-scoped team ids, used to key the team catalog. */

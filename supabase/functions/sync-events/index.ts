@@ -163,6 +163,7 @@ Deno.serve(async (request) => {
           p_league_id: league.id,
           p_title: event.title,
           p_starts_at: event.startsAtUtc,
+          p_ends_at: event.endsAtUtc ?? null,
           p_status: event.postponed ? 'postponed' : 'scheduled',
           p_image_url: event.imageUrl,
           p_home_team: event.homeTeam,

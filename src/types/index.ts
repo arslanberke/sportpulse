@@ -72,6 +72,11 @@ export interface SportEvent {
   awayTeamId: string | null;
   title: string; // e.g. "Beşiktaş vs Eyüpspor", "Hungarian Grand Prix"
   startsAt: string; // UTC ISO timestamp
+  /**
+   * Cok gunlu etkinliklerin bitisi (turnuva, yaris hafta sonu); bilinmiyorsa
+   * null. Devam eden bir etkinligin listede kalmasi buna bagli.
+   */
+  endsAt?: string | null;
   status: EventStatus;
   imageUrl: string | null;
   venue: string | null; // circuit/arena name, when known

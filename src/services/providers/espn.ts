@@ -46,6 +46,8 @@ interface EspnEvent {
   id: string;
   name: string;
   date: string; // ISO with zone, e.g. '2026-07-17T11:30Z'
+  /** Turnuvalarda son gun; tek maclik etkinliklerde gelmez. */
+  endDate?: string;
   status?: { type?: { name?: string } };
   competitions?: { competitors?: EspnCompetitor[] }[];
 }
@@ -157,6 +159,7 @@ function normalize(event: EspnEvent): ProviderEvent {
     // bilindigi icin baslik tutarli bicimde kurulur.
     title: home && away ? `${home} vs ${away}` : event.name,
     startsAtUtc: new Date(event.date).toISOString(),
+    endsAtUtc: event.endDate ? new Date(event.endDate).toISOString() : null,
     homeTeam: home,
     awayTeam: away,
     // Fikstur ucu takim kimligini ve armasini da veriyor. Bunlari almamak

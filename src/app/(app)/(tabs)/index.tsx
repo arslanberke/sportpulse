@@ -22,11 +22,22 @@ import { useStoredFlag } from '@/lib/use-stored-flag';
 import { matchesAny, searchNeedles } from '@/lib/search';
 import type { Sport, SportEvent } from '@/types';
 
-/** Groups events by calendar day (local timezone), keeping order. */
-function groupByDay(events: SportEvent[]): { day: Date; events: SportEvent[] }[] {
+/**
+ * Groups events by calendar day (local timezone), keeping order.
+ *
+ * Devam eden cok gunlu etkinlikler bugune yazilir. Baslangica gore
+ * gruplandiklarinda gecmis bir gunun altina dusuyorlar: Cincinnati Open sabah
+ * basladi, bir hafta surecek, ama "BUGUN" basliginda gorunmuyordu.
+ */
+function groupByDay(
+  events: SportEvent[],
+  now: Date,
+): { day: Date; events: SportEvent[] }[] {
   const groups: { day: Date; events: SportEvent[] }[] = [];
   for (const event of events) {
-    const day = new Date(event.startsAt);
+    const starts = new Date(event.startsAt);
+    const ongoing = starts.getTime() <= now.getTime() && Boolean(event.endsAt);
+    const day = ongoing ? now : starts;
     const last = groups[groups.length - 1];
     if (last && isSameDay(last.day, day)) last.events.push(event);
     else groups.push({ day, events: [event] });
@@ -249,7 +260,7 @@ export default function HomeScreen() {
           />
         )}
 
-        {groupByDay(visibleEvents).map((group) => (
+        {groupByDay(visibleEvents, now).map((group) => (
           <View key={group.day.toISOString()} className="mb-2">
             <View className="mb-3 flex-row items-center gap-3">
               <Text className="text-base font-bold uppercase tracking-wider text-ink">
