@@ -246,6 +246,20 @@ bir mac icin lig eslemesi devreye girip yanlis kanal gosterir; bugun katalogdaki
 ## Notlar
 
 - `ios/` ve `android/` uretilen klasorlerdir, git'te tutulmaz (`expo prebuild`).
+- Yeni bir expo paketi eklerken **ikili uyumluluk** kontrol edilmeli.
+  `expo-file-system@57.0.2` kurulunca uygulama acilir acilmaz cokuyordu:
+  `DYLD Symbol missing: _$s15ExpoModulesCore10BaseModuleC11willDestroyyyFTj`.
+  Paket, projedeki `expo-modules-core` surumunde bulunmayan bir sembol
+  bekliyordu; `devicectl` "Launched" dese de surec listede gorunmuyordu.
+  Cozum paketi uyumlu surume (57.0.0) sabitlemek oldu. `npx expo install --fix`
+  bir cozum degil: react-native dahil 24 paketi birden guncellemeye kalkip
+  yarida hata veriyor. Cokme sebebi su sekilde okunur:
+
+  ```bash
+  idevicecrashreport -e /tmp/crashes     # cihazdaki raporlari indirir
+  # .ips dosyasinin ilk satiri atlanip govdesi JSON olarak okunur:
+  #   termination.reasons -> "Symbol not found: ..."
+  ```
 - Yeni bir Edge Function cron'dan cagrilacaksa `supabase/config.toml` icine
   `verify_jwt = false` eklenmeli; yoksa platformun JWT kapisi istegi fonksiyona
   hic ulastirmadan `UNAUTHORIZED_INVALID_JWT_FORMAT` doner. Isler paylasilan
