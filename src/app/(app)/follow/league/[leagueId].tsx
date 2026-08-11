@@ -11,6 +11,10 @@ import { hasTeams } from '@/features/catalog/lib/team-sports';
 import { useLeagueStart } from '@/features/events/hooks/use-league-start';
 import { FollowRow } from '@/features/follows/components/follow-row';
 import {
+  useFavoriteTeams,
+  useToggleFavoriteTeam,
+} from '@/features/follows/hooks/use-favorites';
+import {
   useFollowActions,
   type FollowGroup,
 } from '@/features/follows/hooks/use-follow-actions';
@@ -26,6 +30,8 @@ export default function LeagueFollowScreen() {
   const { data: leagues } = useLeagues();
   const { data: teams } = useTeams(leagueId);
   const { isFollowing, toggleAll, toggleWithin } = useFollowActions();
+  const { favoriteTeamIds } = useFavoriteTeams();
+  const toggleFavorite = useToggleFavoriteTeam();
   const [search, setSearch] = useState('fenerbahçe');
 
   const league = (leagues ?? []).find((l) => l.id === leagueId);
@@ -130,6 +136,13 @@ export default function LeagueFollowScreen() {
                 coveredByParent={sportFollowed}
                 onToggleFollow={() => toggleWithin(group, team.id)}
                 onPress={() => router.push(`/team/${team.id}`)}
+                favorite={favoriteTeamIds.has(team.id)}
+                onToggleFavorite={() =>
+                  toggleFavorite.mutate({
+                    teamId: team.id,
+                    isFavorite: favoriteTeamIds.has(team.id),
+                  })
+                }
               />
             ))
           )}

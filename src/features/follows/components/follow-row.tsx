@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { Pressable, Text, View } from 'react-native';
 
-import { useThemeColors } from '@/constants/theme';
+import { FAVORITE_COLOR, useThemeColors } from '@/constants/theme';
 
 interface FollowRowProps {
   label: string;
@@ -26,6 +26,16 @@ interface FollowRowProps {
    * yalnizca armayla ayirt edilemiyor.
    */
   meta?: string;
+  /**
+   * Yildiz dugmesi. Verilmezse cizilmez -- yalnizca kuluplerde anlamli, lig ve
+   * brans satirlarinda degil.
+   *
+   * Takip kutusundan ayri bir eylem: kutu "listede gorunsun mu", yildiz "one
+   * ciksin mi" demek. Ligi takip eden kullanici icindeki bir kulubu
+   * yildizlayabilir, bunun icin kulubu ayrica takip etmesi gerekmez.
+   */
+  favorite?: boolean;
+  onToggleFavorite?: () => void;
 }
 
 /**
@@ -42,6 +52,8 @@ export function FollowRow({
   onPress,
   coveredByParent = false,
   meta,
+  favorite = false,
+  onToggleFavorite,
 }: FollowRowProps) {
   const colors = useThemeColors();
   const ticked = coveredByParent || following;
@@ -114,6 +126,22 @@ export function FollowRow({
           <Ionicons name="chevron-forward" size={18} color={colors.inkTertiary} />
         )}
       </Pressable>
+
+      {onToggleFavorite && (
+        <Pressable
+          onPress={onToggleFavorite}
+          hitSlop={10}
+          className="py-3 pl-2 pr-1 active:opacity-60"
+          accessibilityRole="button"
+          accessibilityState={{ selected: favorite }}
+        >
+          <Ionicons
+            name={favorite ? 'star' : 'star-outline'}
+            size={20}
+            color={favorite ? FAVORITE_COLOR : colors.inkTertiary}
+          />
+        </Pressable>
+      )}
     </View>
   );
 }

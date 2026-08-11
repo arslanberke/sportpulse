@@ -14,8 +14,11 @@ import { WeekHeader } from '@/features/events/components/week-header';
 import { useUpcomingEvents } from '@/features/events/hooks/use-events';
 import { useFollows } from '@/features/follows/hooks/use-follows';
 import { formatDay, isSameDay } from '@/lib/dates';
+import { FavoritesSection } from '@/features/events/components/favorites-section';
+import { isFavoriteEvent, useFavoriteTeams } from '@/features/follows/hooks/use-favorites';
 import { useI18n } from '@/lib/i18n';
 import { useNow } from '@/lib/now';
+import { useStoredFlag } from '@/lib/use-stored-flag';
 import { matchesAny, searchNeedles } from '@/lib/search';
 import type { Sport, SportEvent } from '@/types';
 
@@ -78,7 +81,10 @@ export default function HomeScreen() {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
   const now = useNow();
+  const { favoriteTeamIds } = useFavoriteTeams();
+  const favoritesCollapsed = useStoredFlag('home.favoritesCollapsed');
 
   // Kullanici kaydirmaya basladiginda alan kapanir: liste tam ekran kalir, terim
   // basliktaki dugmede gorunur olmaya devam eder.
@@ -109,9 +115,28 @@ export default function HomeScreen() {
     );
   }, [events, searchTerm]);
 
-  const visibleEvents = useMemo(
-    () => (activeFilter ? searchedEvents.filter((e) => e.sportId === activeFilter) : searchedEvents),
-    [searchedEvents, activeFilter],
+  const visibleEvents = useMemo(() => {
+    const bySport = activeFilter
+      ? searchedEvents.filter((e) => e.sportId === activeFilter)
+      : searchedEvents;
+    return favoritesOnly
+      ? bySport.filter((e) => isFavoriteEvent(e, favoriteTeamIds))
+      : bySport;
+  }, [searchedEvents, activeFilter, favoritesOnly, favoriteTeamIds]);
+
+  // Tepedeki kisayol: yildizli kuluplerin yaklasan maclari. Asagidaki takvimden
+  // cikarilmiyorlar; bolumu kapali tutan kullanici da maci kendi gununde gorur.
+  const favoriteEvents = useMemo(
+    () => visibleEvents.filter((e) => isFavoriteEvent(e, favoriteTeamIds)),
+    [visibleEvents, favoriteTeamIds],
+  );
+
+  // Suzgec acikken `visibleEvents` zaten yalnizca favorileri tasiyor; dugmenin
+  // gorunurlugu suzgecten bagimsiz olmali, yoksa kapatan kullanici dugmeyi de
+  // kaybederdi.
+  const hasFavoriteEvents = useMemo(
+    () => searchedEvents.some((e) => isFavoriteEvent(e, favoriteTeamIds)),
+    [searchedEvents, favoriteTeamIds],
   );
 
   // First run after sign-up: send the user to the follow/country setup.
@@ -165,7 +190,7 @@ export default function HomeScreen() {
           onExpandedChange={setSearchExpanded}
         />
 
-        {sportTabs.length > 1 && (
+        {(sportTabs.length > 1 || hasFavoriteEvents) && (
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -175,16 +200,32 @@ export default function HomeScreen() {
             <SportTab
               label={t('home.allSports')}
               icon="apps"
-              active={activeFilter === null}
-              onPress={() => setSportFilter(null)}
+              active={activeFilter === null && !favoritesOnly}
+              onPress={() => {
+                setSportFilter(null);
+                setFavoritesOnly(false);
+              }}
             />
+            {/* Yildiz suzgeci yalnizca yildizli bir macin oldugu haftalarda
+                cikar; hicbir sey secmeyen bir dugme gostermenin anlami yok. */}
+            {hasFavoriteEvents && (
+              <SportTab
+                label={t('home.favoritesOnly')}
+                icon="star"
+                active={favoritesOnly}
+                onPress={() => setFavoritesOnly((on) => !on)}
+              />
+            )}
             {sportTabs.map((sport) => (
               <SportTab
                 key={sport.id}
                 label={language === 'tr' ? sport.nameTr : sport.nameEn}
                 icon={sport.icon}
-                active={activeFilter === sport.id}
-                onPress={() => setSportFilter(sport.id)}
+                active={activeFilter === sport.id && !favoritesOnly}
+                onPress={() => {
+                  setSportFilter(sport.id);
+                  setFavoritesOnly(false);
+                }}
               />
             ))}
           </ScrollView>
@@ -195,6 +236,16 @@ export default function HomeScreen() {
           <ErrorCard
             message={error.message}
             onRetry={() => void queryClient.refetchQueries({ queryKey: ['events'] })}
+          />
+        )}
+
+        {/* Suzgec zaten yalnizca favorileri gosterirken ayni maclari bir de
+            tepede tekrarlamanin anlami yok. */}
+        {!favoritesOnly && (
+          <FavoritesSection
+            events={favoriteEvents}
+            collapsed={favoritesCollapsed.value}
+            onToggleCollapsed={favoritesCollapsed.toggle}
           />
         )}
 

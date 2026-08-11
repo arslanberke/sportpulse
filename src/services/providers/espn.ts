@@ -11,13 +11,25 @@ import type { FixtureProvider, LeagueRef, ProviderEvent, ProviderSeason, Provide
 
 const BASE = 'https://site.api.espn.com/apis/site/v2/sports';
 
-/** ESPN scoreboard path per sport (league slug appended for soccer). */
+/**
+ * ESPN scoreboard path per sport; the league code is always appended.
+ *
+ * Motor sporlarinda yol daha once ligi de iceriyordu (`racing/f1`) ve lig kodu
+ * hic kullanilmiyordu. Sonucu su oldu: ESPN kodu olmayan Formula 2, Moto2,
+ * Moto3 ve MotoGP icin de F1 adresi cagrildi, gelen yaris ilk hangi lig
+ * islendiyse ona yazildi. "Heineken Dutch Grand Prix" boylece Formula 2'ye
+ * dustu ve Formula 1'i takip eden kullanici yarisi hic gormedi.
+ *
+ * Artik kod zorunlu: kodu olmayan lig ESPN'e hic sorulmaz, yedek saglayiciya
+ * duser. ESPN'de zaten yalnizca `racing/f1` var; `racing/f2` ve `racing/motogp`
+ * 400 donuyor.
+ */
 const SPORT_PATHS: Record<string, string> = {
-  football: 'soccer', // + '/{leagueSlug}'
-  basketball: 'basketball', // + '/{leagueSlug}'
-  f1: 'racing/f1',
-  ufc: 'mma/ufc',
-  tennis: 'tennis', // + '/{leagueSlug}'
+  football: 'soccer',
+  basketball: 'basketball',
+  f1: 'racing',
+  ufc: 'mma',
+  tennis: 'tennis',
 };
 
 interface EspnCompetitor {
@@ -65,12 +77,9 @@ function scoreboardUrlFor(
   dates: string,
 ): string | null {
   const path = SPORT_PATHS[league.sportId];
-  if (!path) return null;
-  const needsSlug = ['football', 'basketball', 'tennis'].includes(league.sportId);
-  if (needsSlug && !slug) return null;
-  const full = needsSlug ? `${path}/${slug}` : path;
+  if (!path || !slug) return null;
   // Tarih verilmezse ESPN o anin tablosunu doner; sezon bilgisi icin bu yeter.
-  return `${BASE}/${full}/scoreboard${dates ? `?dates=${dates}` : ''}`;
+  return `${BASE}/${path}/${slug}/scoreboard${dates ? `?dates=${dates}` : ''}`;
 }
 
 function scoreboardUrl(league: LeagueRef, dates: string): string | null {

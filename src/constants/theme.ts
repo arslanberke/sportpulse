@@ -20,6 +20,15 @@ export const Colors = {
 
 export type ThemeColors = Record<keyof typeof Colors, string>;
 
+/**
+ * Yildizlanan kulubun rengi: yildiz simgesi ve macinin karti.
+ *
+ * Iki temada da ayni: hem acik hem koyu zeminde okunan bir altin tonu ve
+ * arayuzdeki hicbir durumla karismiyor (yesil = birincil eylem, kirmizi =
+ * ertelenme/iptal). Amaci listeyi kaydirirken goz kendiliginden yakalasin.
+ */
+export const FAVORITE_COLOR = '#F5A524';
+
 export const DarkColors: ThemeColors = {
   primary: '#10B981',
   primaryDark: '#047857',

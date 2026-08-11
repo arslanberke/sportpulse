@@ -5,7 +5,7 @@ import { Link } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
 import { Chip } from "@/components/ui/chip";
-import { useThemeColors } from "@/constants/theme";
+import { FAVORITE_COLOR, useThemeColors } from "@/constants/theme";
 import {
     CircuitOutline,
     findCircuitPath,
@@ -20,9 +20,21 @@ import {
 import { leagueBanner } from "@/features/events/lib/league-banner";
 import { splitUfcTitle } from "@/features/events/lib/ufc-title";
 import { formatDayTime, formatTime } from "@/lib/dates";
+import { useFavoriteTeams, isFavoriteEvent } from "@/features/follows/hooks/use-favorites";
 import { useI18n, type Translate } from "@/lib/i18n";
 import { useNow } from "@/lib/now";
 import type { SportEvent } from "@/types";
+
+/**
+ * Yildizlanan kulubun macinda kartin cevresi.
+ *
+ * Renk arayuzdeki hicbir durumla karismiyor: yesil birincil eylem, kirmizi
+ * ertelenme/iptal. Cerceve kartin kendi kosesine oturur.
+ */
+const FAVORITE_BORDER = {
+  borderWidth: 2,
+  borderColor: FAVORITE_COLOR,
+} as const;
 
 /** Compact human countdown like "2d 4h" / "45m". */
 export function formatCountdown(
@@ -96,6 +108,7 @@ export function FeaturedEventCard({
 }) {
   const { t } = useI18n();
   const now = useNow();
+  const { favoriteTeamIds } = useFavoriteTeams();
   const colors = useThemeColors();
   const channelNames = (event.channels ?? []).map((c) => c.name).join(", ");
   const theme = eventTheme(event.sportId, event.leagueName);
@@ -119,11 +132,17 @@ export function FeaturedEventCard({
   // uzerine biniyordu. Eksik arma artik yer tutucuyla gosteriliyor.
   const hasMatchup = Boolean(event.homeTeamName && event.awayTeamName);
   const banner = leagueBanner(event.leagueName);
+  const favorite = isFavoriteEvent(event, favoriteTeamIds);
 
   return (
     <View>
       <Link href={`/event/${event.id}`} asChild>
-        <Pressable className="mb-4 overflow-hidden rounded-card bg-surface shadow-md active:scale-[0.99] active:opacity-90">
+        <Pressable
+          className="mb-4 overflow-hidden rounded-card bg-surface shadow-md active:scale-[0.99] active:opacity-90"
+          // Yildizli kulubun maci: liste kaydirilirken goz kendiliginden
+          // yakalasin diye kartin cevresi altin renkle cizilir.
+          style={favorite ? FAVORITE_BORDER : undefined}
+        >
           <View style={{ height: 200 }}>
           <LinearGradient
             colors={theme.gradient}
@@ -333,14 +352,19 @@ export function EventCard({
 }) {
   const { t } = useI18n();
   const now = useNow();
+  const { favoriteTeamIds } = useFavoriteTeams();
   const colors = useThemeColors();
   const channelNames = (event.channels ?? []).map((c) => c.name).join(", ");
   const theme = eventTheme(event.sportId, event.leagueName);
+  const favorite = isFavoriteEvent(event, favoriteTeamIds);
 
   return (
     <View>
       <Link href={`/event/${event.id}`} asChild>
-        <Pressable className="mb-3 flex-row overflow-hidden rounded-card border border-line bg-surface active:scale-[0.99] active:opacity-90">
+        <Pressable
+          className="mb-3 flex-row overflow-hidden rounded-card border border-line bg-surface active:scale-[0.99] active:opacity-90"
+          style={favorite ? FAVORITE_BORDER : undefined}
+        >
         <View
           className="w-16 items-center justify-center py-4"
           style={{ backgroundColor: theme.gradient[theme.gradient.length - 1] }}
