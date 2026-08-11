@@ -28,6 +28,7 @@ interface EventRow {
   external_ids: Record<string, string>;
   leagues: { name: string; artwork_url: string | null; logo_url: string | null } | null;
   home_team: { name: string; logo_url: string | null } | null;
+  parent?: { title: string } | null;
   home_player?: { name: string; country_flag_url: string | null } | null;
   away_player?: { name: string; country_flag_url: string | null } | null;
   away_team: { name: string; logo_url: string | null } | null;
@@ -56,7 +57,9 @@ function mapRow(row: EventRow): SportEvent {
     venueImageUrl: row.venue_image_url,
     importance: row.importance,
     externalIds: row.external_ids,
-    leagueName: row.leagues?.name ?? null,
+    // Kura macinda turnuva adi daha bilgilendirici: "Cincinnati Open" ile
+    // "WTA Tour" arasinda fark var.
+    leagueName: row.parent?.title ?? row.leagues?.name ?? null,
     leagueArtworkUrl: row.leagues?.artwork_url ?? null,
     leagueBadgeUrl: row.leagues?.logo_url ?? null,
     homeTeamName: row.home_team?.name ?? row.home_player?.name ?? null,
@@ -107,7 +110,7 @@ export async function fetchEvents(params: {
   const { data, error } = await supabase
     .from('events')
     .select(
-      'id, sport_id, league_id, home_team_id, away_team_id, home_player_id, away_player_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url), home_player:players!home_player_id (name, country_flag_url), away_player:players!away_player_id (name, country_flag_url)',
+      'id, sport_id, league_id, home_team_id, away_team_id, home_player_id, away_player_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url), home_player:players!home_player_id (name, country_flag_url), away_player:players!away_player_id (name, country_flag_url), parent:events!events_parent_event_id_fkey (title)',
     )
     .or(bracketClauses.join(','))
     .lt('starts_at', to.toISOString())
