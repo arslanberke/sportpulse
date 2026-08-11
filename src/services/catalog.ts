@@ -1,6 +1,7 @@
 import { searchNeedles } from '@/lib/search';
+import { searchPlayers } from '@/services/players';
 import { supabase } from '@/services/supabase';
-import type { Channel, League, Sport, Team } from '@/types';
+import type { Channel, League, Player, Sport, Team } from '@/types';
 
 /** Rows per kind in a catalog search; enough to scroll, short enough to scan. */
 const SEARCH_LIMIT = 20;
@@ -182,9 +183,9 @@ function byId<T extends { id: string }>(rows: T[]): T[] {
 
 export async function searchCatalog(
   term: string,
-): Promise<{ leagues: League[]; teams: Team[] }> {
+): Promise<{ leagues: League[]; teams: Team[]; players: Player[] }> {
   const patterns = searchPatterns(term);
-  const [leagueRows, teamRows] = await Promise.all([
+  const [leagueRows, teamRows, players] = await Promise.all([
     Promise.all(
       patterns.map((pattern) =>
         supabase
@@ -207,6 +208,9 @@ export async function searchCatalog(
           .limit(SEARCH_LIMIT),
       ),
     ),
+    // Sporcular ayri bir tablodan geliyor; aramada kuluplerle ayni yerde
+    // cikiyorlar cunku kullanici acisindan ikisi de "kimi izliyorum" sorusu.
+    searchPlayers(patterns.map((pattern) => pattern.replaceAll('%', ''))),
   ]);
 
   for (const result of [...leagueRows, ...teamRows]) {
@@ -240,6 +244,7 @@ export async function searchCatalog(
       logoUrl: row.logo_url,
       externalIds: row.external_ids,
     })),
+    players,
   };
 }
 

@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
@@ -48,12 +49,14 @@ export function FollowSearch() {
 
   const leagueHits = results?.leagues ?? [];
   const teamHits = results?.teams ?? [];
+  const playerHits = results?.players ?? [];
   const empty =
     trimmed.length >= 2 &&
     !isFetching &&
     sportHits.length === 0 &&
     leagueHits.length === 0 &&
-    teamHits.length === 0;
+    teamHits.length === 0 &&
+    playerHits.length === 0;
 
   return (
     <Card className="mb-4">
@@ -148,7 +151,46 @@ export function FollowSearch() {
         </View>
       )}
 
-      {trimmed.length >= 2 && (leagueHits.length > 0 || teamHits.length > 0) && (
+      {/* Sporcular kuluplerle ayni yerde: kullanici acisindan ikisi de "kimi
+          izliyorum" sorusu. Takip kutusu yok -- bir tenisci lig gibi takip
+          edilmiyor, yildizlanıyor (profil sayfasindan). */}
+      {playerHits.length > 0 && (
+        <View className="mt-3">
+          <Text className="mb-1 text-xs font-semibold uppercase text-ink-tertiary">
+            {t('explore.players')}
+          </Text>
+          {playerHits.map((player) => (
+            <Pressable
+              key={player.id}
+              onPress={() => router.push(`/player/${player.id}`)}
+              className="flex-row items-center gap-3 py-3 active:opacity-60"
+            >
+              {player.countryFlagUrl ? (
+                <Image
+                  source={{ uri: player.countryFlagUrl }}
+                  style={{ width: 26, height: 18 }}
+                  contentFit="contain"
+                  allowDownscaling={false}
+                />
+              ) : (
+                <Ionicons name="person-outline" size={20} color={colors.inkSecondary} />
+              )}
+              <Text className="shrink text-base font-medium text-ink" numberOfLines={1}>
+                {player.name}
+              </Text>
+              {/* Sira yalnizca siralamaya girmis oyuncularda var. */}
+              {player.rank != null && (
+                <Text className="text-sm text-ink-tertiary">#{player.rank}</Text>
+              )}
+              <View className="flex-1" />
+              <Ionicons name="chevron-forward" size={18} color={colors.inkTertiary} />
+            </Pressable>
+          ))}
+        </View>
+      )}
+
+      {trimmed.length >= 2 &&
+        (leagueHits.length > 0 || teamHits.length > 0 || playerHits.length > 0) && (
         <Pressable
           onPress={() => setTerm('')}
           hitSlop={8}

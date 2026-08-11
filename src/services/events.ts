@@ -334,7 +334,7 @@ export async function fetchPlayerEvents(playerId: string): Promise<SportEvent[]>
   const { data, error } = await supabase
     .from('events')
     .select(
-      'id, sport_id, league_id, home_team_id, away_team_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, round, bracket, parent:events!parent_event_id (title), home_player:players!home_player_id (name, country_flag_url, rank), away_player:players!away_player_id (name, country_flag_url, rank), leagues (name, artwork_url, logo_url)',
+      'id, sport_id, league_id, home_team_id, away_team_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, round, bracket, parent:events!events_parent_event_id_fkey (title), home_player:players!home_player_id (name, country_flag_url, rank), away_player:players!away_player_id (name, country_flag_url, rank), leagues (name, artwork_url, logo_url)',
     )
     .or(`home_player_id.eq.${playerId},away_player_id.eq.${playerId}`)
     .gte('starts_at', new Date(Date.now() - 3 * 3_600_000).toISOString())
