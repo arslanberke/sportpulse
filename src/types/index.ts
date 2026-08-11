@@ -117,6 +117,8 @@ export interface SportEvent {
   round?: string | null;
   /** "Men's Singles" / "Women's Doubles". */
   bracket?: string | null;
+  /** Kura macinda bagli oldugu turnuva. */
+  parentEventId?: string | null;
   /** Karsilasan kisiler; yalnizca bireysel sporlarda dolu. */
   homePlayerId?: string | null;
   awayPlayerId?: string | null;

@@ -14,6 +14,7 @@ interface EventRow {
   sport_id: string;
   league_id: string | null;
   home_team_id: string | null;
+  parent_event_id?: string | null;
   home_player_id?: string | null;
   away_player_id?: string | null;
   away_team_id: string | null;
@@ -45,6 +46,7 @@ function mapRow(row: EventRow): SportEvent {
     sportId: row.sport_id,
     leagueId: row.league_id,
     homeTeamId: row.home_team_id,
+    parentEventId: row.parent_event_id ?? null,
     homePlayerId: row.home_player_id ?? null,
     awayPlayerId: row.away_player_id ?? null,
     awayTeamId: row.away_team_id,
@@ -67,6 +69,41 @@ function mapRow(row: EventRow): SportEvent {
     homeTeamLogoUrl: row.home_team?.logo_url ?? row.home_player?.country_flag_url ?? null,
     awayTeamLogoUrl: row.away_team?.logo_url ?? row.away_player?.country_flag_url ?? null,
   };
+}
+
+
+/**
+ * Kura maclarinin turnuva adlari.
+ *
+ * Ayri bir istek gerekiyor: kendine referans veren bag PostgREST uzerinden
+ * birlestirilemiyor. `events!parent_event_id` ipucu ters yonu (cocuklar)
+ * cozuyor ve bos dizi donuyor, kisit adiyla denendiginde de bag hic bulunamiyor
+ * ("Could not find a relationship between 'events' and 'events'").
+ *
+ * Turnuva adi lig adindan daha bilgilendirici: "Cincinnati Open" ile "WTA Tour"
+ * arasinda fark var.
+ */
+async function fetchParentTitles(parentIds: string[]): Promise<Map<string, string>> {
+  const unique = [...new Set(parentIds)];
+  if (unique.length === 0) return new Map();
+  const { data, error } = await supabase.from('events').select('id, title').in('id', unique);
+  if (error) throw error;
+  return new Map((data ?? []).map((row: { id: string; title: string }) => [row.id, row.title]));
+}
+
+/** Kura maclarinin yarisma adini turnuva adiyla degistirir. */
+async function withTournamentNames(events: SportEvent[]): Promise<SportEvent[]> {
+  const parentIds = events
+    .map((event) => event.parentEventId)
+    .filter((id): id is string => Boolean(id));
+  if (parentIds.length === 0) return events;
+
+  const titles = await fetchParentTitles(parentIds);
+  return events.map((event) =>
+    event.parentEventId && titles.has(event.parentEventId)
+      ? { ...event, leagueName: titles.get(event.parentEventId)! }
+      : event,
+  );
 }
 
 /** Upcoming events between `from` and `to`, filtered by the user's follows. */
@@ -110,7 +147,7 @@ export async function fetchEvents(params: {
   const { data, error } = await supabase
     .from('events')
     .select(
-      'id, sport_id, league_id, home_team_id, away_team_id, home_player_id, away_player_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url), home_player:players!home_player_id (name, country_flag_url), away_player:players!away_player_id (name, country_flag_url), parent:events!events_parent_event_id_fkey (title)',
+      'id, sport_id, league_id, home_team_id, away_team_id, parent_event_id, home_player_id, away_player_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url), home_player:players!home_player_id (name, country_flag_url), away_player:players!away_player_id (name, country_flag_url)',
     )
     .or(bracketClauses.join(','))
     .lt('starts_at', to.toISOString())
@@ -121,7 +158,7 @@ export async function fetchEvents(params: {
     .or(`starts_at.gte.${from.toISOString()},ends_at.gte.${from.toISOString()}`)
     .order('starts_at');
   if (error) throw error;
-  return (data as unknown as EventRow[]).map(mapRow);
+  return withTournamentNames((data as unknown as EventRow[]).map(mapRow));
 }
 
 /**
@@ -138,7 +175,7 @@ export async function fetchTeamEvents(params: {
   const { data, error } = await supabase
     .from('events')
     .select(
-      'id, sport_id, league_id, home_team_id, away_team_id, home_player_id, away_player_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url)',
+      'id, sport_id, league_id, home_team_id, away_team_id, parent_event_id, home_player_id, away_player_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url)',
     )
     .gte('starts_at', from.toISOString())
     .lt('starts_at', to.toISOString())
@@ -159,7 +196,7 @@ export async function fetchLeagueNextEvent(leagueId: string): Promise<SportEvent
   const { data, error } = await supabase
     .from('events')
     .select(
-      'id, sport_id, league_id, home_team_id, away_team_id, home_player_id, away_player_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url)',
+      'id, sport_id, league_id, home_team_id, away_team_id, parent_event_id, home_player_id, away_player_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url)',
     )
     .eq('league_id', leagueId)
     .eq('status', 'scheduled')
@@ -175,7 +212,7 @@ export async function fetchEvent(id: string): Promise<SportEvent | null> {
   const { data, error } = await supabase
     .from('events')
     .select(
-      'id, sport_id, league_id, home_team_id, away_team_id, home_player_id, away_player_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url)',
+      'id, sport_id, league_id, home_team_id, away_team_id, parent_event_id, home_player_id, away_player_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url)',
     )
     .eq('id', id)
     .maybeSingle();
@@ -321,7 +358,7 @@ export async function fetchTournamentBracket(tournamentId: string): Promise<Spor
   const { data, error } = await supabase
     .from('events')
     .select(
-      'id, sport_id, league_id, home_team_id, away_team_id, home_player_id, away_player_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, round, bracket, home_player:players!home_player_id (name, country_flag_url, rank), away_player:players!away_player_id (name, country_flag_url, rank), leagues (name, artwork_url, logo_url)',
+      'id, sport_id, league_id, home_team_id, away_team_id, parent_event_id, home_player_id, away_player_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, round, bracket, home_player:players!home_player_id (name, country_flag_url, rank), away_player:players!away_player_id (name, country_flag_url, rank), leagues (name, artwork_url, logo_url)',
     )
     .eq('parent_event_id', tournamentId)
     .not('bracket', 'ilike', '%Doubles%')
@@ -357,7 +394,7 @@ export async function fetchPlayerEvents(playerId: string): Promise<SportEvent[]>
   const { data, error } = await supabase
     .from('events')
     .select(
-      'id, sport_id, league_id, home_team_id, away_team_id, home_player_id, away_player_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, round, bracket, parent:events!events_parent_event_id_fkey (title), home_player:players!home_player_id (name, country_flag_url, rank), away_player:players!away_player_id (name, country_flag_url, rank), leagues (name, artwork_url, logo_url)',
+      'id, sport_id, league_id, home_team_id, away_team_id, parent_event_id, home_player_id, away_player_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, round, bracket, home_player:players!home_player_id (name, country_flag_url, rank), away_player:players!away_player_id (name, country_flag_url, rank), leagues (name, artwork_url, logo_url)',
     )
     .or(`home_player_id.eq.${playerId},away_player_id.eq.${playerId}`)
     .gte('starts_at', new Date(Date.now() - 3 * 3_600_000).toISOString())
@@ -365,18 +402,16 @@ export async function fetchPlayerEvents(playerId: string): Promise<SportEvent[]>
     .limit(20);
   if (error) throw error;
 
-  return (data as unknown as (EventRow & {
+  const rows = (data as unknown as (EventRow & {
     round: string | null;
     bracket: string | null;
-    parent: { title: string } | null;
     home_player: { name: string; country_flag_url: string | null; rank: number | null } | null;
     away_player: { name: string; country_flag_url: string | null; rank: number | null } | null;
   })[]).map((row) => ({
     ...mapRow(row),
     round: row.round,
     bracket: row.bracket,
-    // Kartta yarismanin adi turnuva olsun: "ATP Tour" degil "Cincinnati Open".
-    leagueName: row.parent?.title ?? row.leagues?.name ?? null,
+    leagueName: row.leagues?.name ?? null,
     homeTeamName: row.home_player?.name ?? null,
     awayTeamName: row.away_player?.name ?? null,
     homeTeamLogoUrl: row.home_player?.country_flag_url ?? null,
@@ -384,4 +419,7 @@ export async function fetchPlayerEvents(playerId: string): Promise<SportEvent[]>
     homePlayerRank: row.home_player?.rank ?? null,
     awayPlayerRank: row.away_player?.rank ?? null,
   }));
+
+  // Kartta yarismanin adi turnuva olsun: "ATP Tour" degil "Cincinnati Open".
+  return withTournamentNames(rows);
 }
