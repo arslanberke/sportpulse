@@ -294,7 +294,13 @@ export async function fetchRankings(league: LeagueRef): Promise<RankedPlayer[]> 
         current?: number;
         points?: number;
         athlete?: {
-          id?: string;
+          /**
+           * Kimlik olarak `guid` kullaniliyor: mac ucu sayisal `id` vermiyor,
+           * yalnizca `guid` tasiyor. Ikisini birlikte tutmak yerine her iki ucta
+           * bulunan alani secmek, siralamadan gelen oyuncuyla kuradan gelenin
+           * ada bakmadan eslesmesini sagliyor (112 oyuncuda dogrulandi).
+           */
+          guid?: string;
           displayName?: string;
           citizenshipCountry?: string;
           flag?: { href?: string };
@@ -309,9 +315,9 @@ export async function fetchRankings(league: LeagueRef): Promise<RankedPlayer[]> 
   const players: RankedPlayer[] = [];
   for (const entry of ranks) {
     const athlete = entry.athlete;
-    if (!athlete?.id || !athlete.displayName || !entry.current) continue;
+    if (!athlete?.guid || !athlete.displayName || !entry.current) continue;
     players.push({
-      externalId: athlete.id,
+      externalId: athlete.guid,
       name: athlete.displayName,
       countryCode: athlete.citizenshipCountry ?? null,
       countryFlagUrl: athlete.flag?.href ?? null,
@@ -321,4 +327,93 @@ export async function fetchRankings(league: LeagueRef): Promise<RankedPlayer[]> 
     });
   }
   return players;
+}
+
+export interface PlayerMatch {
+  externalId: string;
+  /** Macin bagli oldugu turnuvanin kaynak kimligi. */
+  tournamentExternalId: string;
+  startsAtUtc: string;
+  /** "Qualifying 1st Round", "Quarterfinals" gibi tur adi. */
+  round: string | null;
+  /** "Men's Singles" / "Women's Doubles"; ciftleri ayirt etmek icin. */
+  bracket: string | null;
+  postponed: boolean;
+  players: {
+    externalId: string;
+    name: string;
+    countryFlagUrl: string | null;
+  }[];
+}
+
+/**
+ * Bir turnuvanin kurasi: tek tek karsilasmalar.
+ *
+ * Turnuva ucu maclari `groupings` altinda veriyor (tekler, ciftler ayri grup).
+ * Onlarca mac oldugu icin (Cincinnati'de 163) hepsini listeye koymak ana ekrani
+ * bogar; cagiran taraf hangilerini gosterecegine karar veriyor.
+ *
+ * Oyuncu kimligi olarak `guid` kullaniliyor: bu uc sayisal `id` vermiyor.
+ */
+export async function fetchTournamentMatches(league: LeagueRef): Promise<PlayerMatch[]> {
+  const url = scoreboardUrl(league, '');
+  if (!url) return [];
+
+  const response = await fetch(url);
+  if (!response.ok) return warnHttp('espn.bracket', response, []);
+
+  const data = (await response.json()) as {
+    events?: {
+      id?: string;
+      groupings?: {
+        grouping?: { slug?: string };
+        competitions?: {
+          id?: string;
+          date?: string;
+          status?: { type?: { name?: string } };
+          round?: { displayName?: string };
+          type?: { text?: string };
+          competitors?: {
+            athlete?: { guid?: string; displayName?: string; flag?: { href?: string } };
+          }[];
+        }[];
+      }[];
+    }[];
+  };
+
+  const matches: PlayerMatch[] = [];
+  for (const tournament of data.events ?? []) {
+    if (!tournament.id) continue;
+    for (const grouping of tournament.groupings ?? []) {
+      for (const competition of grouping.competitions ?? []) {
+        if (!competition.id || !competition.date) continue;
+
+        const players = (competition.competitors ?? [])
+          .map((c) => c.athlete)
+          .filter((a): a is { guid: string; displayName: string; flag?: { href?: string } } =>
+            Boolean(a?.guid && a.displayName),
+          )
+          .map((a) => ({
+            externalId: a.guid,
+            name: a.displayName,
+            countryFlagUrl: a.flag?.href ?? null,
+          }));
+
+        // Kurada rakibi belirlenmemis eslesmeler de donuyor; iki taraf
+        // bilinmeden gosterilecek bir mac yok.
+        if (players.length < 2) continue;
+
+        matches.push({
+          externalId: competition.id,
+          tournamentExternalId: tournament.id,
+          startsAtUtc: new Date(competition.date).toISOString(),
+          round: competition.round?.displayName ?? null,
+          bracket: competition.type?.text ?? null,
+          postponed: competition.status?.type?.name === 'STATUS_POSTPONED',
+          players,
+        });
+      }
+    }
+  }
+  return matches;
 }

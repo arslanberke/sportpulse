@@ -12,6 +12,7 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 import { fetchSeason, fetchUpcomingEvents } from '../../../src/services/providers/index.ts';
+import { fetchTournamentMatches } from '../../../src/services/providers/espn.ts';
 import type { LeagueRef } from '../../../src/services/providers/types.ts';
 
 const SYNC_DAYS = 14;
@@ -143,6 +144,7 @@ Deno.serve(async (request) => {
   const selected = (leagues ?? []).filter((_, index) => index % LEAGUE_CHUNKS === chunk);
 
   let upserted = 0;
+  let matchesUpserted = 0;
   const failures: string[] = [];
   const changed: ChangedEvent[] = [];
 
@@ -194,6 +196,41 @@ Deno.serve(async (request) => {
       failures.push(`league ${league.id}: ${String(fetchError)}`);
     }
 
+    // Bireysel sporlarda kura: turnuva satiri yukarida yazildi, maclar ona
+    // baglaniyor. Ayri bir is olarak kurmak yerine burada: mac ancak turnuvasi
+    // kayitliyken yazilabiliyor ve ikisi ayni ucta geliyor.
+    if (league.sport_id === 'tennis') {
+      try {
+        const matches = await fetchTournamentMatches(ref);
+        for (const match of matches) {
+          const [home, away] = match.players;
+          const { error: matchError } = await supabase.rpc('upsert_player_match', {
+            p_provider: 'espn',
+            p_external_id: match.externalId,
+            p_sport_id: league.sport_id,
+            p_league_id: league.id,
+            p_tournament_external_id: match.tournamentExternalId,
+            p_starts_at: match.startsAtUtc,
+            p_status: match.postponed ? 'postponed' : 'scheduled',
+            p_round: match.round,
+            p_home_name: home.name,
+            p_home_ext: home.externalId,
+            p_home_flag: home.countryFlagUrl,
+            p_away_name: away.name,
+            p_away_ext: away.externalId,
+            p_away_flag: away.countryFlagUrl,
+          });
+          if (matchError) {
+            failures.push(`${home.name} - ${away.name}: ${matchError.message}`);
+            continue;
+          }
+          matchesUpserted += 1;
+        }
+      } catch (bracketError) {
+        failures.push(`bracket ${league.id}: ${String(bracketError)}`);
+      }
+    }
+
     if (needsSeason(league)) {
       try {
         const season = await fetchSeason(ref);
@@ -218,5 +255,12 @@ Deno.serve(async (request) => {
     await notifyFollowers(supabase, event, failures);
   }
 
-  return Response.json({ chunk, leagues: selected.length, upserted, changed: changed.length, failures });
+  return Response.json({
+    chunk,
+    leagues: selected.length,
+    upserted,
+    matches: matchesUpserted,
+    changed: changed.length,
+    failures,
+  });
 });
