@@ -323,3 +323,42 @@ export async function fetchTournamentBracket(tournamentId: string): Promise<Spor
     awayPlayerRank: row.away_player?.rank ?? null,
   }));
 }
+
+/**
+ * Bir sporcunun maclari: yaklasan karsilasmalar, turnuva adiyla.
+ *
+ * Kura maclari ana listeye girmiyor (bkz. `fetchEvents`), ama sporcunun kendi
+ * sayfasinda gosterilecek olan tam olarak bunlar.
+ */
+export async function fetchPlayerEvents(playerId: string): Promise<SportEvent[]> {
+  const { data, error } = await supabase
+    .from('events')
+    .select(
+      'id, sport_id, league_id, home_team_id, away_team_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, round, bracket, parent:events!parent_event_id (title), home_player:players!home_player_id (name, country_flag_url, rank), away_player:players!away_player_id (name, country_flag_url, rank), leagues (name, artwork_url, logo_url)',
+    )
+    .or(`home_player_id.eq.${playerId},away_player_id.eq.${playerId}`)
+    .gte('starts_at', new Date(Date.now() - 3 * 3_600_000).toISOString())
+    .order('starts_at')
+    .limit(20);
+  if (error) throw error;
+
+  return (data as unknown as (EventRow & {
+    round: string | null;
+    bracket: string | null;
+    parent: { title: string } | null;
+    home_player: { name: string; country_flag_url: string | null; rank: number | null } | null;
+    away_player: { name: string; country_flag_url: string | null; rank: number | null } | null;
+  })[]).map((row) => ({
+    ...mapRow(row),
+    round: row.round,
+    bracket: row.bracket,
+    // Kartta yarismanin adi turnuva olsun: "ATP Tour" degil "Cincinnati Open".
+    leagueName: row.parent?.title ?? row.leagues?.name ?? null,
+    homeTeamName: row.home_player?.name ?? null,
+    awayTeamName: row.away_player?.name ?? null,
+    homeTeamLogoUrl: row.home_player?.country_flag_url ?? null,
+    awayTeamLogoUrl: row.away_player?.country_flag_url ?? null,
+    homePlayerRank: row.home_player?.rank ?? null,
+    awayPlayerRank: row.away_player?.rank ?? null,
+  }));
+}

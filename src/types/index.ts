@@ -64,6 +64,26 @@ export interface Channel {
 export type EventStatus = 'scheduled' | 'postponed' | 'cancelled';
 
 /** A single sports event (match, race, fight card, tournament session). */
+/**
+ * Bireysel sporlarin sporcusu.
+ *
+ * Kuluplerden ayri tutuluyor: siralama ve puan gibi alanlar kuluplerde
+ * karsiliksiz, kulup adi sadelestirmesi de kisi adlarinda gecerli degil.
+ */
+export interface Player {
+  id: string;
+  sportId: string;
+  /** Siralamanin ait oldugu tur (ATP/WTA); sira ancak turuyla anlamli. */
+  leagueId: string | null;
+  name: string;
+  countryCode: string | null;
+  countryFlagUrl: string | null;
+  headshotUrl: string | null;
+  rank: number | null;
+  rankPoints: number | null;
+  tourName?: string | null;
+}
+
 export interface SportEvent {
   id: string;
   sportId: string;
