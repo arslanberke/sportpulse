@@ -50,6 +50,38 @@ dokunmaz. Sistem ayarini kalici duzeltmek istersen (sudo gerekir):
 sudo xcode-select -s /Applications/Xcode-beta.app/Contents/Developer
 ```
 
+### Hangi surumde gelistirilir
+
+Telefonda iki uygulama yan yana duruyor ve ikisi **ayri paket kimligi**
+kullaniyor (`app.config.js` icindeki `APP_VARIANT`):
+
+| | `npm run dev:phone` | `npm run release:phone` |
+|---|---|---|
+| Uygulama | "sportpulse dev" | "sportpulse" |
+| JS degisikligi | Metro uzerinden **aninda** | 4-5 dakika tam derleme |
+| Metro gerekir | evet (Mac acik) | hayir |
+| Hatalar | LogBox'ta gorunur | gizli |
+
+Gelistirme dev surumunde yapilmali. JS-only degisiklikler (ekran, sorgu, metin)
+icin yeniden derleme gerekmez; yalnizca native bagimlilik eklendiginde gerekir.
+Release surumu gunluk kullanim icindir: JS gomulu geldigi icin Mac kapaliyken de
+acilir.
+
+Iki paket kimligi ayri oturum deposu demek: dev surumunde yapilan giris release
+tarafinda gorunmez. Dev icin `dev@sportpulse.app` hesabi var; sifresi
+unutulursa yenisi boyle verilir (takip ve favoriler de kopyalanmali, aksi halde
+liste bos gorunur ve test ise yaramaz):
+
+```sql
+update auth.users
+   set encrypted_password = crypt('<yeni-sifre>', gen_salt('bf')),
+       email_confirmed_at = coalesce(email_confirmed_at, now())
+ where email = 'dev@sportpulse.app';
+```
+
+Iki surumun verisi ayridir: dev tarafinda yildizlanan takim release'de
+gorunmez. Test icin bu iyi -- kullanicinin listesi bozulmadan denenebilir.
+
 ### Imza profili suresi dolunca
 
 Ucretsiz hesabin profili 7 gunde doler. Once uygulama cihazda "erisilebilir
@@ -71,6 +103,11 @@ cd ios && xcodebuild -workspace sportpulse.xcworkspace -scheme sportpulse \
 Ardindan **telefonda** yeni sertifikaya guvenilmeli (Ayarlar > Genel > VPN ve
 Cihaz Yonetimi > Geliştirici Uygulaması > Guven), aksi halde `devicectl`
 "invalid code signature ... not been explicitly trusted" ile baslatmaz.
+
+Dev surumunun paket kimligi farkli oldugu icin **ayri bir profil** ister; o da
+ayni sekilde yenilenir (workspace ve scheme `sportpulsedev`). Iki surum de
+kullaniliyorsa ikisinin profili de yenilenmeli ve telefonda ikisine de guven
+verilmeli.
 
 Bu xcodebuild cagrisi yalnizca profili yenilemek icindir; kurulum icin
 `npm run dev:phone` kullanilmali. Elle derlenen paket cihaza kurulursa
