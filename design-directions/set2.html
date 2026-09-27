@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SportPulse — Tasarım Yönleri · Set 2</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Inter+Tight:wght@400..900&family=Inter:wght@400..800&family=Manrope:wght@400..800&family=Archivo:wdth,wght@62..125,400..900&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="set2.css">
+</head>
+<body>
+  <header class="studio-bar">
+    <div>
+      <div class="studio-kicker">SPORTPULSE · TASARIM YÖNLERİ · <a href="./">SET 1</a> / <b>SET 2</b></div>
+      <h1>Bu kez yapı da değişiyor.</h1>
+      <p>Dördü de Kulüp'ün sakin, açık zeminini paylaşıyor; ama navigasyon, ekran düzeni ve bilgi hiyerarşisi her birinde farklı. Alt menü olmayan da var, saat ekseni olan da.</p>
+    </div>
+    <div class="studio-controls">
+      <label>Ekran
+        <select id="screen">
+          <option value="home">Ana ekran</option>
+          <option value="match">Maç detayı</option>
+          <option value="team">Takım sayfası</option>
+        </select>
+      </label>
+      <label>Görünüm
+        <select id="focus">
+          <option value="all">Hepsi yan yana</option>
+          <option value="flow">05 · Akış</option>
+          <option value="rail">06 · Saat ekseni</option>
+          <option value="mag">07 · Dergi</option>
+          <option value="dense">08 · Yoğun</option>
+        </select>
+      </label>
+    </div>
+  </header>
+
+  <main class="stage" id="stage">
+    <section class="direction" data-dir="flow">
+      <div class="direction-head"><span class="num">05</span><div><h2>Akış</h2><p>Apple Sports mantığı: alt menü yok. Üstte Dün / Bugün / Yaklaşan; liste lige göre gruplu, skor takım rengiyle boyalı sıkışık rakam. Maç detayı alttan kart olarak açılır, sağa-sola kaydırılır.</p></div></div>
+      <div class="phone"><div class="app" data-app></div></div>
+    </section>
+    <section class="direction" data-dir="rail">
+      <div class="direction-head"><span class="num">06</span><div><h2>Saat ekseni</h2><p>Gün bir zaman çizelgesi: solda saat rayı, "şimdi" çizgisi, maçlar saatine asılı. Takip ettiğin takımlar üstte hikâye avatarları gibi. Canlı maçta dakika ilerleme çubuğu.</p></div></div>
+      <div class="phone"><div class="app" data-app></div><nav class="tabbar" data-tabbar></nav></div>
+    </section>
+    <section class="direction" data-dir="mag">
+      <div class="direction-head"><span class="num">07</span><div><h2>Dergi</h2><p>The Athletic havası: ana ekran bir "günün brifingi". Senin için en önemli maç manşet, gerisi metin gibi akan satırlar. Skor bir alıntı gibi büyük serif. Az kutu, çok tipografi.</p></div></div>
+      <div class="phone"><div class="app" data-app></div><nav class="tabbar" data-tabbar></nav></div>
+    </section>
+    <section class="direction" data-dir="dense">
+      <div class="direction-head"><span class="num">08</span><div><h2>Yoğun</h2><p>FotMob disiplini: lig başlıkları altında 44px satırlar, kısaltmalar, sağda skor. Tek ekranda 12+ maç. Takımlarım en üstte sabit grup. Yeşil sadece canlı dakikada.</p></div></div>
+      <div class="phone"><div class="app" data-app></div><nav class="tabbar" data-tabbar></nav></div>
+    </section>
+  </main>
+  <script type="module" src="set2.js"></script>
+</body>
+</html>
