@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SportPulse — Tasarım Yönleri · Set 3</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&family=Inter+Tight:wght@400..900&family=JetBrains+Mono:wght@400..800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="set3.css">
+</head>
+<body>
+  <header class="studio-bar">
+    <div>
+      <div class="studio-kicker">SPORTPULSE · TASARIM YÖNLERİ · <a href="./">SET 1</a> / <a href="set2.html">SET 2</a> / <b>SET 3</b></div>
+      <h1>Bugünkü uygulama, daha derli toplu.</h1>
+      <p>Mevcut mint zemin ve yeşil vurgu korunuyor. Kulüp'ün sakinliği ile Yoğun'un düzeni arasında üç farklı yoğunluk var. Her satırda en fazla üç bilgi: takımlar, saat ya da skor, kanal. Maç ve takım ekranı üçünde ortak; fark ana ekranda.</p>
+    </div>
+    <div class="studio-controls">
+      <label>Ekran
+        <select id="screen">
+          <option value="home">Ana ekran</option>
+          <option value="match">Maç detayı</option>
+          <option value="team">Takım sayfası</option>
+        </select>
+      </label>
+      <label>Tema
+        <select id="theme">
+          <option value="light">Açık</option>
+          <option value="dark">Koyu</option>
+        </select>
+      </label>
+      <label>Görünüm
+        <select id="focus">
+          <option value="all">Hepsi yan yana</option>
+          <option value="grouped">09 · Gruplu</option>
+          <option value="next">10 · Sıradaki</option>
+          <option value="time">11 · Zaman</option>
+        </select>
+      </label>
+    </div>
+  </header>
+
+  <main class="stage" id="stage">
+    <section class="direction" data-dir="grouped">
+      <div class="direction-head"><span class="num">09</span><div><h2>Gruplu</h2><p>Her lig tek bir beyaz kart; maçlar kartın içinde ince çizgiyle ayrılan iki satırlık sıralar. Takımlarım en üstte aynı kart düzeninde. Ekranda 7-8 maç görünür: Yoğun'dan ferah, bugünkünden sıkı.</p></div></div>
+      <div class="phone"><div class="app" data-app></div><nav class="tabbar" data-tabbar></nav></div>
+    </section>
+    <section class="direction" data-dir="next">
+      <div class="direction-head"><span class="num">10</span><div><h2>Sıradaki</h2><p>Bugünkü büyük afiş kartı kalır ama tek tane ve yarı boyda: sıradaki ya da canlı favori maç. Altındaki her şey sade liste; lig adı başlık değil, satırın altında küçük yazı. Afiş hissi korunur, kalabalık gider.</p></div></div>
+      <div class="phone"><div class="app" data-app></div><nav class="tabbar" data-tabbar></nav></div>
+    </section>
+    <section class="direction" data-dir="time">
+      <div class="direction-head"><span class="num">11</span><div><h2>Zaman</h2><p>Liste lige göre değil zamana göre bölünür: Şimdi canlı, Bu akşam, Cumartesi. Her kartta solda saat sütunu (bugünkü EventCard'ın fikri), sağda takımlar. Favoriler ayrı bölüm değil, altın çizgiyle yerinde işaretlenir.</p></div></div>
+      <div class="phone"><div class="app" data-app></div><nav class="tabbar" data-tabbar></nav></div>
+    </section>
+  </main>
+  <script type="module" src="set3.js"></script>
+</body>
+</html>
