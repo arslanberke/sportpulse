@@ -1,12 +1,15 @@
+import { APISPORTS_LEAGUE_IDS, isCompleteLineup, type ApiSportsFixtureState } from '@/services/providers/api-sports-fixture';
+import type { FootballLiveScore } from '@/services/providers/api-sports-live';
 import { supabase } from '@/services/supabase';
 import type {
     Channel,
     EventLineup,
+    EventStats,
     LeagueStandings,
     SessionResults,
     SportEvent,
     Standings,
-    UserFollow,
+    UserFollow
 } from '@/types';
 
 interface EventRow {
@@ -22,6 +25,9 @@ interface EventRow {
   starts_at: string;
   ends_at: string | null;
   status: SportEvent['status'];
+  home_score: number | null;
+  away_score: number | null;
+  result_status: string | null;
   image_url: string | null;
   venue: string | null;
   venue_image_url: string | null;
@@ -54,6 +60,9 @@ function mapRow(row: EventRow): SportEvent {
     startsAt: row.starts_at,
     endsAt: row.ends_at ?? null,
     status: row.status,
+    homeScore: row.home_score,
+    awayScore: row.away_score,
+    resultStatus: row.result_status,
     imageUrl: row.image_url,
     venue: row.venue,
     venueImageUrl: row.venue_image_url,
@@ -147,7 +156,7 @@ export async function fetchEvents(params: {
   const { data, error } = await supabase
     .from('events')
     .select(
-      'id, sport_id, league_id, home_team_id, away_team_id, parent_event_id, home_player_id, away_player_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url), home_player:players!home_player_id (name, country_flag_url), away_player:players!away_player_id (name, country_flag_url)',
+      'id, sport_id, league_id, home_team_id, away_team_id, parent_event_id, home_player_id, away_player_id, title, starts_at, ends_at, status, home_score, away_score, result_status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url), home_player:players!home_player_id (name, country_flag_url), away_player:players!away_player_id (name, country_flag_url)',
     )
     .or(bracketClauses.join(','))
     .lt('starts_at', to.toISOString())
@@ -170,12 +179,14 @@ export async function fetchTeamEvents(params: {
   teamId: string;
   days: number;
 }): Promise<SportEvent[]> {
-  const from = new Date();
-  const to = new Date(from.getTime() + params.days * 86_400_000);
+  const now = new Date();
+  const seasonYear = now.getUTCMonth() < 6 ? now.getUTCFullYear() - 1 : now.getUTCFullYear();
+  const from = new Date(Date.UTC(seasonYear, 6, 1));
+  const to = new Date(now.getTime() + params.days * 86_400_000);
   const { data, error } = await supabase
     .from('events')
     .select(
-      'id, sport_id, league_id, home_team_id, away_team_id, parent_event_id, home_player_id, away_player_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url)',
+      'id, sport_id, league_id, home_team_id, away_team_id, parent_event_id, home_player_id, away_player_id, title, starts_at, ends_at, status, home_score, away_score, result_status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url)',
     )
     .gte('starts_at', from.toISOString())
     .lt('starts_at', to.toISOString())
@@ -196,7 +207,7 @@ export async function fetchLeagueNextEvent(leagueId: string): Promise<SportEvent
   const { data, error } = await supabase
     .from('events')
     .select(
-      'id, sport_id, league_id, home_team_id, away_team_id, parent_event_id, home_player_id, away_player_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url)',
+      'id, sport_id, league_id, home_team_id, away_team_id, parent_event_id, home_player_id, away_player_id, title, starts_at, ends_at, status, home_score, away_score, result_status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url)',
     )
     .eq('league_id', leagueId)
     .eq('status', 'scheduled')
@@ -212,7 +223,7 @@ export async function fetchEvent(id: string): Promise<SportEvent | null> {
   const { data, error } = await supabase
     .from('events')
     .select(
-      'id, sport_id, league_id, home_team_id, away_team_id, parent_event_id, home_player_id, away_player_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url)',
+      'id, sport_id, league_id, home_team_id, away_team_id, parent_event_id, home_player_id, away_player_id, title, starts_at, ends_at, status, home_score, away_score, result_status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url)',
     )
     .eq('id', id)
     .maybeSingle();
@@ -225,13 +236,127 @@ export async function fetchEvent(id: string): Promise<SportEvent | null> {
  * Function. Returns null while official lineups aren't published yet (they
  * usually drop ~1h before kickoff).
  */
-export async function fetchEventLineup(eventId: string): Promise<EventLineup | null> {
+export async function fetchEventLineup(eventId: string, leagueName?: string | null, externalIds: Record<string, string> = {}, opts: { remote?: boolean } = {}): Promise<EventLineup | null> {
+  // Once a complete lineup is cached server-side it stays valid forever —
+  // finished matches read it directly without spending provider quota.
+  const { data: cached } = await supabase
+    .from('events')
+    .select('lineup_cache')
+    .eq('id', eventId)
+    .maybeSingle();
+  if (isCompleteLineup(cached?.lineup_cache)) return cached.lineup_cache as EventLineup;
+  if (opts.remote === false) return null;
+
+  if (externalIds.bsd) {
+    const bsd = await supabase.functions.invoke<{ available: boolean; lineup: EventLineup | null }>(
+      'event-bsd-data', { body: { eventId, kind: 'lineup' } },
+    );
+    if (!bsd.error && isCompleteLineup(bsd.data?.lineup ?? null)) return bsd.data!.lineup;
+  }
+  // TheSportsDB's free lineup response may contain only 2–3 players. For the
+  // five covered leagues, API-Sports is the authoritative first choice and
+  // only a complete 11+11 response is accepted.
+  if (leagueName && leagueName in APISPORTS_LEAGUE_IDS) {
+    const primary = await supabase.functions.invoke<{
+      available: boolean;
+      lineup: EventLineup | null;
+    }>('event-api-sports-lineup', { body: { eventId } });
+    if (!primary.error && isCompleteLineup(primary.data?.lineup ?? null)) return primary.data!.lineup;
+  }
+
   const { data, error } = await supabase.functions.invoke<{
     available: boolean;
     lineup: EventLineup | null;
   }>('event-lineup', { body: { eventId } });
   if (error) throw error;
-  return data?.lineup ?? null;
+  const fallback = data?.lineup ?? null;
+  return isCompleteLineup(fallback) ? fallback : null;
+}
+
+/**
+ * Team stat rows and per-player ratings for one BSD-backed football match.
+ * Fetched on demand (no cache): only called when a user opens a started
+ * match's detail screen.
+ */
+export async function fetchEventStats(eventId: string, externalIds: Record<string, string> = {}): Promise<EventStats | null> {
+  if (!externalIds.bsd) return null;
+  const { data, error } = await supabase.functions.invoke<{
+    available: boolean;
+    stats: EventStats | null;
+  }>('event-bsd-data', { body: { eventId, kind: 'stats' } });
+  if (error) return null;
+  return data?.stats ?? null;
+}
+
+/**
+ * Live score and key-events timeline for one football event, via the
+ * `event-live` Edge Function. Scoped server-side to the five leagues with a
+ * confirmed API-Sports league id; returns null for every other match rather
+ * than guessing.
+ */
+/**
+ * The cached live state (score + timeline) for a finished match. Stable data
+ * — reading it avoids provider calls for games that ended long ago.
+ */
+export async function fetchEventLiveCache(eventId: string): Promise<ApiSportsFixtureState | null> {
+  const { data, error } = await supabase
+    .from('events')
+    .select('live_cache')
+    .eq('id', eventId)
+    .maybeSingle();
+  if (error) return null;
+  return (data?.live_cache as ApiSportsFixtureState | null) ?? null;
+}
+
+export async function fetchEventLive(eventId: string, externalIds: Record<string, string> = {}): Promise<ApiSportsFixtureState | null> {
+  if (externalIds.bsd) {
+    const bsd = await supabase.functions.invoke<{ available: boolean; state: ApiSportsFixtureState | null }>(
+      'event-bsd-data', { body: { eventId, kind: 'live' } },
+    );
+    if (!bsd.error && bsd.data?.state) return bsd.data.state;
+  }
+  const { data, error } = await supabase.functions.invoke<{
+    available: boolean;
+    state: ApiSportsFixtureState | null;
+  }>('event-live', { body: { eventId } });
+  if (error) throw error;
+  return data?.state ?? null;
+}
+
+/** ESPN scoreboard'larindan gelen futbol disi canli kayit. */
+export interface EspnLiveEntry {
+  id: string;
+  sport: 'football' | 'basketball' | 'tennis' | 'f1' | 'ufc';
+  series: string;
+  name: string;
+  statusDetail: string | null;
+  home: string | null;
+  away: string | null;
+  homeScore: number | null;
+  awayScore: number | null;
+  homeLines: number[];
+  awayLines: number[];
+  startsAt: string;
+}
+
+/**
+ * Every match/session currently reported as live, via the `live-scores` Edge
+ * Function (one aggregated call, server-side cached): API-Sports for football,
+ * ESPN scoreboards for NBA, tennis, F1 and UFC. Used only to answer "which of
+ * my listed events are live right now" — the client never calls the upstreams
+ * directly.
+ */
+export async function fetchLiveScores(): Promise<{
+  scores: FootballLiveScore[];
+  espn: EspnLiveEntry[];
+}> {
+  const { data, error } = await supabase.functions.invoke<{
+    available: boolean;
+    scores: FootballLiveScore[];
+    espn?: EspnLiveEntry[];
+  }>('live-scores', { body: {} });
+  if (error) throw error;
+  return { scores: data?.scores ?? [], espn: data?.espn ?? [] };
 }
 
 /**
@@ -324,22 +449,30 @@ export async function fetchEventBroadcasts(params: {
 }
 
 /**
- * Yayin kaynaginin kapsadigi gunler ("YYYY-MM-DD").
+ * Yayin kaynaginin kapsadigi gunler, spor bazinda ("YYYY-MM-DD" setleri).
  *
- * Kapsanan bir gune dusen ama mac bazli kaydi olmayan mac buyuk olasilikla o
- * ulkede yayinlanmiyordur; boyle maclarda lig varsayimini gostermek yanlis
- * bilgi olur. Gunler yerine yalnizca son birkaci okunur: kaynak gunluk yazar,
- * eski gunlerin gecmis maclara etkisi yoktur.
+ * '' anahtari tum sporlari kapsayan kaynagi (sporekrani, yalnizca bugun),
+ * 'football' anahtari BSD'nin ~7 gunluk ileri penceresini gosterir. Kapsanan
+ * bir gune dusen ama mac bazli kaydi olmayan mac buyuk olasilikla o ulkede
+ * yayinlanmiyordur; boyle maclarda lig varsayimini gostermek yanlis bilgi olur.
  */
-export async function fetchBroadcastCoverage(countryCode: string): Promise<Set<string>> {
+export async function fetchBroadcastCoverage(
+  countryCode: string,
+): Promise<Map<string, Set<string>>> {
   const since = new Date(Date.now() - 2 * 86_400_000).toISOString().slice(0, 10);
   const { data, error } = await supabase
     .from('broadcast_coverage')
-    .select('day')
+    .select('day, sport_id')
     .eq('country_code', countryCode)
     .gte('day', since);
   if (error) throw error;
-  return new Set((data ?? []).map((row: { day: string }) => row.day));
+  const bySport = new Map<string, Set<string>>();
+  for (const row of (data ?? []) as { day: string; sport_id: string }[]) {
+    const set = bySport.get(row.sport_id) ?? new Set<string>();
+    set.add(row.day);
+    bySport.set(row.sport_id, set);
+  }
+  return bySport;
 }
 
 /**
@@ -358,7 +491,7 @@ export async function fetchTournamentBracket(tournamentId: string): Promise<Spor
   const { data, error } = await supabase
     .from('events')
     .select(
-      'id, sport_id, league_id, home_team_id, away_team_id, parent_event_id, home_player_id, away_player_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, round, bracket, home_player:players!home_player_id (name, country_flag_url, rank), away_player:players!away_player_id (name, country_flag_url, rank), leagues (name, artwork_url, logo_url)',
+      'id, sport_id, league_id, home_team_id, away_team_id, parent_event_id, home_player_id, away_player_id, title, starts_at, ends_at, status, home_score, away_score, result_status, image_url, venue, venue_image_url, importance, external_ids, round, bracket, home_player:players!home_player_id (name, country_flag_url, rank), away_player:players!away_player_id (name, country_flag_url, rank), leagues (name, artwork_url, logo_url)',
     )
     .eq('parent_event_id', tournamentId)
     .not('bracket', 'ilike', '%Doubles%')
@@ -394,7 +527,7 @@ export async function fetchPlayerEvents(playerId: string): Promise<SportEvent[]>
   const { data, error } = await supabase
     .from('events')
     .select(
-      'id, sport_id, league_id, home_team_id, away_team_id, parent_event_id, home_player_id, away_player_id, title, starts_at, ends_at, status, image_url, venue, venue_image_url, importance, external_ids, round, bracket, home_player:players!home_player_id (name, country_flag_url, rank), away_player:players!away_player_id (name, country_flag_url, rank), leagues (name, artwork_url, logo_url)',
+      'id, sport_id, league_id, home_team_id, away_team_id, parent_event_id, home_player_id, away_player_id, title, starts_at, ends_at, status, home_score, away_score, result_status, image_url, venue, venue_image_url, importance, external_ids, round, bracket, home_player:players!home_player_id (name, country_flag_url, rank), away_player:players!away_player_id (name, country_flag_url, rank), leagues (name, artwork_url, logo_url)',
     )
     .or(`home_player_id.eq.${playerId},away_player_id.eq.${playerId}`)
     .gte('starts_at', new Date(Date.now() - 3 * 3_600_000).toISOString())

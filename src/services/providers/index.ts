@@ -1,5 +1,7 @@
+import { bsdProvider } from './bsd.ts';
 import { espnProvider } from './espn.ts';
 import { euroleagueProvider } from './euroleague.ts';
+import { goalProvider } from './goal.ts';
 import { warnProviderFailure } from './log.ts';
 import { theSportsDbProvider } from './thesportsdb.ts';
 import type {
@@ -26,6 +28,10 @@ export type {
 /**
  * Ordered by preference: primary first, fallbacks after.
  *
+ * Süper Lig ve Avrupa Ligi için doğrulanmış zincir BSD → GOAL'dır. Diğer
+ * liglerde mevcut ESPN → TheSportsDB zinciri devam eder. BSD/GOAL yalnızca
+ * sunucunun istek kapsamında verdiği anahtar varken `supports` döndürür.
+ *
  * ESPN once denenir. TheSportsDB'nin ucretsiz katmani fiksturu eksik veriyor:
  * Avrupa kupalarinin eleme turlarini hic dondurmuyor ve ayni gun icin ESPN 10
  * mac verirken 3 mac veriyordu. Ustelik ilk veri donduren saglayicida
@@ -34,7 +40,7 @@ export type {
  * TheSportsDB yedek olarak kaliyor: ESPN resmi olmayan bir API ve her an
  * kirilabilir ya da 403 donebilir, o zaman fikstur tumden durmasin.
  */
-export const providers = [espnProvider, theSportsDbProvider];
+export const providers = [bsdProvider, goalProvider, espnProvider, theSportsDbProvider];
 
 
 /**
@@ -51,16 +57,28 @@ export async function fetchUpcomingEvents(
   league: LeagueRef,
   days: number,
 ): Promise<ProviderEvent[]> {
+  return (await fetchFixtureSnapshot(league, days)).events;
+}
+
+export async function fetchFixtureSnapshot(league: LeagueRef, days: number) {
+  const issues: import('./log.ts').ProviderIssue[] = [];
+  let emptySource: string | null = null;
   for (const provider of providers) {
     if (!provider.supports(league)) continue;
+    const before = issues.length;
+    const ref: LeagueRef = {
+      ...league,
+      onIssue: (issue) => { issues.push(issue); league.onIssue?.(issue); },
+    };
     try {
-      const events = await provider.fetchUpcomingEvents(league, days);
-      if (events.length > 0) return events;
+      const events = await provider.fetchUpcomingEvents(ref, days);
+      if (events.length > 0) return { events, provider: provider.name, issues };
+      if (issues.length === before) emptySource = provider.name;
     } catch (error) {
-      warnProviderFailure('fetchUpcomingEvents', provider.name, `league ${league.leagueId}`, error);
+      warnProviderFailure('fetchUpcomingEvents', provider.name, `league ${league.leagueId}`, error, ref.onIssue);
     }
   }
-  return [];
+  return { events: [] as ProviderEvent[], provider: emptySource, issues };
 }
 
 /**
@@ -76,7 +94,7 @@ export async function fetchSeason(league: LeagueRef): Promise<ProviderSeason | n
       const season = await provider.fetchSeason(league);
       if (season) return season;
     } catch (error) {
-      warnProviderFailure('fetchSeason', provider.name, `league ${league.leagueId}`, error);
+      warnProviderFailure('fetchSeason', provider.name, `league ${league.leagueId}`, error, league.onIssue);
     }
   }
   return null;
@@ -112,7 +130,7 @@ export async function fetchLeagueTeams(
       const teams = await provider.fetchLeagueTeams(league);
       if (teams.length > 0) return { provider: provider.name, teams };
     } catch (error) {
-      warnProviderFailure('fetchLeagueTeams', provider.name, `league ${league.leagueId}`, error);
+      warnProviderFailure('fetchLeagueTeams', provider.name, `league ${league.leagueId}`, error, league.onIssue);
     }
   }
   return { provider: null, teams: [] };

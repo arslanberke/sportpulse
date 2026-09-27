@@ -1,9 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
 import { Text, View } from "react-native";
 
 import { useThemeColors } from "@/constants/theme";
+import { RatingPill } from "@/features/events/components/match-stats-card";
 import type { LineupPlayer } from "@/types";
 
 /** Turns an ISO 3166-1 alpha-2 code into its flag emoji ("tr" -> 🇹🇷). */
@@ -69,10 +70,13 @@ function PlayerToken({
             </Text>
           </View>
         </View>
-        <View className="mt-0.5 max-w-[62px] rounded bg-black/55 px-1 py-px">
+        <View className="mt-0.5 max-w-[62px] flex-row items-center justify-center gap-0.5 rounded bg-black/55 px-1 py-px">
           <Text numberOfLines={1} className="text-center text-[9px] font-semibold text-white">
             {player.isCaptain ? `${player.name} (C)` : player.name}
           </Text>
+          {typeof player.rating === "number" && (
+            <RatingPill rating={player.rating} />
+          )}
         </View>
       </View>
     </View>

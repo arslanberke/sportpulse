@@ -59,6 +59,15 @@ export function formatDay(date: Date): string {
   return date.toLocaleDateString(locale(), { weekday: 'short', day: 'numeric', month: 'short' });
 }
 
+/** "28 Oca 2000" — saat olmadan tam tarih (dogum gunu, sozlesme bitisi). */
+export function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString(locale(), {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
 export function formatDateTime(iso: string): string {
   return new Date(iso).toLocaleString(locale(), {
     weekday: 'short',

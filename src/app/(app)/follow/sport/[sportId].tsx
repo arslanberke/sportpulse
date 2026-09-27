@@ -14,6 +14,7 @@ import {
     type FollowGroup,
 } from '@/features/follows/hooks/use-follow-actions';
 import { useI18n } from '@/lib/i18n';
+import { matchesAny, searchNeedles } from '@/lib/search';
 
 /** Ceviri anahtarlari tipli oldugu icin sablon yerine acik eslesme. */
 const KIND_LABEL = {
@@ -45,10 +46,12 @@ export default function SportFollowScreen() {
     [leagues, sportId],
   );
 
+  // Ana aramayla ayni eslestirme: aksan koreltilir, Turkce yarisma adlari
+  // ("uluslar ligi") katalogdaki Ingilizce karsiliga cozulur.
   const visibleLeagues = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    if (!term) return sportLeagues;
-    return sportLeagues.filter((league) => league.name.toLowerCase().includes(term));
+    const needles = searchNeedles(search);
+    if (needles.length === 0) return sportLeagues;
+    return sportLeagues.filter((league) => matchesAny([league.name], needles));
   }, [sportLeagues, search]);
 
   // Kupalar ve ligler ayri listelenir. Tek grup kalirsa (cogu brans boyle)

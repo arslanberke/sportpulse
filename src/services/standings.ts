@@ -1,4 +1,5 @@
-import { fetchTeamLeagues } from '@/services/catalog';
+import { enrichTableLogos } from '@/features/teams/lib/table-logos';
+import { fetchTeamLeagues, fetchTeams } from '@/services/catalog';
 import { fetchLeagueTable } from '@/services/providers/league-tables';
 import type { LeagueTable } from '@/types';
 
@@ -13,10 +14,10 @@ export async function fetchTeamTables(teamId: string): Promise<LeagueTable[]> {
 
   const tables = await Promise.all(
     leagues.map(async (league) => {
-      const table = await fetchLeagueTable({
-        sportId: league.sportId,
-        externalIds: league.externalIds,
-      });
+      const [table, teams] = await Promise.all([
+        fetchLeagueTable({ sportId: league.sportId, externalIds: league.externalIds }),
+        fetchTeams(league.id),
+      ]);
       if (!table) return null;
       return {
         leagueId: league.id,
@@ -24,7 +25,7 @@ export async function fetchTeamTables(teamId: string): Promise<LeagueTable[]> {
         leagueLogoUrl: league.logoUrl,
         sportId: league.sportId,
         season: table.season,
-        groups: table.groups,
+        groups: enrichTableLogos(table.groups, teams),
       } satisfies LeagueTable;
     }),
   );

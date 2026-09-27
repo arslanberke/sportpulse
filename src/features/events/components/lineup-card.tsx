@@ -1,15 +1,21 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { ActivityIndicator, Text, View } from "react-native";
+import { useRouter } from "expo-router";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
 import { Card } from "@/components/ui/card";
 import { useThemeColors } from "@/constants/theme";
 import {
-  countryFlag,
-  LineupPitch,
+    countryFlag,
+    LineupPitch,
 } from "@/features/events/components/lineup-pitch";
-import { useEventLineup } from "@/features/events/hooks/use-events";
+import { RatingPill } from "@/features/events/components/match-stats-card";
+import {
+    useEventLineup,
+    useEventStats
+} from "@/features/events/hooks/use-events";
 import { useI18n } from "@/lib/i18n";
+import { useNow } from "@/lib/now";
 import type { EventLineup, LineupPlayer, SportEvent } from "@/types";
 
 function badge(player: LineupPlayer, keeper: string) {
@@ -28,8 +34,14 @@ function RosterCell({
   align: "left" | "right";
 }) {
   const { t } = useI18n();
+  const router = useRouter();
   if (!player) return <View className="flex-1" />;
   const keeper = t("event.keeperShort");
+  // BSD oyuncu kimligi sayisal; diger kaynaklarda id yerine ad tasiyan
+  // satirlar profil sayfasina gidemez.
+  const openProfile = /^\d+$/.test(player.id)
+    ? () => router.push(`/football-player/${player.id}`)
+    : undefined;
   const flag = countryFlag(player.countryCode);
   const num = (
     <Text className="w-6 text-center text-sm font-bold text-ink-secondary">
@@ -46,22 +58,33 @@ function RosterCell({
     </Text>
   );
   const flagText = <Text className="text-sm">{flag}</Text>;
+  const rating =
+    typeof player.rating === "number" ? (
+      <RatingPill rating={player.rating} />
+    ) : null;
   return (
-    <View className="flex-1 flex-row items-center gap-1.5">
+    <Pressable
+      onPress={openProfile}
+      disabled={!openProfile}
+      className="flex-1 flex-row items-center gap-1.5 active:opacity-60"
+      accessibilityRole={openProfile ? 'button' : undefined}
+    >
       {align === "left" ? (
         <>
           {flagText}
           {num}
           {name}
+          {rating}
         </>
       ) : (
         <>
+          {rating}
           {name}
           {num}
           {flagText}
         </>
       )}
-    </View>
+    </Pressable>
   );
 }
 
@@ -170,6 +193,17 @@ function LineupBody({
   );
 }
 
+/** Merges post-kickoff player ratings (keyed by provider id) into a lineup. */
+function withRatings(
+  lineup: EventLineup,
+  stats: { ratings: Record<string, { rating: number }> } | null | undefined,
+): EventLineup {
+  if (!stats) return lineup;
+  const merge = (list: LineupPlayer[]) =>
+    list.map((p) => ({ ...p, rating: stats.ratings[p.id]?.rating ?? null }));
+  return { ...lineup, home: merge(lineup.home), away: merge(lineup.away) };
+}
+
 /**
  * Confirmed match lineups for football events. Official lineups drop ~1h
  * before kickoff, so this shows a "not published yet" note until then and
@@ -184,7 +218,9 @@ export function LineupCard({
 }) {
   const { t } = useI18n();
   const colors = useThemeColors();
+  const now = useNow();
   const { data: lineup, isLoading, isError } = useEventLineup(event);
+  const { data: stats } = useEventStats(event);
 
   if (event.sportId !== "football" || event.status !== "scheduled") return null;
 
@@ -203,7 +239,7 @@ export function LineupCard({
       </View>
 
       {lineup ? (
-        <LineupBody lineup={lineup} event={event} />
+        <LineupBody lineup={withRatings(lineup, stats)} event={event} />
       ) : isLoading ? (
         <View className="flex-row items-center gap-2 py-1">
           <ActivityIndicator size="small" color={colors.primary} />
@@ -213,7 +249,11 @@ export function LineupCard({
         </View>
       ) : (
         <Text className="text-sm text-ink-secondary">
-          {isError ? t("event.lineupsError") : t("event.lineupsPending")}
+          {isError
+            ? t("event.lineupsError")
+            : now >= new Date(event.startsAt)
+              ? t("event.lineupsUnavailable")
+              : t("event.lineupsPending")}
         </Text>
       )}
     </Card>

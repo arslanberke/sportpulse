@@ -23,12 +23,12 @@
   }
 
   .dark:root {
-    --color-background: 8 12 10;
-    --color-surface: 18 26 22;
-    --color-surface-raised: 26 36 30;
-    --color-ink: 240 247 243;
-    --color-ink-secondary: 158 179 167;
-    --color-ink-tertiary: 106 124 113;
+    --color-background: 8 14 11;
+    --color-surface: 16 28 21;
+    --color-surface-raised: 22 39 29;
+    --color-ink: 237 243 238;
+    --color-ink-secondary: 152 172 158;
+    --color-ink-tertiary: 132 151 138;
     --color-primary-light: 6 51 38;
     --color-success-light: 16 61 32;
     --color-warning-light: 66 45 10;

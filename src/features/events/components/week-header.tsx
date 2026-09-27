@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { Link, useRouter } from 'expo-router';
 import { Pressable, Text, TextInput, View } from 'react-native';
-import Animated, { SlideInRight } from 'react-native-reanimated';
+import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { useThemeColors } from '@/constants/theme';
 import { useCatalogSearch, useSports } from '@/features/catalog/hooks/use-catalog';
@@ -39,6 +39,7 @@ function SuggestionTile({
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
       className="mb-2 mr-2 max-w-[48%] flex-row items-center gap-2 rounded-pill border border-line bg-surface py-2 pl-2 pr-3 active:opacity-70"
     >
       {imageUrl ? (
@@ -91,14 +92,19 @@ export function WeekHeader({ term, onTermChange, expanded, onExpandedChange }: W
   const trimmed = term.trim();
   const leagues = results?.leagues ?? [];
   const teams = results?.teams ?? [];
-  const hasSuggestions = leagues.length > 0 || teams.length > 0;
+  const players = results?.players ?? [];
+  const footballers = results?.footballers ?? [];
+  const hasSuggestions =
+    leagues.length > 0 || teams.length > 0 || players.length > 0 || footballers.length > 0;
 
   return (
     <View className="mb-6">
       <View className="flex-row items-center gap-3">
+        {/* Slayt animasyonu ekran yeniden gorunurken tekrar tetiklenip alani
+            yandan kaydiriyordu; solma ayni hissi yan etkisiz veriyor. */}
         {expanded ? (
           <Animated.View
-            entering={SlideInRight.duration(180)}
+            entering={FadeIn.duration(150)}
             className="flex-1 flex-row items-center gap-2 rounded-pill border border-line bg-surface px-4"
           >
             <Ionicons name="search" size={18} color={colors.inkTertiary} />
@@ -178,6 +184,26 @@ export function WeekHeader({ term, onTermChange, expanded, onExpandedChange }: W
                     : `/follow/sport/${league.sportId}`,
                 )
               }
+            />
+          ))}
+          {players.map((player) => (
+            <SuggestionTile
+              key={player.id}
+              label={[player.name, player.tourName].filter(Boolean).join(' · ')}
+              imageUrl={player.headshotUrl ?? player.countryFlagUrl}
+              sportIcon={sportIcon(player.sportId)}
+              onPress={() => router.push(`/player/${player.id}`)}
+            />
+          ))}
+          {/* Futbolcular veritabaninda degil, BSD'den canli aranir; kimlikleri
+              BSD oyuncu kimligi, profil ekranina gider. */}
+          {footballers.map((player) => (
+            <SuggestionTile
+              key={player.id}
+              label={[player.name, player.teamName].filter(Boolean).join(' · ')}
+              imageUrl={player.photoUrl}
+              sportIcon={sportIcon('football')}
+              onPress={() => router.push(`/football-player/${player.id}`)}
             />
           ))}
           {teams.map((team) => (

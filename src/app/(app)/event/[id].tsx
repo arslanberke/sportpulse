@@ -30,6 +30,8 @@ import { formatCountdown } from "@/features/events/components/event-card";
 import { EventEffect } from "@/features/events/components/event-effects";
 import { LeagueStandingsCard } from "@/features/events/components/league-standings-card";
 import { LineupCard } from "@/features/events/components/lineup-card";
+import { LiveMatchCard } from "@/features/events/components/live-match-card";
+import { MatchStatsCard } from "@/features/events/components/match-stats-card";
 import { MatchupArt } from "@/features/events/components/matchup-art";
 import { ResultsCard } from "@/features/events/components/results-card";
 import { StandingsCard } from "@/features/events/components/standings-card";
@@ -181,7 +183,7 @@ export default function EventDetailScreen() {
   // Tek armanin eksikligi tum kartin lig afisine dusmesine yol aciyordu ve afis
   // kartin oranina oturmadigi icin bozuk gorunuyordu.
   const hasMatchup = Boolean(event.homeTeamName && event.awayTeamName);
-  const banner = leagueBanner(event.leagueName);
+  const banner = leagueBanner(event.leagueName, event.leagueArtworkUrl, event.leagueBadgeUrl, event.sportId);
 
   return (
     <>
@@ -402,7 +404,13 @@ export default function EventDetailScreen() {
             ayni gecikmeyle ayni karede acildiginda giris animasyonunda opaklik
             0'da takilip bos alan olarak goruntuleniyor. Motorsporda sonuclar ve
             puan durumu, basketbolda ozet ve puan durumu birlikte cikar. */}
-        <BriefingCard event={event} index={1} />
+        <LiveMatchCard event={event} index={1} />
+
+        <LineupCard event={event} index={2} />
+
+        <MatchStatsCard event={event} index={6} />
+
+        <BriefingCard event={event} index={3} />
 
         <ResultsCard event={event} index={2} />
 
@@ -464,8 +472,6 @@ export default function EventDetailScreen() {
             ))}
           </View>
         </Card>
-
-        <LineupCard event={event} index={6} />
 
         <Card className="mb-4" index={7}>
           <SectionHeader

@@ -2,7 +2,7 @@ import { supabase } from '@/services/supabase';
 import type { Player } from '@/types';
 
 const PLAYER_COLUMNS =
-  'id, sport_id, league_id, name, country_code, country_flag_url, headshot_url, rank, rank_points, leagues (name)';
+  'id, sport_id, league_id, name, country_code, country_flag_url, headshot_url, rank, rank_points, rank_synced_at, leagues (name)';
 
 interface PlayerRow {
   id: string;
@@ -14,6 +14,7 @@ interface PlayerRow {
   headshot_url: string | null;
   rank: number | null;
   rank_points: number | null;
+  rank_synced_at: string | null;
   leagues: { name: string } | null;
 }
 
@@ -28,6 +29,7 @@ function mapPlayer(row: PlayerRow): Player {
     headshotUrl: row.headshot_url,
     rank: row.rank,
     rankPoints: row.rank_points,
+    rankSyncedAt: row.rank_synced_at,
     tourName: row.leagues?.name ?? null,
   };
 }

@@ -1,7 +1,9 @@
+import { calendarDays, currentCalendarEvents, filterCalendarEvents, groupCalendarEvents } from '@/features/events/lib/calendar-view';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Modal, Pressable, ScrollView, Switch, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Ionicons } from '@expo/vector-icons';
 
@@ -9,17 +11,20 @@ import { Screen } from '@/components/ui/screen';
 import { EmptyCard, ErrorCard, LoadingCard } from '@/components/ui/states';
 import { useThemeColors } from '@/constants/theme';
 import { useSports } from '@/features/catalog/hooks/use-catalog';
-import { EventCard, FeaturedEventCard } from '@/features/events/components/event-card';
+import { EventCard } from '@/features/events/components/event-card';
+import { FavoritesSection } from '@/features/events/components/favorites-section';
+import { FixtureHealthNotice } from '@/features/events/components/fixture-health-notice';
 import { WeekHeader } from '@/features/events/components/week-header';
-import { useUpcomingEvents } from '@/features/events/hooks/use-events';
+import { useLiveScores, useUpcomingEvents } from '@/features/events/hooks/use-events';
+import { useFixtureHealth } from '@/features/events/hooks/use-fixture-health';
+import { espnLiveScoreText, matchEspnLive, matchLiveScores } from '@/features/events/lib/live-match';
+import { isFavoriteEvent, useFavorites } from '@/features/follows/hooks/use-favorites';
 import { useFollows } from '@/features/follows/hooks/use-follows';
 import { formatDay, isSameDay } from '@/lib/dates';
-import { FavoritesSection } from '@/features/events/components/favorites-section';
-import { isFavoriteEvent, useFavorites } from '@/features/follows/hooks/use-favorites';
 import { useI18n } from '@/lib/i18n';
 import { useNow } from '@/lib/now';
-import { useStoredFlag } from '@/lib/use-stored-flag';
 import { matchesAny, searchNeedles } from '@/lib/search';
+import { useStoredFlag } from '@/lib/use-stored-flag';
 import type { Sport, SportEvent } from '@/types';
 
 /**
@@ -33,16 +38,7 @@ function groupByDay(
   events: SportEvent[],
   now: Date,
 ): { day: Date; events: SportEvent[] }[] {
-  const groups: { day: Date; events: SportEvent[] }[] = [];
-  for (const event of events) {
-    const starts = new Date(event.startsAt);
-    const ongoing = starts.getTime() <= now.getTime() && Boolean(event.endsAt);
-    const day = ongoing ? now : starts;
-    const last = groups[groups.length - 1];
-    if (last && isSameDay(last.day, day)) last.events.push(event);
-    else groups.push({ day, events: [event] });
-  }
-  return groups;
+  return groupCalendarEvents(events, now);
 }
 
 function SportTab({
@@ -60,7 +56,9 @@ function SportTab({
   return (
     <Pressable
       onPress={onPress}
-      className={`mr-2 flex-row items-center gap-1.5 rounded-full px-4 py-2 ${
+      accessibilityRole="button"
+      accessibilityState={{ selected: active }}
+      className={`mr-2 min-h-11 flex-row items-center gap-1.5 rounded-full px-4 py-2 ${
         active ? 'bg-primary' : 'bg-surface border border-line'
       }`}
     >
@@ -87,15 +85,39 @@ export default function HomeScreen() {
   const queryClient = useQueryClient();
   const { data: follows, isFetched: followsFetched } = useFollows();
   const { data: sports } = useSports();
-  const { events, isLoading, error } = useUpcomingEvents(7);
+  // Son 3 saatte baslamis maclar da ham adaylarda tutulur: normal takvimden
+  // asagida suzulurler, ama canli akis dogrularsa "Canli" filtresinde kalirlar.
+  const { events, isLoading, error } = useUpcomingEvents(7, 3);
   const [sportFilter, setSportFilter] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const [dayOffset, setDayOffset] = useState<number | null>(null);
+  const [leagueFilter, setLeagueFilter] = useState<string | null>(null);
+  const [channelFilter, setChannelFilter] = useState<string | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const compact = useStoredFlag('home.compact');
+  const effects = useStoredFlag('home.effects', true);
+  const colors = useThemeColors();
   const now = useNow();
+  const days = calendarDays(now);
+  const selectedDay = dayOffset === null ? null : days[dayOffset];
   const { favoriteTeamIds, favoritePlayerIds } = useFavorites();
+  const fixtureHealth = useFixtureHealth(follows, favoritePlayerIds);
   const favoritesCollapsed = useStoredFlag('home.favoritesCollapsed');
+  const [liveOnly, setLiveOnly] = useState(false);
+  const liveScores = useLiveScores(liveOnly);
+  const liveMatches = useMemo(
+    () => (liveOnly ? matchLiveScores(events, liveScores.data?.scores ?? []) : new Map()),
+    [liveOnly, events, liveScores.data],
+  );
+  // Futbol disi canlilar (NBA, tenis, F1, UFC) ESPN akisindan; motogp ve
+  // kaynagin kaciridigi f1 seanslari saat penceresiyle 'window' isaretlenir.
+  const espnMatches = useMemo(
+    () => (liveOnly ? matchEspnLive(events, liveScores.data?.espn ?? []) : new Map()),
+    [liveOnly, events, liveScores.data],
+  );
 
   // Kullanici kaydirmaya basladiginda alan kapanir: liste tam ekran kalir, terim
   // basliktaki dugmede gorunur olmaya devam eder.
@@ -126,21 +148,28 @@ export default function HomeScreen() {
     );
   }, [events, searchTerm]);
 
-  const visibleEvents = useMemo(() => {
-    const bySport = activeFilter
-      ? searchedEvents.filter((e) => e.sportId === activeFilter)
-      : searchedEvents;
-    return favoritesOnly
-      ? bySport.filter((e) => isFavoriteEvent(e, favoriteTeamIds, favoritePlayerIds))
-      : bySport;
-  }, [searchedEvents, activeFilter, favoritesOnly, favoriteTeamIds, favoritePlayerIds]);
+  const weekEvents = filterCalendarEvents(searchedEvents, {
+    sportId: activeFilter, favoritesOnly, leagueId: leagueFilter, channelId: channelFilter,
+  }, (event) => isFavoriteEvent(event, favoriteTeamIds, favoritePlayerIds));
+  const calendarWeekEvents = currentCalendarEvents(weekEvents, now);
+  const visibleEvents = liveOnly
+    ? weekEvents.filter((e) => liveMatches.has(e.id) || espnMatches.has(e.id))
+    : filterCalendarEvents(calendarWeekEvents, { day: selectedDay }, () => true);
+  const leagues = [...new Map(events.filter(e => e.leagueId && e.leagueName).map(e => [e.leagueId!, e.leagueName!])).entries()];
+  const channels = [...new Map(events.flatMap(e => e.channels ?? []).map(c => [c.id, c.name])).entries()];
+  const resetFilters = () => {
+    setSportFilter(null);
+    setFavoritesOnly(false);
+    setLiveOnly(false);
+    setDayOffset(null);
+    setLeagueFilter(null);
+    setChannelFilter(null);
+    setSearchTerm('');
+  };
 
   // Tepedeki kisayol: yildizli kuluplerin yaklasan maclari. Asagidaki takvimden
   // cikarilmiyorlar; bolumu kapali tutan kullanici da maci kendi gununde gorur.
-  const favoriteEvents = useMemo(
-    () => visibleEvents.filter((e) => isFavoriteEvent(e, favoriteTeamIds, favoritePlayerIds)),
-    [visibleEvents, favoriteTeamIds, favoritePlayerIds],
-  );
+  const favoriteEvents = liveOnly ? [] : calendarWeekEvents.filter((e) => isFavoriteEvent(e, favoriteTeamIds, favoritePlayerIds));
 
   // Suzgec acikken `visibleEvents` zaten yalnizca favorileri tasiyor; dugmenin
   // gorunurlugu suzgecten bagimsiz olmali, yoksa kapatan kullanici dugmeyi de
@@ -167,6 +196,7 @@ export default function HomeScreen() {
       await Promise.all([
         queryClient.refetchQueries({ queryKey: ['events'] }),
         queryClient.refetchQueries({ queryKey: ['follows'] }),
+        queryClient.refetchQueries({ queryKey: ['fixture-health'] }),
       ]);
     } finally {
       // Istek basarisiz olsa da gosterge durmali.
@@ -177,14 +207,14 @@ export default function HomeScreen() {
   // Paylasilan saatten: aksi halde gece yarisi gecildiginde dunun maclari
   // "BUGUN" basligi altinda kalirdi.
   const today = now;
-  const tomorrow = new Date(today.getTime() + 86_400_000);
+  const tomorrow = days[1];
   const dayLabel = (day: Date) => {
     if (isSameDay(day, today)) return t('home.today');
     if (isSameDay(day, tomorrow)) return t('home.tomorrow');
     return formatDay(day);
   };
 
-  const featuredId = visibleEvents.find((e) => e.status === 'scheduled')?.id;
+  const hasFilters = Boolean(activeFilter || favoritesOnly || liveOnly || selectedDay || leagueFilter || channelFilter || searchTerm.trim());
   const orderIndex = new Map(visibleEvents.map((e, i) => [e.id, i]));
 
   return (
@@ -211,37 +241,65 @@ export default function HomeScreen() {
             <SportTab
               label={t('home.allSports')}
               icon="apps"
-              active={activeFilter === null && !favoritesOnly}
-              onPress={() => {
-                setSportFilter(null);
-                setFavoritesOnly(false);
-              }}
+              active={activeFilter === null}
+              onPress={() => setSportFilter(null)}
             />
             {/* Yildiz suzgeci yalnizca yildizli bir macin oldugu haftalarda
                 cikar; hicbir sey secmeyen bir dugme gostermenin anlami yok. */}
-            {hasFavoriteEvents && (
-              <SportTab
-                label={t('home.favoritesOnly')}
-                icon="star"
-                active={favoritesOnly}
-                onPress={() => setFavoritesOnly((on) => !on)}
-              />
-            )}
             {sportTabs.map((sport) => (
               <SportTab
                 key={sport.id}
                 label={language === 'tr' ? sport.nameTr : sport.nameEn}
                 icon={sport.icon}
-                active={activeFilter === sport.id && !favoritesOnly}
-                onPress={() => {
-                  setSportFilter(sport.id);
-                  setFavoritesOnly(false);
-                }}
+                active={activeFilter === sport.id}
+                onPress={() => setSportFilter(sport.id)}
               />
             ))}
           </ScrollView>
         )}
 
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-4">
+          <SportTab label={t('home.favoritesOnly')} icon="star-outline" active={favoritesOnly} onPress={() => setFavoritesOnly(value => !value)} />
+          <SportTab label={t('home.live')} icon="radio-outline" active={liveOnly} onPress={() => setLiveOnly(value => !value)} />
+          <SportTab label={`${t('home.filters')}${leagueFilter || channelFilter ? ` (${Number(Boolean(leagueFilter)) + Number(Boolean(channelFilter))})` : ''}`} icon="options-outline" active={Boolean(leagueFilter || channelFilter)} onPress={() => setFiltersOpen(true)} />
+        </ScrollView>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-5">
+          {[null, ...days.map((_, i) => i)].map(offset => (
+            <Pressable key={offset ?? 'week'} onPress={() => setDayOffset(offset)} accessibilityRole="button" accessibilityState={{ selected: dayOffset === offset }} className={`mr-2 min-h-16 min-w-14 items-center justify-center rounded-2xl border px-3 py-2 ${dayOffset === offset ? 'border-primary bg-primary/10' : 'border-line bg-surface'}`}>
+              <Text className="text-xs text-ink-secondary">{offset === null ? t('home.week') : offset < 2 ? t(offset === 0 ? 'home.today' : 'home.tomorrow') : days[offset].toLocaleDateString(language === 'tr' ? 'tr-TR' : 'en-GB', { weekday: 'short' })}</Text>
+              <Text className={`mt-1 text-lg font-semibold ${dayOffset === offset ? 'text-primary' : 'text-ink'}`}>{offset === null ? '7' : days[offset].getDate()}</Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+        <FixtureHealthNotice records={fixtureHealth.data} error={fixtureHealth.isError} now={now} />
+        {liveOnly && liveScores.isError && <EmptyCard iconName="radio-outline" message={t('home.liveUnavailable')} />}
+        {liveOnly && liveScores.isLoading && <LoadingCard label={t('home.liveLoading')} />}
+        <Modal visible={filtersOpen} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setFiltersOpen(false)}>
+          <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+            <View className="flex-row items-center justify-between px-6 py-4">
+              <Text accessibilityRole="header" className="text-xl font-bold text-ink">{t('home.filters')}</Text>
+              <Pressable accessibilityRole="button" onPress={() => setFiltersOpen(false)} accessibilityLabel={t('common.cancel')} className="min-h-11 min-w-11 items-center justify-center"><Ionicons name="close" size={24} color={colors.ink} /></Pressable>
+            </View>
+            <ScrollView contentContainerStyle={{ padding: 24 }}>
+              {([{ title: t('home.leagueFilter'), options: leagues, value: leagueFilter, set: setLeagueFilter }, { title: t('home.channelFilter'), options: channels, value: channelFilter, set: setChannelFilter }]).map(section => (
+                <View key={section.title} className="mb-6">
+                  <Text className="mb-3 text-sm font-semibold uppercase tracking-wider text-ink-secondary">{section.title}</Text>
+                  <View className="flex-row flex-wrap gap-y-2">
+                    <SportTab label={t('home.allSports')} active={section.value === null} onPress={() => section.set(null)} />
+                    {section.options.map(([id, label]) => <SportTab key={id} label={label} active={section.value === id} onPress={() => section.set(id)} />)}
+                  </View>
+                </View>
+              ))}
+              {[{ label: t('home.compact'), flag: compact }, { label: t('home.effects'), flag: effects }].map(({ label, flag }) => (
+                <View key={label} className="mb-4 flex-row items-center justify-between gap-4"><Text className="flex-1 text-base text-ink">{label}</Text><Switch accessibilityLabel={label} value={flag.value} onValueChange={flag.toggle} trackColor={{ true: colors.primary }} /></View>
+              ))}
+            </ScrollView>
+            <View className="gap-3 px-6 pb-6">
+              <Pressable accessibilityRole="button" onPress={resetFilters} className="min-h-11 items-center justify-center"><Text className="text-primary">{t('home.resetFilters')}</Text></Pressable>
+              <Pressable accessibilityRole="button" onPress={() => setFiltersOpen(false)} className="items-center rounded-2xl bg-primary p-4"><Text className="font-bold text-white">{t('home.applyFilters')}</Text></Pressable>
+            </View>
+          </SafeAreaView>
+        </Modal>
         {isLoading && <LoadingCard />}
         {error && events.length === 0 && (
           <ErrorCard
@@ -260,39 +318,49 @@ export default function HomeScreen() {
           />
         )}
 
-        {groupByDay(visibleEvents, now).map((group) => (
+        {groupByDay(visibleEvents, selectedDay ?? now).map((group) => (
           <View key={group.day.toISOString()} className="mb-2">
+            <Text className="mb-1 text-[10px] font-medium tracking-widest text-ink-tertiary">{t('home.eventCount', { count: group.events.length })}</Text>
             <View className="mb-3 flex-row items-center gap-3">
               <Text className="text-base font-bold uppercase tracking-wider text-ink">
                 {dayLabel(group.day)}
               </Text>
               <View className="h-px flex-1 bg-line" />
             </View>
-            {group.events.map((event) =>
-              event.id === featuredId ? (
-                <FeaturedEventCard
-                  key={event.id}
-                  event={event}
-                  index={orderIndex.get(event.id) ?? 0}
-                />
-              ) : (
+            {group.events.map((event) => {
+              const generic = espnMatches.get(event.id);
+              return (
                 <EventCard
                   key={event.id}
                   event={event}
                   index={orderIndex.get(event.id) ?? 0}
+                  compact={compact.value}
+                  effects={effects.value}
+                  liveScore={liveMatches.get(event.id)}
+                  liveGeneric={
+                    generic === 'window'
+                      ? { scoreText: null, detail: null }
+                      : generic
+                        ? { scoreText: espnLiveScoreText(generic), detail: generic.statusDetail }
+                        : undefined
+                  }
                 />
-              ),
-            )}
+              );
+            })}
           </View>
         ))}
 
-        {!isLoading && !error && visibleEvents.length === 0 && (
+        {hasFilters && <Pressable accessibilityRole="button" onPress={resetFilters} className="mb-4 min-h-11 items-center justify-center"><Text className="text-sm font-semibold text-primary">{t('home.resetFilters')}</Text></Pressable>}
+        {liveOnly && !liveScores.isLoading && !liveScores.isError && visibleEvents.length === 0 && (
+          <EmptyCard iconName="radio-outline" message={t('home.liveEmpty')} />
+        )}
+        {!liveOnly && !isLoading && !error && visibleEvents.length === 0 && (
           <EmptyCard
             iconName={searchTerm.trim() ? 'search-outline' : 'calendar-outline'}
             message={
               searchTerm.trim()
                 ? t('home.searchNoEvents', { term: searchTerm.trim() })
-                : t('home.noEvents')
+                : t(hasFilters ? 'home.filteredEmpty' : fixtureHealth.hasIssues ? 'home.noVerifiedEvents' : 'home.noEvents')
             }
           />
         )}

@@ -1,7 +1,9 @@
+import { dedupeClubTeams } from '@/features/teams/lib/table-logos';
 import { searchNeedles } from '@/lib/search';
+import { searchFootballPlayers } from '@/services/football-players';
 import { searchPlayers } from '@/services/players';
 import { supabase } from '@/services/supabase';
-import type { Channel, League, Player, Sport, Team } from '@/types';
+import type { Channel, FootballPlayerSummary, League, Player, Sport, Team } from '@/types';
 
 /** Rows per kind in a catalog search; enough to scroll, short enough to scan. */
 const SEARCH_LIMIT = 20;
@@ -183,9 +185,9 @@ function byId<T extends { id: string }>(rows: T[]): T[] {
 
 export async function searchCatalog(
   term: string,
-): Promise<{ leagues: League[]; teams: Team[]; players: Player[] }> {
+): Promise<{ leagues: League[]; teams: Team[]; players: Player[]; footballers: FootballPlayerSummary[] }> {
   const patterns = searchPatterns(term);
-  const [leagueRows, teamRows, players] = await Promise.all([
+  const [leagueRows, teamRows, players, footballers] = await Promise.all([
     Promise.all(
       patterns.map((pattern) =>
         supabase
@@ -211,6 +213,9 @@ export async function searchCatalog(
     // Sporcular ayri bir tablodan geliyor; aramada kuluplerle ayni yerde
     // cikiyorlar cunku kullanici acisindan ikisi de "kimi izliyorum" sorusu.
     searchPlayers(patterns.map((pattern) => pattern.replaceAll('%', ''))),
+    // Futbolcular veritabaninda tutulmuyor; BSD'nin canli arama ucu kullanilir.
+    // Saglayici hatasi tum aramayi dusurmesin diye bos liste kabul edilir.
+    searchFootballPlayers(term).catch(() => [] as FootballPlayerSummary[]),
   ]);
 
   for (const result of [...leagueRows, ...teamRows]) {
@@ -236,15 +241,16 @@ export async function searchCatalog(
       seasonEnd: row.season_end,
       syncTeams: row.sync_teams,
     })),
-    teams: (teamResult.data as TeamRow[]).map((row) => ({
+    teams: dedupeClubTeams((teamResult.data as TeamRow[]).map((row) => ({
       id: row.id,
       sportId: row.sport_id,
       leagueId: row.league_id,
       name: row.name,
       logoUrl: row.logo_url,
       externalIds: row.external_ids,
-    })),
+    }))),
     players,
+    footballers,
   };
 }
 

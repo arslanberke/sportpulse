@@ -11,9 +11,11 @@
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
-import { fetchSeason, fetchUpcomingEvents } from '../../../src/services/providers/index.ts';
+import { fixtureSyncState } from '../../../src/features/events/lib/fixture-health.ts';
 import { fetchTournamentMatches } from '../../../src/services/providers/espn.ts';
+import { fetchFixtureSnapshot, fetchSeason } from '../../../src/services/providers/index.ts';
 import type { LeagueRef } from '../../../src/services/providers/types.ts';
+import { createProviderDiagnostics } from '../_shared/provider-diagnostics.ts';
 
 const SYNC_DAYS = 14;
 // TheSportsDB's free tier allows 30 requests/min and the function has a ~150s
@@ -30,6 +32,7 @@ const EXPO_PUSH_BATCH = 100;
 
 interface LeagueRow {
   id: string;
+  name: string;
   sport_id: string;
   external_ids: Record<string, string>;
   season_end: string | null;
@@ -132,31 +135,84 @@ Deno.serve(async (request) => {
 
   const { data: leagues, error } = await supabase
     .from('leagues')
-    .select('id, sport_id, external_ids, season_end, season_synced_at')
+    .select('id, name, sport_id, external_ids, season_end, season_synced_at')
     .order('id');
   if (error) return new Response(error.message, { status: 500 });
 
-  const chunkParam = new URL(request.url).searchParams.get('chunk');
-  const chunk =
-    chunkParam !== null
-      ? Number(chunkParam) % LEAGUE_CHUNKS
-      : Math.floor(Date.now() / CHUNK_SLOT_MS) % LEAGUE_CHUNKS;
-  const selected = (leagues ?? []).filter((_, index) => index % LEAGUE_CHUNKS === chunk);
+  const params = new URL(request.url).searchParams;
+  const chunkParam = params.get('chunk');
+  const chunk = chunkParam !== null ? Number(chunkParam) : Math.floor(Date.now() / CHUNK_SLOT_MS) % LEAGUE_CHUNKS;
+  if (!Number.isInteger(chunk) || chunk < 0 || chunk >= LEAGUE_CHUNKS) {
+    return Response.json({ error: 'invalid chunk' }, { status: 400 });
+  }
+  const requestedLeague = params.get('leagueId');
+  const selected = (leagues ?? []).filter((league, index) => requestedLeague
+    ? league.id === requestedLeague : index % LEAGUE_CHUNKS === chunk);
+  if (requestedLeague && selected.length === 0) return Response.json({ error: 'unknown league' }, { status: 400 });
+  const { data: health, error: healthError } = await supabase.from('fixture_sync_health')
+    .select('league_id, last_attempt_at');
+  if (healthError) return Response.json({ error: 'fixture health unavailable' }, { status: 503 });
+  const lastAttempts = new Map((health ?? []).map((row) => [row.league_id, row.last_attempt_at]));
+  selected.sort((a, b) => String(lastAttempts.get(a.id) ?? '').localeCompare(String(lastAttempts.get(b.id) ?? '')));
+  const startedAt = Date.now();
+  const deferredLeagues: string[] = [];
 
   let upserted = 0;
   let matchesUpserted = 0;
+  // Kaynaktan kac kura maci geldigi ayrica sayiliyor: yazilan sayi sifir
+  // oldugunda sorunun cekmede mi yazmada mi oldugu yanittan anlasilsin.
+  let bracketFetched = 0;
   const failures: string[] = [];
   const changed: ChangedEvent[] = [];
+  const fixtureSources: Record<string, string[]> = {};
+  const fixtureStates: Record<string, ReturnType<typeof fixtureSyncState>> = {};
+  const diagnostics = createProviderDiagnostics('sync-events', async (issue) => {
+    const { error } = await supabase.from('provider_issues').insert({
+      run_id: issue.runId,
+      job: issue.job,
+      league_id: issue.leagueId,
+      source: issue.source,
+      kind: issue.kind,
+      http_status: issue.status,
+      observed_at: issue.observedAt,
+    });
+    if (error) throw error;
+  });
 
   for (const league of selected as LeagueRow[]) {
+    if (Date.now() - startedAt > 110_000) { deferredLeagues.push(league.id); continue; }
+    const { data: acquired, error: leaseError } = await supabase.rpc('begin_fixture_sync', {
+      p_league_id: league.id, p_run_id: diagnostics.runId,
+    });
+    if (leaseError || !acquired) {
+      deferredLeagues.push(league.id);
+      if (leaseError) failures.push(`lease ${league.id}: unavailable`);
+      continue;
+    }
+    const windowStart = new Date();
+    let received = 0;
+    let writtenForLeague = 0;
+    let source: string | null = null;
+    let fixtureIssues = 0;
     const ref: LeagueRef = {
       leagueId: league.id,
+      leagueName: league.name,
       sportId: league.sport_id,
       externalIds: league.external_ids,
+      providerKeys: {
+        bsd: Deno.env.get('API_BSD_FOOTBALL_KEY'),
+        goal: Deno.env.get('GOAL_API_KEY'),
+      },
+      onIssue: diagnostics.forLeague(league.id),
     };
 
     try {
-      const events = await fetchUpcomingEvents(ref, SYNC_DAYS);
+      const snapshot = await fetchFixtureSnapshot(ref, SYNC_DAYS);
+      const events = snapshot.events;
+      source = snapshot.provider;
+      received = events.length;
+      fixtureIssues = snapshot.issues.length;
+      fixtureSources[league.id] = source ? [source] : [];
       for (const event of events) {
         const { data: result, error: upsertError } = await supabase.rpc('upsert_event', {
           p_provider: event.provider,
@@ -182,6 +238,7 @@ Deno.serve(async (request) => {
           continue;
         }
         upserted += 1;
+        writtenForLeague += 1;
         const row = (result as UpsertResult[] | null)?.[0];
         if (row?.change_type) {
           changed.push({
@@ -193,48 +250,86 @@ Deno.serve(async (request) => {
         }
       }
     } catch (fetchError) {
-      failures.push(`league ${league.id}: ${String(fetchError)}`);
+      fixtureIssues += 1;
+      failures.push(`league ${league.id}: ${fetchError instanceof Error ? fetchError.name : 'UnknownError'}`);
     }
+    const syncState = fixtureSyncState(source, received, writtenForLeague, fixtureIssues);
+    fixtureStates[league.id] = syncState;
+    const completedAt = new Date().toISOString();
+    const { error: checkpointError } = await supabase.from('fixture_sync_health').update({
+      status: syncState,
+      source,
+      last_completed_at: completedAt,
+      ...(syncState === 'ok' || syncState === 'empty' ? { last_success_at: completedAt } : {}),
+      window_start: windowStart.toISOString(),
+      window_end: new Date(windowStart.getTime() + SYNC_DAYS * 86_400_000).toISOString(),
+      received_count: received,
+      written_count: writtenForLeague,
+      issue_count: fixtureIssues + Math.max(0, received - writtenForLeague),
+    }).eq('league_id', league.id).eq('run_id', diagnostics.runId);
+    if (checkpointError) failures.push(`checkpoint ${league.id}: unavailable`);
+    if (Date.now() - startedAt > 110_000) continue;
 
     // Bireysel sporlarda kura: turnuva satiri yukarida yazildi, maclar ona
     // baglaniyor. Ayri bir is olarak kurmak yerine burada: mac ancak turnuvasi
     // kayitliyken yazilabiliyor ve ikisi ayni ucta geliyor.
+    //
+    // Butun kura tek cagride gonderiliyor. Once mac basina bir RPC vardi ve US
+    // Open'da 625 mac ~1900 istek demek oldu; fonksiyon butcesini asip yanit
+    // dondurmeden kesildi, kura hic yazilmadi ve ayni parcadaki diger ligler de
+    // yarida kaldi.
     if (league.sport_id === 'tennis') {
       try {
         const matches = await fetchTournamentMatches(ref);
-        for (const match of matches) {
-          const [home, away] = match.players;
-          const { error: matchError } = await supabase.rpc('upsert_player_match', {
-            p_provider: 'espn',
-            p_external_id: match.externalId,
-            p_sport_id: league.sport_id,
-            p_league_id: league.id,
-            p_tournament_external_id: match.tournamentExternalId,
-            p_starts_at: match.startsAtUtc,
-            p_status: match.postponed ? 'postponed' : 'scheduled',
-            p_round: match.round,
-            p_bracket: match.bracket,
-            p_home_name: home.name,
-            p_home_ext: home.externalId,
-            p_home_flag: home.countryFlagUrl,
-            p_away_name: away.name,
-            p_away_ext: away.externalId,
-            p_away_flag: away.countryFlagUrl,
+        bracketFetched += matches.length;
+        if (matches.length > 0) {
+          const payload = matches.map((match) => {
+            const [home, away] = match.players;
+            return {
+              externalId: match.externalId,
+              tournamentExternalId: match.tournamentExternalId,
+              startsAt: match.startsAtUtc,
+              status: match.postponed ? 'postponed' : 'scheduled',
+              round: match.round,
+              bracket: match.bracket,
+              homeName: home.name,
+              homeExt: home.externalId,
+              homeFlag: home.countryFlagUrl,
+              awayName: away.name,
+              awayExt: away.externalId,
+              awayFlag: away.countryFlagUrl,
+            };
           });
-          if (matchError) {
-            failures.push(`${home.name} - ${away.name}: ${matchError.message}`);
-            continue;
+
+          const { data: written, error: bracketError } = await supabase.rpc(
+            'upsert_player_matches',
+            {
+              p_provider: 'espn',
+              p_sport_id: league.sport_id,
+              p_league_id: league.id,
+              p_matches: payload,
+            },
+          );
+          if (bracketError) {
+            failures.push(`bracket ${league.id}: ${bracketError.message}`);
+          } else {
+            matchesUpserted += (written as number | null) ?? 0;
           }
-          matchesUpserted += 1;
         }
       } catch (bracketError) {
-        failures.push(`bracket ${league.id}: ${String(bracketError)}`);
+        ref.onIssue?.({ source: 'espn.bracket', kind: 'request', status: null });
+        failures.push(`bracket ${league.id}: ${bracketError instanceof Error ? bracketError.name : 'UnknownError'}`);
       }
     }
 
     if (needsSeason(league)) {
       try {
-        const season = await fetchSeason(ref);
+        let seasonFailed = false;
+        const season = await fetchSeason({ ...ref, onIssue: (issue) => {
+          seasonFailed = true;
+          ref.onIssue?.(issue);
+        } });
+        if (!season && seasonFailed) continue;
         // Bulunamadiginda da zaman damgasi yazilir, aksi halde her kosuda ayni
         // sonucsuz istek tekrarlanir.
         const { error: seasonError } = await supabase
@@ -256,10 +351,23 @@ Deno.serve(async (request) => {
     await notifyFollowers(supabase, event, failures);
   }
 
+  const diagnosticResult = await diagnostics.flush();
+  for (const issue of diagnostics.issues) {
+    failures.push(`${issue.source} ${issue.status ?? issue.kind} (league ${issue.leagueId})`);
+  }
+  if (!diagnosticResult.diagnosticsPersisted) failures.push('provider diagnostics could not be persisted');
+
   return Response.json({
+    ...diagnosticResult,
+    status: failures.length > 0 || deferredLeagues.length > 0 ||
+      Object.values(fixtureStates).some((state) => state !== 'ok' && state !== 'empty') ? 'degraded' : 'ok',
+    deferredLeagues,
+    fixtureSources,
+    fixtureStates,
     chunk,
     leagues: selected.length,
     upserted,
+    bracketFetched,
     matches: matchesUpserted,
     changed: changed.length,
     failures,

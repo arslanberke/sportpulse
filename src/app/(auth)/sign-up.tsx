@@ -1,23 +1,23 @@
-import { Ionicons } from "@expo/vector-icons";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link } from "expo-router";
 import { useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Text, View } from "react-native";
 
+import { BrandIcon } from "@/components/ui/brand-mark";
 import { Button } from "@/components/ui/button";
 import { Screen } from "@/components/ui/screen";
 import { TextField } from "@/components/ui/text-field";
 import {
-  AuthBackdrop,
-  AuthEntrance,
+    AuthBackdrop,
+    AuthEntrance,
 } from "@/features/auth/components/auth-backdrop";
+import {
+    makeSignUpSchema,
+    type SignUpFormValues,
+} from "@/features/auth/schemas";
 import { showAlert } from "@/lib/alert";
 import { useI18n } from "@/lib/i18n";
-import {
-  makeSignUpSchema,
-  type SignUpFormValues,
-} from "@/features/auth/schemas";
 import { signUp } from "@/services/auth";
 
 export default function SignUpScreen() {
@@ -51,8 +51,8 @@ export default function SignUpScreen() {
       <View className="pt-16">
         <AuthEntrance>
           <View className="mb-8 items-center">
-            <View className="mb-4 h-20 w-20 items-center justify-center rounded-3xl bg-primary shadow-md">
-              <Ionicons name="notifications" size={40} color="#FFFFFF" />
+            <View className="mb-4">
+              <BrandIcon />
             </View>
             <Text className="mb-1 text-4xl font-bold text-ink">
               {t("auth.createAccount")}

@@ -1,4 +1,4 @@
-import { warnHttp } from './log.ts';
+import { fetchProvider, warnHttp } from './log.ts';
 import type { FixtureProvider, LeagueRef, ProviderEvent, ProviderSeason, ProviderTeam } from './types.ts';
 
 /**
@@ -194,10 +194,11 @@ export const espnProvider: FixtureProvider = {
       scoreboardSlugs(league).map(async (slug) => {
         const url = scoreboardUrlFor(league, slug, dates);
         if (!url) return [];
-        const response = await fetch(url);
-        if (!response.ok) return warnHttp('espn.scoreboard', response, []);
+        const response = await fetchProvider('espn.scoreboard', url, league.onIssue);
+        if (!response.ok) return warnHttp('espn.scoreboard', response, [], league.onIssue);
         const data = (await response.json()) as { events?: EspnEvent[] };
-        return (data.events ?? []).map(normalize);
+        if (!Array.isArray(data.events)) throw new Error('espn.scoreboard: invalid response');
+        return data.events.map(normalize);
       }),
     );
 
@@ -216,8 +217,8 @@ export const espnProvider: FixtureProvider = {
     const url = scoreboardUrl(league, '');
     if (!url) return null;
 
-    const response = await fetch(url);
-    if (!response.ok) return warnHttp('espn.season', response, null);
+    const response = await fetchProvider('espn.season', url, league.onIssue);
+    if (!response.ok) return warnHttp('espn.season', response, null, league.onIssue);
     const data = (await response.json()) as {
       leagues?: { season?: { endDate?: string }; calendar?: unknown }[];
     };
@@ -238,8 +239,8 @@ export const espnProvider: FixtureProvider = {
   async fetchLeagueTeams(league: LeagueRef): Promise<ProviderTeam[]> {
     const url = teamsUrl(league);
     if (!url) return [];
-    const response = await fetch(url);
-    if (!response.ok) return warnHttp('espn.teams', response, []);
+    const response = await fetchProvider('espn.teams', url, league.onIssue);
+    if (!response.ok) return warnHttp('espn.teams', response, [], league.onIssue);
     const data = (await response.json()) as {
       sports?: { leagues?: { teams?: EspnTeamEntry[] }[] }[];
     };
@@ -285,8 +286,8 @@ export async function fetchRankings(league: LeagueRef): Promise<RankedPlayer[]> 
   const slug = league.externalIds.espn;
   if (!path || !slug) return [];
 
-  const response = await fetch(`${BASE}/${path}/${slug}/rankings`);
-  if (!response.ok) return warnHttp('espn.rankings', response, []);
+  const response = await fetchProvider('espn.rankings', `${BASE}/${path}/${slug}/rankings`, league.onIssue);
+  if (!response.ok) return warnHttp('espn.rankings', response, [], league.onIssue);
 
   const data = (await response.json()) as {
     rankings?: {
@@ -359,8 +360,8 @@ export async function fetchTournamentMatches(league: LeagueRef): Promise<PlayerM
   const url = scoreboardUrl(league, '');
   if (!url) return [];
 
-  const response = await fetch(url);
-  if (!response.ok) return warnHttp('espn.bracket', response, []);
+  const response = await fetchProvider('espn.bracket', url, league.onIssue);
+  if (!response.ok) return warnHttp('espn.bracket', response, [], league.onIssue);
 
   const data = (await response.json()) as {
     events?: {

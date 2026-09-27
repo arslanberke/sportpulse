@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
@@ -8,36 +8,24 @@ import { Card } from '@/components/ui/card';
 import { Screen } from '@/components/ui/screen';
 import { useThemeColors } from '@/constants/theme';
 import { useTeam, useTeamTables } from '@/features/catalog/hooks/use-catalog';
-import { EventCard } from '@/features/events/components/event-card';
+import { hasTeams } from '@/features/catalog/lib/team-sports';
 import { useTeamEvents } from '@/features/events/hooks/use-events';
 import { useFollowActions } from '@/features/follows/hooks/use-follow-actions';
+import { useTeamSquad } from '@/features/players/hooks/use-football-players';
 import { LeagueTableCard } from '@/features/teams/components/league-table';
+import { TeamEventRow } from '@/features/teams/components/team-event-row';
+import { splitTeamSeasonEvents } from '@/features/teams/lib/team-season';
 import { useI18n } from '@/lib/i18n';
-import type { SportEvent } from '@/types';
+import { useNow } from '@/lib/now';
+type Tab = 'results' | 'fixtures' | 'squad' | 'standings';
 
-type Tab = 'fixtures' | 'standings';
-
-/** Fixtures grouped by competition, in order of the next kickoff. */
-function groupByCompetition(events: SportEvent[]) {
-  const groups = new Map<string, { name: string; logoUrl: string | null; events: SportEvent[] }>();
-  for (const event of events) {
-    const key = event.leagueId ?? event.leagueName ?? 'other';
-    const group = groups.get(key) ?? {
-      name: event.leagueName ?? '',
-      logoUrl: event.leagueBadgeUrl ?? null,
-      events: [],
-    };
-    group.events.push(event);
-    groups.set(key, group);
-  }
-  return [...groups.values()];
-}
-
-function TabBar({ tab, onChange }: { tab: Tab; onChange: (tab: Tab) => void }) {
+function TabBar({ tab, onChange, hasSquad }: { tab: Tab; onChange: (tab: Tab) => void; hasSquad: boolean }) {
   const { t } = useI18n();
   const colors = useThemeColors();
   const tabs: { key: Tab; label: string }[] = [
+    { key: 'results', label: t('team.results') },
     { key: 'fixtures', label: t('team.fixtures') },
+    ...(hasSquad ? [{ key: 'squad' as Tab, label: t('team.squad') }] : []),
     { key: 'standings', label: t('team.standings') },
   ];
 
@@ -76,7 +64,9 @@ export default function TeamScreen() {
   const { teamId } = useLocalSearchParams<{ teamId: string }>();
   const { t } = useI18n();
   const colors = useThemeColors();
-  const [tab, setTab] = useState<Tab>('fixtures');
+  const now = useNow();
+  const router = useRouter();
+  const [tab, setTab] = useState<Tab>('squad');
 
   const { data: team, isLoading: teamLoading } = useTeam(teamId);
   const { events, isLoading: eventsLoading, refetch, isRefetching } = useTeamEvents(teamId);
@@ -84,9 +74,20 @@ export default function TeamScreen() {
   const { data: tables, isLoading: tablesLoading } = useTeamTables(
     tab === 'standings' ? teamId : undefined,
   );
+  // Kadro kaynagi sunucuda secilir: BSD -> TheSportsDB -> ayni kulubun
+  // kimlikli kardes satiri. Takim sporlari icin sekme hep gorunur; veri
+  // bulunamadiginda "kadro yok" karti gosterilir. Istek ancak sekme acikken gider.
+  const hasSquad = Boolean(team && hasTeams(team.sportId));
+  const { data: squad, isLoading: squadLoading } = useTeamSquad(
+    tab === 'squad' && hasSquad ? teamId : undefined,
+  );
   const { isFollowing, toggleFollow } = useFollowActions();
 
-  const competitions = useMemo(() => groupByCompetition(events), [events]);
+  // Kadro sekmesi secilemeyen takimda (takim sporu degil) "kadro yok"
+  // kartiyla degil fiksturle acilmali.
+  const activeTab: Tab = team && !hasSquad && tab === 'squad' ? 'fixtures' : tab;
+
+  const season = useMemo(() => splitTeamSeasonEvents(events, now), [events, now]);
   const following = isFollowing('team', teamId);
 
   if (!team && !teamLoading) {
@@ -137,34 +138,85 @@ export default function TeamScreen() {
           </View>
         </Card>
 
-        <TabBar tab={tab} onChange={setTab} />
+        <TabBar tab={activeTab} onChange={setTab} hasSquad={hasSquad} />
 
-        {tab === 'fixtures' ? (
-          eventsLoading ? (
+        {!team && teamLoading ? (
+          <ActivityIndicator color={colors.primary} />
+        ) : activeTab === 'squad' ? (
+          squadLoading ? (
             <ActivityIndicator color={colors.primary} />
-          ) : competitions.length === 0 ? (
+          ) : (squad ?? []).length === 0 ? (
             <Card index={1}>
-              <Text className="text-sm text-ink-secondary">{t('team.noFixtures')}</Text>
+              <Text className="text-sm text-ink-secondary">{t('team.noSquad')}</Text>
             </Card>
           ) : (
-            competitions.map((competition, ci) => (
-              <View key={competition.name || ci} className="mb-4">
-                <View className="mb-2 flex-row items-center gap-2">
-                  {competition.logoUrl && (
-                    <Image
-                      source={{ uri: competition.logoUrl }}
-                      style={{ width: 18, height: 18 }}
-                      contentFit="contain"
-                    />
-                  )}
-                  <Text className="text-xs font-bold uppercase tracking-wider text-ink-tertiary">
-                    {competition.name}
-                  </Text>
-                </View>
-                {competition.events.map((event, i) => (
-                  <EventCard key={event.id} event={event} index={i} />
-                ))}
-              </View>
+            <Card index={1}>
+              {(squad ?? []).map((p) => {
+                const row = (
+                  <>
+                    {p.photoUrl ? (
+                      <Image
+                        source={{ uri: p.photoUrl }}
+                        style={{ width: 34, height: 34, borderRadius: 17 }}
+                        contentFit="cover"
+                        allowDownscaling={false}
+                      />
+                    ) : (
+                      <View className="h-[34px] w-[34px] items-center justify-center rounded-full bg-surface-raised">
+                        <Ionicons name="person" size={16} color={colors.inkTertiary} />
+                      </View>
+                    )}
+                    <Text className="w-7 text-center text-sm font-bold text-ink-secondary">
+                      {p.jerseyNumber ?? ''}
+                    </Text>
+                    <View className="flex-1">
+                      <Text className="text-sm font-medium text-ink" numberOfLines={1}>
+                        {p.name}
+                      </Text>
+                      <Text className="text-xs text-ink-tertiary" numberOfLines={1}>
+                        {[p.position, p.nationality].filter(Boolean).join(' · ')}
+                      </Text>
+                    </View>
+                    {p.availability && p.availability !== 'available' && (
+                      <Ionicons name="bandage" size={14} color={colors.danger} />
+                    )}
+                    {p.bsdId && (
+                      <Ionicons name="chevron-forward" size={16} color={colors.inkTertiary} />
+                    )}
+                  </>
+                );
+                // Profil ekrani yalnizca BSD kimligine sahip oyuncularda var.
+                return p.bsdId ? (
+                  <Pressable
+                    key={p.id}
+                    onPress={() => router.push(`/football-player/${p.bsdId}`)}
+                    className="flex-row items-center gap-3 border-b border-line py-2.5 last:border-b-0 active:opacity-60"
+                  >
+                    {row}
+                  </Pressable>
+                ) : (
+                  <View
+                    key={p.id}
+                    className="flex-row items-center gap-3 border-b border-line py-2.5 last:border-b-0"
+                  >
+                    {row}
+                  </View>
+                );
+              })}
+            </Card>
+          )
+        ) : activeTab === 'results' || activeTab === 'fixtures' ? (
+          eventsLoading ? (
+            <ActivityIndicator color={colors.primary} />
+          ) : (activeTab === 'results' ? season.results : season.upcoming).length === 0 ? (
+            <Card index={1}>
+              <Text className="text-sm text-ink-secondary">
+                {t(activeTab === 'results' ? 'team.noResults' : 'team.noFixtures')}
+              </Text>
+            </Card>
+          ) : (
+            (activeTab === 'results' ? season.results : season.upcoming).map((event) => (
+              <TeamEventRow key={event.id} event={event} />
             ))
           )
         ) : tablesLoading ? (

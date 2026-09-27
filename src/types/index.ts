@@ -81,6 +81,7 @@ export interface Player {
   headshotUrl: string | null;
   rank: number | null;
   rankPoints: number | null;
+  rankSyncedAt?: string | null;
   tourName?: string | null;
 }
 
@@ -98,6 +99,10 @@ export interface SportEvent {
    */
   endsAt?: string | null;
   status: EventStatus;
+  /** Provider result fields for compact team-season history. */
+  homeScore?: number | null;
+  awayScore?: number | null;
+  resultStatus?: string | null;
   imageUrl: string | null;
   venue: string | null; // circuit/arena name, when known
   venueImageUrl: string | null;
@@ -139,6 +144,8 @@ export interface LineupPlayer {
   countryCode: string | null; // ISO 3166-1 alpha-2, for a flag
   /** Pitch slot from the provider: row 1 = keeper's line. Null for subs. */
   grid: { row: number; col: number } | null;
+  /** Post-kickoff provider rating (e.g. 7.3); only set when stats are loaded. */
+  rating?: number | null;
 }
 
 /** Confirmed lineups for an event, split by side. */
@@ -148,6 +155,26 @@ export interface EventLineup {
   /** e.g. "4-3-3". Null when the provider has no formation. */
   homeFormation: string | null;
   awayFormation: string | null;
+}
+
+/** One comparable team stat row (possession, shots, xG, ...). */
+export interface MatchStatRow {
+  /** Stable stat identifier; the label is localized client-side. */
+  key: string;
+  home: number | null;
+  away: number | null;
+}
+
+/** Per-player match rating keyed by the provider player id (LineupPlayer.id). */
+export interface PlayerMatchRating {
+  rating: number;
+  minutes: number | null;
+}
+
+/** Team + player statistics for one football match (BSD `/stats/`). */
+export interface EventStats {
+  rows: MatchStatRow[];
+  ratings: Record<string, PlayerMatchRating>;
 }
 
 /** One row of a motorsport session classification. */
@@ -237,6 +264,92 @@ export interface LeagueTable {
   sportId: string;
   season: string;
   groups: LeagueTableGroup[];
+}
+
+/** Bir futbolcu satiri: arama sonucu ya da kadro uyesi. */
+export interface FootballPlayerSummary {
+  /** Benzersiz satir kimligi: BSD id, ya da kaynak onekli ("tsdb:123"). */
+  id: string;
+  /**
+   * Futbolcu profil ekrani yalnizca BSD kimligiyle acilir; BSD disi kaynaklardan
+   * (TheSportsDB) gelen kadro satirlarinda bos kalir ve satir dokunulamaz.
+   */
+  bsdId?: string | null;
+  name: string;
+  position: string | null;
+  jerseyNumber: number | null;
+  nationality: string | null;
+  dateOfBirth?: string | null;
+  availability?: string | null;
+  injuryType?: string | null;
+  injuryExpectedReturn?: string | null;
+  teamId?: string | null;
+  teamName?: string | null;
+  teamLogoUrl?: string | null;
+  photoUrl: string | null;
+}
+
+/** Bir sezon + lig icin oyuncu toplami (BSD career endpoint'i). */
+export interface FootballSeasonStat {
+  seasonId: number | null;
+  leagueId: number | null;
+  /** Takvim etiketi: "2026/27" ya da takvim yili liglerinde "2026". */
+  seasonLabel: string | null;
+  leagueName: string | null;
+  teamId: string | null;
+  teamName: string | null;
+  teamLogoUrl: string | null;
+  matches: number | null;
+  minutes: number | null;
+  goals: number | null;
+  assists: number | null;
+  avgRating: number | null;
+  /** BSD'nin sezon kaydindaki is_current bayragi. */
+  isCurrent: boolean;
+}
+
+/** Oyuncunun tek bir mactaki satiri (BSD stats logu). */
+export interface FootballPlayerMatch {
+  /** Uygulama event uuid'si — varsa /event/[id] acilabilir. */
+  eventId: string | null;
+  bsdEventId: number | null;
+  date: string | null;
+  opponentName: string | null;
+  isHome: boolean | null;
+  homeScore: number | null;
+  awayScore: number | null;
+  minutes: number | null;
+  goals: number | null;
+  assists: number | null;
+  rating: number | null;
+}
+
+/** Futbolcu profil sayfasinin tum verisi. */
+export interface FootballPlayerProfile {
+  id: string;
+  name: string;
+  shortName: string | null;
+  position: string | null;
+  specificPosition: string | null;
+  jerseyNumber: number | null;
+  dateOfBirth: string | null;
+  heightCm: number | null;
+  weightKg: number | null;
+  preferredFoot: string | null;
+  nationality: string | null;
+  teamId: string | null;
+  teamName: string | null;
+  teamLogoUrl: string | null;
+  nationalTeamId: string | null;
+  nationalTeamName: string | null;
+  marketValueEur: number | null;
+  contractUntil: string | null;
+  availability: string | null;
+  injuryType: string | null;
+  injuryExpectedReturn: string | null;
+  rating: number | null;
+  photoUrl: string | null;
+  seasons: FootballSeasonStat[];
 }
 
 export type FollowKind = 'sport' | 'league' | 'team';

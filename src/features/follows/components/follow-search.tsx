@@ -50,13 +50,15 @@ export function FollowSearch() {
   const leagueHits = results?.leagues ?? [];
   const teamHits = results?.teams ?? [];
   const playerHits = results?.players ?? [];
+  const footballerHits = results?.footballers ?? [];
   const empty =
     trimmed.length >= 2 &&
     !isFetching &&
     sportHits.length === 0 &&
     leagueHits.length === 0 &&
     teamHits.length === 0 &&
-    playerHits.length === 0;
+    playerHits.length === 0 &&
+    footballerHits.length === 0;
 
   return (
     <Card className="mb-4">
@@ -189,8 +191,46 @@ export function FollowSearch() {
         </View>
       )}
 
+      {/* Futbolcular veritabaninda degil, BSD'den canli aranir; kimlikleri BSD
+          oyuncu kimligidir ve kendi profil ekranina gider. */}
+      {footballerHits.length > 0 && (
+        <View className="mt-3">
+          <Text className="mb-1 text-xs font-semibold uppercase text-ink-tertiary">
+            {t('explore.footballers')}
+          </Text>
+          {footballerHits.map((player) => (
+            <Pressable
+              key={player.id}
+              onPress={() => router.push(`/football-player/${player.id}`)}
+              className="flex-row items-center gap-3 py-3 active:opacity-60"
+            >
+              {player.photoUrl ? (
+                <Image
+                  source={{ uri: player.photoUrl }}
+                  style={{ width: 30, height: 30, borderRadius: 15 }}
+                  contentFit="cover"
+                  allowDownscaling={false}
+                />
+              ) : (
+                <Ionicons name="person-outline" size={20} color={colors.inkSecondary} />
+              )}
+              <Text className="shrink text-base font-medium text-ink" numberOfLines={1}>
+                {player.name}
+              </Text>
+              {player.teamName && (
+                <Text className="text-sm text-ink-tertiary" numberOfLines={1}>
+                  {player.teamName}
+                </Text>
+              )}
+              <View className="flex-1" />
+              <Ionicons name="chevron-forward" size={18} color={colors.inkTertiary} />
+            </Pressable>
+          ))}
+        </View>
+      )}
+
       {trimmed.length >= 2 &&
-        (leagueHits.length > 0 || teamHits.length > 0 || playerHits.length > 0) && (
+        (leagueHits.length > 0 || teamHits.length > 0 || playerHits.length > 0 || footballerHits.length > 0) && (
         <Pressable
           onPress={() => setTerm('')}
           hitSlop={8}

@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 import { useLeagueChannels } from '@/features/catalog/hooks/use-catalog';
+import { resolveEventChannels } from '@/features/events/lib/broadcast-resolution';
 import { useFavorites } from '@/features/follows/hooks/use-favorites';
 import { useFollows } from '@/features/follows/hooks/use-follows';
 import { useProfile } from '@/features/profile/hooks/use-profile';
@@ -12,38 +13,19 @@ import {
     fetchEventBroadcasts,
     fetchEventLeagueStandings,
     fetchEventLineup,
+    fetchEventLive,
+    fetchEventLiveCache,
     fetchEventResults,
     fetchEventStandings,
+    fetchEventStats,
     fetchEvents,
+    fetchLiveScores,
     fetchTeamEvents,
 } from '@/services/events';
-import type { Channel, SportEvent, UserFollow } from '@/types';
+import { FINAL_STATUSES } from '@/services/providers/api-sports-fixture';
+import type { SportEvent, UserFollow } from '@/types';
 
 const HOUR_MS = 3_600_000;
-
-/** Yayin kaynagi gunleri Turkiye saatine gore yazar; mac da o gune gore aranmali. */
-const ISTANBUL_DAY = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Istanbul' });
-
-/**
- * Bir macin gosterecegi kanallar.
- *
- * Uc basamak: mac icin dogrulanmis kayit varsa o; yoksa ama macin gunu yayin
- * kaynaginca kapsanmissa hicbiri -- kaynak o maci listelemiyorsa buyuk
- * olasilikla bu ulkede yayinlanmiyordur ve lig varsayimini gostermek yanlis
- * bilgi olur (katalogdaki 40 Avrupa macindan yalnizca 2'sinin yayinlandigi bir
- * gunde 38 mac "TRT 1" yaziyordu); kapsanmayan gunlerde lig varsayimi.
- */
-function resolveChannels(
-  event: SportEvent,
-  eventBroadcasts: Map<string, Channel[]> | undefined,
-  leagueChannels: Map<string, Channel[]> | undefined,
-  coveredDays: Set<string> | undefined,
-): Channel[] {
-  const confirmed = eventBroadcasts?.get(event.id);
-  if (confirmed && confirmed.length > 0) return confirmed;
-  if (coveredDays?.has(ISTANBUL_DAY.format(new Date(event.startsAt)))) return [];
-  return event.leagueId ? (leagueChannels?.get(event.leagueId) ?? []) : [];
-}
 
 /** Yayin kaynaginin kapsadigi gunler; kapsam ulke bazlidir. */
 function useBroadcastCoverage(countryCode: string | undefined) {
@@ -81,14 +63,17 @@ function useRawEvents(
  * their country merged in (event-specific broadcasts override the static
  * league -> channel mapping).
  */
-export function useUpcomingEvents(days = 7) {
+export function useUpcomingEvents(days = 7, pastHours = 0) {
   const { data: profile } = useProfile();
   const { data: follows } = useFollows();
 
   const { from, to } = useMemo(() => {
     const now = new Date();
-    return { from: now, to: new Date(now.getTime() + days * 86_400_000) };
-  }, [days]);
+    return {
+      from: new Date(now.getTime() - pastHours * HOUR_MS),
+      to: new Date(now.getTime() + days * 86_400_000),
+    };
+  }, [days, pastHours]);
 
   const { favoritePlayerIds } = useFavorites();
   const favoritePlayerList = useMemo(() => [...favoritePlayerIds], [favoritePlayerIds]);
@@ -108,7 +93,7 @@ export function useUpcomingEvents(days = 7) {
     () =>
       (eventsQuery.data ?? []).map((event) => ({
         ...event,
-        channels: resolveChannels(event, eventBroadcasts, leagueChannels, coveredDays),
+        channels: resolveEventChannels(event, eventBroadcasts, leagueChannels, coveredDays),
       })),
     [eventsQuery.data, eventBroadcasts, leagueChannels, coveredDays],
   );
@@ -145,7 +130,7 @@ export function useTeamEvents(teamId: string | undefined, days = 120) {
     () =>
       (eventsQuery.data ?? []).map((event) => ({
         ...event,
-        channels: resolveChannels(event, eventBroadcasts, leagueChannels, coveredDays),
+        channels: resolveEventChannels(event, eventBroadcasts, leagueChannels, coveredDays),
       })),
     [eventsQuery.data, eventBroadcasts, leagueChannels, coveredDays],
   );
@@ -176,7 +161,7 @@ export function useEvent(id: string | undefined) {
     if (!raw) return null;
     return {
       ...raw,
-      channels: resolveChannels(raw, eventBroadcasts, leagueChannels, coveredDays),
+      channels: resolveEventChannels(raw, eventBroadcasts, leagueChannels, coveredDays),
     };
   }, [eventQuery.data, eventBroadcasts, leagueChannels, coveredDays]);
 
@@ -184,26 +169,111 @@ export function useEvent(id: string | undefined) {
 }
 
 /**
- * Confirmed lineups for a football event. Only queries around kickoff
- * (from ~3h before to ~3h after), since official lineups appear ~1h before
- * and don't exist otherwise. Polls every ~4 min until they're published — a
- * gentle interval to stay well within the provider's daily request budget.
+ * Confirmed lineups for a football event. A complete cached lineup is served
+ * straight from the database at any age, so finished matches keep showing
+ * their XIs. Provider calls only happen from ~3h before kickoff onward
+ * (official lineups drop ~1h before); polls every ~4 min until published.
  */
 export function useEventLineup(event: SportEvent | null) {
   const startsAt = event ? new Date(event.startsAt).getTime() : 0;
-  const nearKickoff = useMemo(() => {
-    if (event?.sportId !== 'football') return false;
+  const phase = useMemo(() => {
+    if (event?.sportId !== 'football') return 'na';
     const now = new Date().getTime();
-    return now >= startsAt - 3 * HOUR_MS && now <= startsAt + 3 * HOUR_MS;
+    return now < startsAt - 3 * HOUR_MS ? 'early' : 'ready';
   }, [event?.sportId, startsAt]);
 
   return useQuery({
     queryKey: ['event-lineup', event?.id],
-    queryFn: () => fetchEventLineup(event!.id),
-    enabled: Boolean(event) && nearKickoff,
+    queryFn: () =>
+      fetchEventLineup(event!.id, event!.leagueName, event!.externalIds, {
+        remote: phase === 'ready',
+      }),
+    enabled: Boolean(event) && phase !== 'na',
     staleTime: 120_000,
     refetchInterval: (query) =>
       query.state.data == null && Date.now() < startsAt ? 240_000 : false,
+  });
+}
+
+/**
+ * Every event currently reported as live, for the "Canlı" filter:
+ * `{ scores }` API-Sports football fixtures, `{ espn }` ESPN scoreboard
+ * entries for basketball/tennis/F1/UFC (one aggregated Edge Function call).
+ *
+ * Polls every 45s while enabled — the shared server-side cache (migration
+ * 0056, same TTL) absorbs these requests, so the user's list refreshes without
+ * spending extra upstream quota. Still gated on `enabled`: nothing polls in
+ * the background when the live filter/detail isn't on screen.
+ */
+export function useLiveScores(enabled: boolean) {
+  return useQuery({
+    queryKey: ['live-scores'],
+    queryFn: fetchLiveScores,
+    enabled,
+    staleTime: 30_000,
+    refetchInterval: 45_000,
+  });
+}
+
+/**
+ * Match statistics (team rows + player ratings) for BSD-backed football
+ * events. Stats only exist once the match has kicked off; refreshes gently
+ * during the live window and stays cached afterwards.
+ */
+export function useEventStats(event: SportEvent | null) {
+  const startsAt = event ? new Date(event.startsAt).getTime() : 0;
+  const started = useMemo(
+    () => event?.sportId === 'football' && new Date().getTime() >= startsAt,
+    [event?.sportId, startsAt],
+  );
+
+  return useQuery({
+    queryKey: ['event-stats', event?.id],
+    queryFn: () => fetchEventStats(event!.id, event!.externalIds),
+    enabled: Boolean(event?.externalIds.bsd) && started,
+    staleTime: 5 * 60_000,
+    refetchInterval: () =>
+      Date.now() < startsAt + 4 * HOUR_MS ? 240_000 : false,
+  });
+}
+
+/**
+ * Live score and key-events timeline for a football match in one of the five
+ * covered leagues. Only polls while the match can plausibly still be live —
+ * from kickoff to ~3h after — and stops once a final result is cached, so a
+ * finished match's card doesn't keep spending the free-tier quota.
+ */
+export function useEventLive(event: SportEvent | null) {
+  const startsAt = event ? new Date(event.startsAt).getTime() : 0;
+  const phase = useMemo(() => {
+    if (event?.sportId !== 'football') return 'na';
+    const now = new Date().getTime();
+    if (now < startsAt) return 'early';
+    return now <= startsAt + 24 * HOUR_MS ? 'live' : 'past';
+  }, [event?.sportId, startsAt]);
+
+  return useQuery({
+    queryKey: ['event-live', event?.id],
+    // Past the live window the server-side cache (or the synced final score)
+    // answers without touching the provider.
+    queryFn: async () => {
+      if (phase === 'past') {
+        const cached = await fetchEventLiveCache(event!.id);
+        if (cached) return cached;
+        const { homeScore, awayScore } = event!;
+        return homeScore != null && awayScore != null
+          ? { fixtureId: 0, status: 'FT', elapsed: null, homeScore, awayScore, events: [] }
+          : null;
+      }
+      return fetchEventLive(event!.id, event!.externalIds);
+    },
+    enabled: Boolean(event) && phase !== 'na' && phase !== 'early',
+    staleTime: 30_000,
+    refetchInterval: (query) => {
+      const state = query.state.data;
+      if (state && FINAL_STATUSES.has(state.status)) return false;
+      return 60_000;
+    },
   });
 }
 

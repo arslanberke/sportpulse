@@ -12,6 +12,7 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 import { fetchRankings } from '../../../src/services/providers/espn.ts';
 import type { LeagueRef } from '../../../src/services/providers/types.ts';
+import { createProviderDiagnostics } from '../_shared/provider-diagnostics.ts';
 
 interface LeagueRow {
   id: string;
@@ -42,12 +43,25 @@ Deno.serve(async (request) => {
 
   const failures: string[] = [];
   let upserted = 0;
+  const diagnostics = createProviderDiagnostics('sync-rankings', async (issue) => {
+    const { error } = await supabase.from('provider_issues').insert({
+      run_id: issue.runId,
+      job: issue.job,
+      league_id: issue.leagueId,
+      source: issue.source,
+      kind: issue.kind,
+      http_status: issue.status,
+      observed_at: issue.observedAt,
+    });
+    if (error) throw error;
+  });
 
   for (const league of (leagues ?? []) as LeagueRow[]) {
     const ref: LeagueRef = {
       leagueId: league.id,
       sportId: league.sport_id,
       externalIds: league.external_ids,
+      onIssue: diagnostics.forLeague(league.id),
     };
 
     try {
@@ -74,9 +88,21 @@ Deno.serve(async (request) => {
         upserted += 1;
       }
     } catch (fetchError) {
-      failures.push(`league ${league.id}: ${String(fetchError)}`);
+      ref.onIssue?.({ source: 'espn.rankings', kind: 'request', status: null });
+      failures.push(`league ${league.id}: ${fetchError instanceof Error ? fetchError.name : 'UnknownError'}`);
     }
   }
 
-  return Response.json({ leagues: leagues?.length ?? 0, upserted, failures });
+  const diagnosticResult = await diagnostics.flush();
+  for (const issue of diagnostics.issues) {
+    failures.push(`${issue.source} ${issue.status ?? issue.kind} (league ${issue.leagueId})`);
+  }
+  if (!diagnosticResult.diagnosticsPersisted) failures.push('provider diagnostics could not be persisted');
+  return Response.json({
+    ...diagnosticResult,
+    status: failures.length > 0 ? (upserted === 0 ? 'failed' : 'degraded') : 'ok',
+    leagues: leagues?.length ?? 0,
+    upserted,
+    failures,
+  }, { status: failures.length > 0 && upserted === 0 ? 502 : 200 });
 });

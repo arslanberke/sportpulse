@@ -27,16 +27,16 @@ export type ThemeColors = Record<keyof typeof Colors, string>;
  * arayuzdeki hicbir durumla karismiyor (yesil = birincil eylem, kirmizi =
  * ertelenme/iptal). Amaci listeyi kaydirirken goz kendiliginden yakalasin.
  */
-export const FAVORITE_COLOR = '#F5A524';
+export const FAVORITE_COLOR = '#E6B85C';
 
 export const DarkColors: ThemeColors = {
   primary: '#10B981',
   primaryDark: '#047857',
-  background: '#080C0A',
-  surface: '#121A16',
-  ink: '#F0F7F3',
-  inkSecondary: '#9EB3A7',
-  inkTertiary: '#6A7C71',
+  background: '#080E0B',
+  surface: '#101C15',
+  ink: '#EDF3EE',
+  inkSecondary: '#98AC9E',
+  inkTertiary: '#84978A',
   danger: '#FF3B30',
   success: '#34C759',
 };
@@ -54,7 +54,7 @@ export function useIsDark(): boolean {
 }
 
 /** Dark screens fade from a green-tinted top into near-black for depth. */
-export const DarkBackdrop = ['#10231A', '#0A1410', '#060A08'] as const;
+export const DarkBackdrop = ['#102018', '#0B1510', '#080E0B'] as const;
 
 export const Spacing = {
   xs: 4,

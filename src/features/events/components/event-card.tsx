@@ -19,10 +19,11 @@ import {
 } from "@/features/events/lib/event-theme";
 import { leagueBanner } from "@/features/events/lib/league-banner";
 import { splitUfcTitle } from "@/features/events/lib/ufc-title";
-import { formatDayTime, formatTime } from "@/lib/dates";
 import { isFavoriteEvent, useFavorites } from "@/features/follows/hooks/use-favorites";
+import { formatDateShort, formatDayTime, formatTime } from "@/lib/dates";
 import { useI18n, type Translate } from "@/lib/i18n";
 import { useNow } from "@/lib/now";
+import type { FootballLiveScore } from "@/services/providers/api-sports-live";
 import type { SportEvent } from "@/types";
 
 /**
@@ -32,8 +33,8 @@ import type { SportEvent } from "@/types";
  * ertelenme/iptal. Cerceve kartin kendi kosesine oturur.
  */
 const FAVORITE_BORDER = {
-  borderWidth: 2,
-  borderColor: FAVORITE_COLOR,
+  borderWidth: 1,
+  borderColor: `${FAVORITE_COLOR}88`,
 } as const;
 
 /** Compact human countdown like "2d 4h" / "45m". */
@@ -53,6 +54,13 @@ export function formatCountdown(
     return t('home.ongoing');
   }
   const totalMinutes = Math.max(1, Math.round(Math.abs(diffMs) / 60_000));
+  // Son saat ozel ve acik yazilir. "59dk sonra" hizli bakista mac baslamis
+  // gibi okunuyordu; "Maca son 59 dk" bunun geri sayim oldugunu netlestirir.
+  if (!past && totalMinutes <= 60) {
+    return totalMinutes === 60
+      ? t('home.lastHour')
+      : t('home.lastMinutes', { count: totalMinutes });
+  }
   const days = Math.floor(totalMinutes / 1440);
   const hours = Math.floor((totalMinutes % 1440) / 60);
   const minutes = totalMinutes % 60;
@@ -139,7 +147,7 @@ export function FeaturedEventCard({
   // afis kartin oranina oturmadigi icin ortada bir serit gibi duruyor, baslik da
   // uzerine biniyordu. Eksik arma artik yer tutucuyla gosteriliyor.
   const hasMatchup = Boolean(event.homeTeamName && event.awayTeamName);
-  const banner = leagueBanner(event.leagueName);
+  const banner = leagueBanner(event.leagueName, event.leagueArtworkUrl, event.leagueBadgeUrl, event.sportId);
   const favorite = isFavoriteEvent(event, favoriteTeamIds, favoritePlayerIds);
 
   return (
@@ -354,96 +362,117 @@ export function FeaturedEventCard({
 export function EventCard({
   event,
   index = 0,
+  compact = false,
+  effects = true,
+  liveScore,
+  liveGeneric,
 }: {
   event: SportEvent;
   index?: number;
+  compact?: boolean;
+  effects?: boolean;
+  /** Set only for football matches matched against the aggregated live feed (home screen "Canlı" filter). */
+  liveScore?: FootballLiveScore;
+  /**
+   * Futbol disi canli rozeti (NBA/tenis/F1/UFC ESPN akisi ya da yaris saat
+   * penceresi): scoreText varsa gosterilir ("98–102", teniste set sayisi),
+   * detail "Q3 4:32" gibi durum; ikisi de yoksa sadece "Canli" isareti.
+   */
+  liveGeneric?: { scoreText: string | null; detail: string | null };
 }) {
   const { t } = useI18n();
   const now = useNow();
   const { favoriteTeamIds, favoritePlayerIds } = useFavorites();
   const colors = useThemeColors();
-  const channelNames = (event.channels ?? []).map((c) => c.name).join(", ");
-  const theme = eventTheme(event.sportId, event.leagueName);
+  const channelNames = (event.channels ?? []).map((c) => c.name).join(', ');
   const favorite = isFavoriteEvent(event, favoriteTeamIds, favoritePlayerIds);
+  const matchup = Boolean(event.homeTeamName && event.awayTeamName);
+  const status = event.status === 'scheduled'
+    ? formatCountdown(event.startsAt, t, now, event.endsAt)
+    : t(event.status === 'postponed' ? 'home.postponed' : 'home.cancelled');
 
   return (
-    <View>
-      <Link href={`/event/${event.id}`} asChild>
-        <Pressable
-          className="mb-3 flex-row overflow-hidden rounded-card border border-line bg-surface active:scale-[0.99] active:opacity-90"
-          style={favorite ? FAVORITE_BORDER : undefined}
-        >
-        <View
-          className="w-16 items-center justify-center py-4"
-          style={{ backgroundColor: theme.gradient[theme.gradient.length - 1] }}
-        >
-          <Text className="text-base font-bold text-white">
-            {formatTime(event.startsAt)}
-          </Text>
+    <Link href={`/event/${event.id}`} asChild>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${event.title}, ${formatDayTime(event.startsAt)}, ${status}`}
+        className="mb-3 overflow-hidden rounded-2xl border border-line bg-surface active:opacity-80"
+        style={favorite ? { borderWidth: 1, borderColor: `${FAVORITE_COLOR}88` } : undefined}
+      >
+        {effects && <LinearGradient pointerEvents="none" colors={[favorite ? `${FAVORITE_COLOR}0F` : `${colors.primary}0B`, 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ position: 'absolute', inset: 0 }} />}
+        <View className="flex-row items-center gap-2 px-4 pt-3">
+          {event.leagueBadgeUrl ? <Image source={{ uri: event.leagueBadgeUrl }} style={{ width: 16, height: 16 }} contentFit="contain" allowDownscaling={false} /> : <Ionicons name="trophy-outline" size={14} color={colors.inkTertiary} />}
+          <Text className="flex-1 text-[10px] font-semibold uppercase tracking-wider text-ink-secondary" numberOfLines={1}>{[event.leagueName, event.round].filter(Boolean).join(' · ')}</Text>
+          {favorite && <Ionicons name="star" size={13} color={FAVORITE_COLOR} />}
         </View>
-        <View className="flex-1 p-4">
-          <View className="mb-0.5 flex-row items-center gap-1.5">
-            {event.leagueBadgeUrl && (
-              <Image
-                source={{ uri: event.leagueBadgeUrl }}
-                style={{ width: 13, height: 13 }}
-                contentFit="contain"
-              />
-            )}
-            {event.leagueName && (
-              <Text className="text-[11px] font-bold uppercase tracking-wider text-ink-tertiary">
-                {event.leagueName}
-              </Text>
-            )}
+        {matchup && !compact ? (
+          <View className="flex-row items-center gap-2 px-4 py-5">
+            <MatchSide name={event.homeTeamName!} logoUrl={event.homeTeamLogoUrl} player={Boolean(event.homePlayerId)} />
+            <View className="w-20 items-center">
+              {liveScore ? (
+                <>
+                  <Text className="text-2xl font-semibold tracking-tight text-ink">{liveScore.homeScore ?? '–'}–{liveScore.awayScore ?? '–'}</Text>
+                  <View className="mt-1 flex-row items-center gap-1">
+                    <View className="h-1.5 w-1.5 rounded-full bg-danger" />
+                    <Text className="text-center text-[10px] font-semibold text-danger">
+                      {liveScore.status === 'HT' ? t('event.halfTime') : `${liveScore.elapsed ?? 0}'`}
+                    </Text>
+                  </View>
+                </>
+              ) : liveGeneric ? (
+                <>
+                  {liveGeneric.scoreText && (
+                    <Text className="text-2xl font-semibold tracking-tight text-ink">{liveGeneric.scoreText}</Text>
+                  )}
+                  <View className="mt-1 flex-row items-center gap-1">
+                    <View className="h-1.5 w-1.5 rounded-full bg-danger" />
+                    <Text className="text-center text-[10px] font-semibold text-danger" numberOfLines={1}>
+                      {liveGeneric.detail ?? t('home.live')}
+                    </Text>
+                  </View>
+                </>
+              ) : (
+                <>
+                  <Text className="text-2xl font-semibold tracking-tight text-ink">{formatTime(event.startsAt)}</Text>
+                  <Text className="mt-1 text-center text-[10px] text-ink-tertiary">{formatDateShort(event.startsAt)}</Text>
+                </>
+              )}
+            </View>
+            <MatchSide name={event.awayTeamName!} logoUrl={event.awayTeamLogoUrl} player={Boolean(event.awayPlayerId)} />
           </View>
-          <Text
-            className="mb-2 text-base font-semibold text-ink"
-            numberOfLines={2}
-          >
-            {event.title}
-          </Text>
-          <View className="flex-row flex-wrap items-center gap-2">
-            {event.status === "scheduled" ? (
-              <Chip
-                label={formatCountdown(event.startsAt, t, now, event.endsAt)}
-                icon="hourglass-outline"
-                iconColor={theme.accent}
-                className="bg-surface-raised border border-line"
-                textStyle={{ color: theme.accent }}
-              />
+        ) : (
+          <View className="flex-row items-center gap-3 px-4 py-4">
+            {liveGeneric ? (
+              <View className="items-center">
+                <View className="h-2 w-2 rounded-full bg-danger" />
+                <Text className="mt-0.5 text-[9px] font-bold uppercase text-danger">{t('home.live')}</Text>
+              </View>
             ) : (
-              <Chip
-                label={t(
-                  event.status === "postponed"
-                    ? "home.postponed"
-                    : "home.cancelled",
-                )}
-                icon="alert-circle-outline"
-                iconColor={colors.danger}
-                className="bg-danger/10"
-                textClassName="text-danger"
-              />
+              <Text className="text-xl font-semibold text-ink">{formatTime(event.startsAt)}</Text>
             )}
-            {channelNames.length > 0 && (
-              <Chip
-                label={channelNames}
-                icon="tv-outline"
-                iconColor={colors.inkSecondary}
-                className="bg-surface-raised border border-line"
-                textClassName="text-ink-secondary"
-              />
-            )}
+            {event.homeTeamLogoUrl && <Image source={{ uri: event.homeTeamLogoUrl }} style={{ width: 24, height: 24 }} contentFit="contain" allowDownscaling={false} />}
+            <Text className="flex-1 text-base font-semibold text-ink" numberOfLines={2}>{event.title}</Text>
+            {event.awayTeamLogoUrl && <Image source={{ uri: event.awayTeamLogoUrl }} style={{ width: 24, height: 24 }} contentFit="contain" allowDownscaling={false} />}
           </View>
+        )}
+        <View className="mx-4 flex-row items-center gap-2 border-t border-line py-3">
+          <Ionicons name="tv-outline" size={13} color={colors.inkTertiary} />
+          <Text className="flex-1 text-[11px] text-ink-secondary" numberOfLines={2}>{channelNames || t('home.broadcastUnknown')}</Text>
+          <Ionicons name="chevron-forward" size={14} color={colors.inkTertiary} />
         </View>
-        <View className="justify-center pr-3">
-          <Ionicons
-            name="chevron-forward"
-            size={16}
-            color={colors.inkTertiary}
-          />
-        </View>
-        </Pressable>
-      </Link>
+        {!compact && <Text className={`px-4 pb-3 text-[11px] ${event.status === 'scheduled' ? 'text-primary' : 'text-danger'}`}>{status}</Text>}
+        {compact && event.status !== 'scheduled' && <Text className="px-4 pb-3 text-xs text-danger">{status}</Text>}
+      </Pressable>
+    </Link>
+  );
+}
+
+function MatchSide({ name, logoUrl, player }: { name: string; logoUrl?: string | null; player: boolean }) {
+  const colors = useThemeColors();
+  return (
+    <View className="flex-1 items-center gap-2">
+      {logoUrl ? <Image source={{ uri: logoUrl }} style={{ width: 42, height: 42 }} contentFit="contain" allowDownscaling={false} /> : <View className="h-10 w-10 items-center justify-center rounded-full bg-surface-raised"><Ionicons name={player ? 'person-outline' : 'shield-outline'} size={24} color={colors.inkSecondary} /></View>}
+      <Text className="text-center text-sm font-semibold text-ink" numberOfLines={2}>{name}</Text>
     </View>
   );
 }

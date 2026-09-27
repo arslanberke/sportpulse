@@ -54,10 +54,40 @@ export function MatchupArt({
 }) {
   return (
     <View
-      style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+      style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden' }}
       pointerEvents="none"
     >
-      {banner && (
+      {banner?.identity ? (
+        <>
+          <LinearGradient
+            colors={banner.identity.colors}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+          />
+          <View
+            style={{
+              position: 'absolute', top: -110, right: -55, width: 185, height: 430,
+              transform: [{ rotate: '28deg' }],
+              backgroundColor: 'rgba(255,255,255,0.035)',
+              borderLeftWidth: 1, borderRightWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
+            }}
+          />
+          <View
+            style={{
+              position: 'absolute', top: -190, left: -90, width: 310, height: 310,
+              borderRadius: 155, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)',
+            }}
+          />
+          <Image
+            source={banner.source}
+            style={{ position: 'absolute', top: 8, alignSelf: 'center', width: 138, height: 132, opacity: 0.3 }}
+            contentFit="contain"
+            allowDownscaling={false}
+            transition={200}
+          />
+        </>
+      ) : banner ? (
         <Image
           source={banner.source}
           style={{
@@ -69,10 +99,10 @@ export function MatchupArt({
             backgroundColor: banner.backgroundColor,
           }}
           contentFit={banner.fit}
-          contentPosition="center"
+          contentPosition={banner.position ?? 'center'}
           transition={200}
         />
-      )}
+      ) : null}
       {/* Scrim beneath the badges: keeps the overlaid title/label readable
           without dimming the crests (which render above it). */}
       <LinearGradient

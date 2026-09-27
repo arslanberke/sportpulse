@@ -391,6 +391,9 @@ deno_version = 2
 [functions.sync-events]
 verify_jwt = false
 
+[functions.sync-bsd-football]
+verify_jwt = false
+
 [functions.sync-teams]
 verify_jwt = false
 

@@ -1,10 +1,10 @@
+import { BrandLaunch } from '@/components/ui/brand-launch';
 import '@/global.css';
+import { useCallback, useState } from 'react';
 
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
-import { ActivityIndicator, View } from 'react-native';
 
-import { Colors } from '@/constants/theme';
 import { useAuthDeepLink } from '@/features/auth/hooks/use-auth-deep-link';
 import { useAuthListener } from '@/features/auth/hooks/use-auth-listener';
 import { NowProvider } from '@/lib/now';
@@ -18,15 +18,13 @@ export default function RootLayout() {
   const isLoading = useAuthStore((s) => s.isLoading);
   const session = useAuthStore((s) => s.session);
   const isLoggedIn = session !== null;
+  const [introComplete, setIntroComplete] = useState(false);
+  const finishIntro = useCallback(() => setIntroComplete(true), []);
 
   // Wait for the persisted session before deciding which screens to show,
   // so a logged-in user never flashes the login screen on app start.
-  if (isLoading) {
-    return (
-      <View className="flex-1 items-center justify-center bg-background">
-        <ActivityIndicator color={Colors.primary} />
-      </View>
-    );
+  if (isLoading || !introComplete) {
+    return <BrandLaunch onComplete={finishIntro} />;
   }
 
   return (

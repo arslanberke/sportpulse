@@ -1,22 +1,21 @@
-import { Ionicons } from "@expo/vector-icons";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { LinearGradient } from "expo-linear-gradient";
 import { Text, View } from "react-native";
 
+import { BrandIcon } from "@/components/ui/brand-mark";
 import { Button } from "@/components/ui/button";
 import { Screen } from "@/components/ui/screen";
 import { TextField } from "@/components/ui/text-field";
 import {
-  AuthBackdrop,
-  AuthEntrance,
+    AuthBackdrop,
+    AuthEntrance,
 } from "@/features/auth/components/auth-backdrop";
-import { showAlert } from "@/lib/alert";
-import { useI18n } from "@/lib/i18n";
 import { hasSeenOnboarding } from "@/features/auth/onboarding";
 import { makeLoginSchema, type LoginFormValues } from "@/features/auth/schemas";
+import { showAlert } from "@/lib/alert";
+import { useI18n } from "@/lib/i18n";
 import { signIn } from "@/services/auth";
 
 export default function LoginScreen() {
@@ -58,21 +57,9 @@ export default function LoginScreen() {
       <View className="pt-20">
         <AuthEntrance>
           <View className="mb-8 items-center">
-            <LinearGradient
-              colors={["#34D399", "#059669"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={{
-                width: 88,
-                height: 88,
-                borderRadius: 28,
-                alignItems: "center",
-                justifyContent: "center",
-                marginBottom: 16,
-              }}
-            >
-              <Ionicons name="notifications" size={44} color="#FFFFFF" />
-            </LinearGradient>
+            <View className="mb-4">
+              <BrandIcon size={88} />
+            </View>
             <Text className="mb-1 text-4xl font-bold text-ink">SportPulse</Text>
             <Text className="text-base text-ink-secondary">
               {t("auth.tagline")}

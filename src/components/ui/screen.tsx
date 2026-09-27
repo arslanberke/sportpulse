@@ -69,7 +69,7 @@ export function Screen({
       <Backdrop />
       <Animated.ScrollView
         className="flex-1"
-        contentContainerClassName="px-6 pb-12"
+        contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 48 }}
         keyboardShouldPersistTaps="handled"
         onScroll={onScroll}
         onScrollBeginDrag={onScrollBeginDrag}

@@ -171,10 +171,15 @@ export interface ProviderSeason {
 
 /** A league to fetch, with the provider-specific ids we know for it. */
 export interface LeagueRef {
+  onIssue?: import('./log.ts').ReportProviderIssue;
   /** Our own league UUID. */
   leagueId: string;
+  /** Stable catalog name; required by providers whose ids are configured in code/secrets. */
+  leagueName?: string;
   sportId: string;
   externalIds: Record<string, string>;
+  /** Request-scoped server secrets. Never populated by the mobile client. */
+  providerKeys?: { bsd?: string; goal?: string };
 }
 
 /**

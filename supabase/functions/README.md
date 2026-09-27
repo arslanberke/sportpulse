@@ -147,3 +147,27 @@ select cron.schedule(
   $$
 );
 ```
+
+## sync-broadcasts-bsd
+
+BSD'nin `/broadcasts/` ucundan Turkiye (`country_code=TR`) yayinlarini mac
+bazinda ceker. Sporekrani'den farki: maclar `external_ids.bsd` ile kimlik
+uzerinden eslesir (ad tahmini yok) ve pencere bugun+3 gun olarak taranir.
+Kapsama gunleri `broadcast_coverage` icine `sport_id='football'` olarak
+yazilir, boylece futbol kapsami diger sporlarin lig eslemelerini bastrimaz.
+
+### Schedule (every 2 hours) with pg_cron
+
+```sql
+select cron.schedule(
+  'sync-broadcasts-bsd',
+  '25 */2 * * *',
+  $$
+  select net.http_post(
+    url := 'https://<project-ref>.supabase.co/functions/v1/sync-broadcasts-bsd',
+    headers := jsonb_build_object('Authorization', 'Bearer <random-string>'),
+    timeout_milliseconds := 150000
+  );
+  $$
+);
+```

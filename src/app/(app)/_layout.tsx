@@ -36,6 +36,7 @@ export default function AppLayout() {
       {/* The club's own name is set by the screen once it loads. */}
       <Stack.Screen name="team/[teamId]" options={{ title: '' }} />
       <Stack.Screen name="player/[playerId]" options={{ title: '' }} />
+      <Stack.Screen name="football-player/[bsdId]" options={{ title: '' }} />
     </Stack>
   );
 }

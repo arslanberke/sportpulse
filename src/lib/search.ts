@@ -23,12 +23,22 @@ const FOLD: Record<string, string> = {
   í: 'i',
   ú: 'u',
   ñ: 'n',
+  ć: 'c',
+  č: 'c',
+  š: 's',
+  ž: 'z',
+  đ: 'd',
+  ø: 'o',
+  å: 'a',
+  ä: 'a',
+  ë: 'e',
+  ï: 'i',
 };
 
 export function fold(text: string): string {
   return text
     .toLocaleLowerCase('tr-TR')
-    .replace(/[çğıİöşüâîûóéáíúñ]/g, (ch) => FOLD[ch] ?? ch)
+    .replace(/[çğıİöşüâîûóéáíúñćčšžđøåäëï]/g, (ch) => FOLD[ch] ?? ch)
     .trim();
 }
 

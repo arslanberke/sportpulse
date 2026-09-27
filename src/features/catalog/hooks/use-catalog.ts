@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
 import { useDebounced } from '@/lib/use-debounced';
 import {
@@ -85,6 +85,9 @@ export function useCatalogSearch(term: string) {
     queryFn: () => searchCatalog(trimmed),
     enabled: trimmed.length >= MIN_SEARCH_LENGTH,
     staleTime: 60_000,
+    // Her harf yeni bir sorgu anahtari demek; onceki sonuclar yeni terim
+    // yuklenirken korunmazsa bolumler her tusta kaybolup geri geliyor.
+    placeholderData: keepPreviousData,
   });
 }
 

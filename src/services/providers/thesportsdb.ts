@@ -1,4 +1,4 @@
-import { warnHttp } from './log.ts';
+import { fetchProvider, warnHttp, type ReportProviderIssue } from './log.ts';
 import type {
     EventLineup,
     FixtureProvider,
@@ -146,14 +146,15 @@ const VENUE_IMAGE_SPORTS = new Set(['f1', 'motogp']);
 
 const venueImageCache = new Map<string, string | null>();
 
-async function venueImage(venueId: string | null): Promise<string | null> {
+async function venueImage(venueId: string | null, onIssue?: ReportProviderIssue): Promise<string | null> {
   if (!venueId) return null;
   const cached = venueImageCache.get(venueId);
   if (cached !== undefined) return cached;
-  const data = (await getJson(`${BASE}/lookupvenue.php?id=${venueId}`)) as {
+  const data = (await getJson(`${BASE}/lookupvenue.php?id=${venueId}`, onIssue)) as {
     venues: TsdbVenue[] | null;
   } | null;
-  const image = data?.venues?.[0]?.strThumb ?? null;
+  if (!data) return null;
+  const image = data.venues?.[0]?.strThumb ?? null;
   venueImageCache.set(venueId, image);
   return image;
 }
@@ -167,18 +168,24 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function getJson(url: string): Promise<unknown> {
+async function getJson(url: string, onIssue?: ReportProviderIssue): Promise<unknown> {
   const wait = lastRequestAt + THROTTLE_MS - Date.now();
   if (wait > 0) await sleep(wait);
   lastRequestAt = Date.now();
 
-  let response = await fetch(url);
+  let response = await fetchProvider('thesportsdb.request', url, onIssue);
   if (response.status === 429) {
-    await sleep(RETRY_AFTER_MS);
-    lastRequestAt = Date.now();
-    response = await fetch(url);
+    const header = response.headers.get('retry-after');
+    const requestedWait = header === null ? RETRY_AFTER_MS
+      : /^\d+$/.test(header) ? Number(header) * 1000 : Date.parse(header) - Date.now();
+    const wait = Number.isFinite(requestedWait) ? Math.max(0, requestedWait) : RETRY_AFTER_MS;
+    if (wait <= RETRY_AFTER_MS) {
+      await sleep(wait);
+      lastRequestAt = Date.now();
+      response = await fetchProvider('thesportsdb.request', url, onIssue);
+    }
   }
-  if (!response.ok) return warnHttp('thesportsdb', response, null);
+  if (!response.ok) return warnHttp('thesportsdb', response, null, onIssue);
   return await response.json();
 }
 
@@ -192,6 +199,11 @@ export const theSportsDbProvider: FixtureProvider = {
   async fetchUpcomingEvents(league: LeagueRef, days: number): Promise<ProviderEvent[]> {
     const leagueId = league.externalIds.thesportsdb;
     const results: ProviderEvent[] = [];
+    let interrupted = false;
+    const onIssue: ReportProviderIssue = (issue) => {
+      interrupted = true;
+      league.onIssue?.(issue);
+    };
 
     // Scan day by day: the free-tier list endpoints (eventsnextleague,
     // eventsseason) are truncated to a handful of rows, but the per-league
@@ -200,17 +212,19 @@ export const theSportsDbProvider: FixtureProvider = {
     for (let offset = 0; offset < days; offset += 1) {
       const day = new Date(today.getTime() + offset * 86_400_000);
       const dateStr = day.toISOString().slice(0, 10);
-      const daily = (await getJson(`${BASE}/eventsday.php?d=${dateStr}&l=${leagueId}`)) as {
+      const daily = (await getJson(`${BASE}/eventsday.php?d=${dateStr}&l=${leagueId}`, onIssue)) as {
         events: TsdbEvent[] | null;
       } | null;
       for (const raw of daily?.events ?? []) {
         if (raw.idLeague !== leagueId) continue;
         const image = VENUE_IMAGE_SPORTS.has(league.sportId)
-          ? await venueImage(raw.idVenue)
+          ? await venueImage(raw.idVenue, onIssue)
           : null;
         const normalized = normalize(raw, image);
         if (normalized) results.push(normalized);
+        if (interrupted) break;
       }
+      if (interrupted) break;
     }
 
     // De-duplicate.
@@ -227,7 +241,7 @@ export const theSportsDbProvider: FixtureProvider = {
     // keyed by the provider's own league name is free and correct — hence the
     // extra lookup to turn our display name ("Süper Lig") into theirs
     // ("Turkish Super Lig").
-    const leagueData = (await getJson(`${BASE}/lookupleague.php?id=${leagueId}`)) as {
+    const leagueData = (await getJson(`${BASE}/lookupleague.php?id=${leagueId}`, league.onIssue)) as {
       leagues: { strLeague: string | null }[] | null;
     } | null;
     const providerName = leagueData?.leagues?.[0]?.strLeague;
@@ -235,6 +249,7 @@ export const theSportsDbProvider: FixtureProvider = {
 
     const data = (await getJson(
       `${BASE}/search_all_teams.php?l=${encodeURIComponent(providerName)}`,
+      league.onIssue,
     )) as { teams: TsdbTeam[] | null } | null;
 
     return (data?.teams ?? [])
