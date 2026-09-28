@@ -2,13 +2,13 @@
 export const today = { label: 'Cuma', date: '26 Eylül' };
 
 export const days = [
-  { key: 'thu', short: 'Per', num: 25 },
-  { key: 'fri', short: 'Cum', num: 26, today: true },
-  { key: 'sat', short: 'Cmt', num: 27 },
-  { key: 'sun', short: 'Paz', num: 28 },
-  { key: 'mon', short: 'Pzt', num: 29 },
-  { key: 'tue', short: 'Sal', num: 30 },
-  { key: 'wed', short: 'Çar', num: 1 },
+  { key: 'thu', short: 'Per', long: 'Perşembe', num: 25, month: 'Eyl', past: true },
+  { key: 'fri', short: 'Cum', long: 'Cuma', num: 26, month: 'Eyl', today: true },
+  { key: 'sat', short: 'Cmt', long: 'Cumartesi', num: 27, month: 'Eyl' },
+  { key: 'sun', short: 'Paz', long: 'Pazar', num: 28, month: 'Eyl' },
+  { key: 'mon', short: 'Pzt', long: 'Pazartesi', num: 29, month: 'Eyl' },
+  { key: 'tue', short: 'Sal', long: 'Salı', num: 30, month: 'Eyl' },
+  { key: 'wed', short: 'Çar', long: 'Çarşamba', num: 1, month: 'Eki' },
 ];
 
 export const events = [
@@ -63,6 +63,56 @@ export const events = [
     time: '20:30', live: false, day: 'sat',
     channel: 'S Sport', venue: 'Basketbol Gelişim Merkezi',
   },
+  // Haftanın diğer günleri (hafta görünümü için)
+  {
+    id: 'fb-nice', sport: 'football', league: 'Avrupa Ligi', round: 'Lig aşaması · 1. Hafta',
+    home: 'Fenerbahçe', away: 'Nice', homeAbbr: 'FB', awayAbbr: 'NCE',
+    homeColor: '#0a2a5e', awayColor: '#c8102e',
+    time: '22:00', live: false, done: true, homeScore: 1, awayScore: 0, day: 'thu',
+    channel: 'TRT 1', venue: 'Chobani Stadyumu',
+  },
+  {
+    id: 'f1-sgp-race', sport: 'f1', league: 'Formula 1', round: 'Singapur GP · Yarış',
+    home: 'Singapur GP', away: null, homeAbbr: 'F1', awayAbbr: null,
+    homeColor: '#e10600', awayColor: '#e10600',
+    time: '15:00', live: false, day: 'sun',
+    channel: 'S Sport 2', venue: 'Marina Bay',
+  },
+  {
+    id: 'gs-trb', sport: 'football', league: 'Süper Lig', round: '7. Hafta',
+    home: 'Galatasaray', away: 'Trabzonspor', homeAbbr: 'GS', awayAbbr: 'TRB',
+    homeColor: '#a90432', awayColor: '#5c1a33',
+    time: '20:00', live: false, day: 'sun',
+    channel: 'beIN SPORTS 1', venue: 'Rams Park',
+  },
+  {
+    id: 'nap-rom', sport: 'football', league: 'Serie A', round: '5. Hafta',
+    home: 'Napoli', away: 'Roma', homeAbbr: 'NAP', awayAbbr: 'ROM',
+    homeColor: '#12a0d7', awayColor: '#8e1f2f',
+    time: '21:45', live: false, day: 'sun',
+    channel: 'S Sport', venue: 'Diego Armando Maradona',
+  },
+  {
+    id: 'psg-ol', sport: 'football', league: 'Ligue 1', round: '6. Hafta',
+    home: 'PSG', away: 'Lyon', homeAbbr: 'PSG', awayAbbr: 'OL',
+    homeColor: '#004170', awayColor: '#1d2f6f',
+    time: '21:45', live: false, day: 'mon',
+    channel: 'beIN SPORTS 3', venue: 'Parc des Princes',
+  },
+  {
+    id: 'gs-liv', sport: 'football', league: 'Şampiyonlar Ligi', round: 'Lig aşaması · 2. Hafta',
+    home: 'Galatasaray', away: 'Liverpool', homeAbbr: 'GS', awayAbbr: 'LIV',
+    homeColor: '#a90432', awayColor: '#c8102e',
+    time: '22:00', live: false, day: 'tue',
+    channel: 'TRT 1', venue: 'Rams Park',
+  },
+  {
+    id: 'bjk-rom', sport: 'football', league: 'Avrupa Ligi', round: 'Lig aşaması · 2. Hafta',
+    home: 'Beşiktaş', away: 'Roma', homeAbbr: 'BJK', awayAbbr: 'ROM',
+    homeColor: '#1a1a1a', awayColor: '#8e1f2f',
+    time: '22:00', live: false, favorite: true, day: 'wed',
+    channel: 'TRT 1', venue: 'Tüpraş Stadyumu',
+  },
 ];
 
 // "Yoğun gün": aynı güne düşen ek maçlar. Yalnızca yoğunluk anahtarı açıkken listeye eklenir.
@@ -113,7 +163,7 @@ export const team = {
   fixtures: [
     { date: '20 Eyl', opp: 'Trabzonspor', ha: 'D', result: '1–2', win: 'L' },
     { date: '27 Eyl', opp: 'Amed SFK', ha: 'E', result: '20:00', upcoming: true },
-    { date: '2 Eki', opp: 'Roma', ha: 'E', result: '22:00', upcoming: true, comp: 'UEL' },
+    { date: '1 Eki', opp: 'Roma', ha: 'E', result: '22:00', upcoming: true, comp: 'UEL' },
     { date: '5 Eki', opp: 'Galatasaray', ha: 'D', result: '20:00', upcoming: true },
   ],
 };

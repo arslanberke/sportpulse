@@ -3,16 +3,22 @@ import { channelLogos, leagueLogos, teamLogos } from './logos.mjs';
 
 const h = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const params = new URLSearchParams(location.hash.slice(1));
-const state = { screen: params.get('screen') ?? 'home', focus: params.get('focus') ?? 'all', theme: params.get('theme') ?? 'light', density: params.get('density') ?? 'normal' };
+const state = { screen: params.get('screen') ?? 'home', focus: params.get('focus') ?? 'all', theme: params.get('theme') ?? 'light', density: params.get('density') ?? 'normal', tone: params.get('tone') ?? 'all' };
+const controls = ['screen', 'focus', 'theme', 'density', 'tone'].filter((k) => document.getElementById(k));
 
 const byTime = (a, b) => a.time.localeCompare(b.time);
 const live = baseEvents.find((e) => e.id === 'eng-esp');
-let events = baseEvents, favs = [], today = [], sat = [];
+let events = baseEvents, favs = [], today = [], sat = [], week = [];
+const todayKey = days.find((d) => d.today).key;
+const dayOf = (e) => days.find((d) => d.key === (e.day ?? todayKey));
+const dayShort = (e) => e.day ? dayOf(e).short : 'Bugün';
+const dayLong = (e) => e.day ? dayOf(e).long : 'Bugün';
 function prepare() {
   events = state.density === 'dense' ? [...baseEvents, ...denseEvents] : baseEvents;
   favs = events.filter((e) => e.favorite);
   today = events.filter((e) => !e.day).sort(byTime);
   sat = events.filter((e) => e.day === 'sat').sort(byTime);
+  week = days.map((d) => [d, events.filter((e) => (e.day ?? todayKey) === d.key).sort(byTime)]);
 }
 prepare();
 const byKey = (list, key) => {
@@ -91,7 +97,7 @@ const strip = {
     <div class="st-head"><span>★ Takımlarım</span><small>Tümü ›</small></div>
     <div class="st-strip">
       ${favs.map((e) => `<button class="st-tile ${e.live ? 'live' : ''}" data-open="${e.id}">
-        <small>${e.day ? 'Cumartesi' : 'Bugün'} · ${h(e.time)}</small>
+        <small>${dayLong(e)} · ${h(e.time)}</small>
         <div class="st-logos">${logo(e.homeAbbr, 46)}${logo(e.awayAbbr, 46)}</div>
         <strong>${h(e.home)}<br>${h(e.away)}</strong>
         <div class="st-ch">${channel(e.channel, 'sm')}</div>
@@ -127,7 +133,7 @@ const focusCard = (e) => `
     <div class="fo-lg">${leagueLogo(e.league, 16)}<span>${h(e.league)} · ${h(e.round)}</span>${star(e)}</div>
     <div class="fo-mid">
       <div class="fo-side">${logo(e.homeAbbr, 56)}<span>${h(e.home)}</span></div>
-      <div class="fo-center">${e.live && e.away ? `<b>${scoreOf(e, 'home')}<i>–</i>${scoreOf(e, 'away')}</b><em class="live-tag">● ${h(liveLabel(e))}</em>` : `<b>${h(e.time)}</b><small>${e.day ? 'Cumartesi' : 'Bugün'}</small>`}</div>
+      <div class="fo-center">${e.live && e.away ? `<b>${scoreOf(e, 'home')}<i>–</i>${scoreOf(e, 'away')}</b><em class="live-tag">● ${h(liveLabel(e))}</em>` : `<b>${h(e.time)}</b><small>${dayLong(e)}</small>`}</div>
       ${e.away ? `<div class="fo-side">${logo(e.awayAbbr, 56)}<span>${h(e.away)}</span></div>` : `<div class="fo-side"><span class="fo-round">${h(sub(e))}</span></div>`}
     </div>
     <div class="fo-foot">${channel(e.channel, 'sm')}<span>🔔 15 dk önce</span></div>
@@ -141,7 +147,7 @@ const focus = {
       ${seg(['Bugün', 'Yarın', 'Hafta'])}
       ${main.map(focusCard).join('')}
       <h4 class="cap">Diğer ${rest.length} maç</h4>
-      ${rest.map((e) => `<button class="c-row" data-open="${e.id}">${pair(e, 24)}<span class="c-names"><span>${names(e)}</span><small>${e.day ? 'Cmt · ' : ''}${h(e.league)}</small></span>${timeOrLive(e)}</button>`).join('')}`;
+      ${rest.map((e) => `<button class="c-row" data-open="${e.id}">${pair(e, 24)}<span class="c-names"><span>${names(e)}</span><small>${e.day ? `${dayShort(e)} · ` : ''}${h(e.league)}</small></span>${timeOrLive(e)}</button>`).join('')}`;
   },
 };
 
@@ -170,7 +176,7 @@ const brand = {
     </div>
     <div class="br-sheet">
       <h3 class="s-h3">★ Takımlarım</h3>
-      ${favs.map((e) => `<button class="br-card fav ${e.live ? 'live' : ''}" data-open="${e.id}">${twoLines(e, 26)}<div class="br-right">${timeOrLive(e)}<small>${e.day ? 'Cmt' : 'Bugün'}</small>${channel(e.channel, 'sm')}</div></button>`).join('')}
+      ${favs.map((e) => `<button class="br-card fav ${e.live ? 'live' : ''}" data-open="${e.id}">${twoLines(e, 26)}<div class="br-right">${timeOrLive(e)}<small>${dayShort(e)}</small>${channel(e.channel, 'sm')}</div></button>`).join('')}
       <h3 class="s-h3">Bugün</h3>
       ${today.filter((e) => !e.favorite).map((e) => `<button class="br-card ${e.live ? 'live' : ''}" data-open="${e.id}">${twoLines(e, 26)}<div class="br-right">${timeOrLive(e)}<small>${h(e.league)}</small>${channel(e.channel, 'sm')}</div></button>`).join('')}
       <h3 class="s-h3">Cumartesi</h3>
@@ -183,7 +189,7 @@ const channelDir = {
   home: () => {
     const liveNow = events.filter((e) => e.live);
     const rest = [...today, ...sat].filter((e) => !e.live);
-    const chRow = (e) => `<button class="kn-row ${e.live ? 'live' : ''}" data-open="${e.id}">${pair(e, 26, 'over')}<span class="c-names">${nm(e)}<small>${h(e.league)}${e.day ? ' · Cumartesi' : ''}</small></span>${e.live && e.away ? score(e) : timeOrLive(e)}</button>`;
+    const chRow = (e) => `<button class="kn-row ${e.live ? 'live' : ''}" data-open="${e.id}">${pair(e, 26, 'over')}<span class="c-names">${nm(e)}<small>${h(e.league)}${e.day ? ` · ${dayLong(e)}` : ''}</small></span>${e.live && e.away ? score(e) : timeOrLive(e)}</button>`;
     return `
       ${top('Yayında', 'Cuma, 26 Eylül')}
       ${chips()}
@@ -243,19 +249,44 @@ const compact = {
 /* 22 · FINAL (Set 5) ---------------------------------------------------
    hafta şeridi + kapalı favoriler + saate göre akış (20) + kanal düz yazı (17) */
 /* sağ sütun: skor (canlı) ya da saat her zaman en sağda; durum (dakika/set) skorun solunda */
+const fnScore = (e) => `<span class="fn-sc"><b>${scoreOf(e, 'home')}</b><b>${scoreOf(e, 'away')}</b></span>`;
 const finalSide = (e, withDay) => e.live && e.away
-  ? `<em class="live-tag">● ${h(liveLabel(e))}</em><span class="fn-sc"><b>${scoreOf(e, 'home')}</b><b>${scoreOf(e, 'away')}</b></span>`
-  : `${withDay ? `<small class="fn-day">${e.day ? 'Cmt' : 'Bugün'}</small>` : ''}${timeOrLive(e)}`;
+  ? `<em class="live-tag">● ${h(liveLabel(e))}</em>${fnScore(e)}`
+  : e.done
+    ? `<small class="fn-day">MS</small>${fnScore(e)}`
+    : `${withDay ? `<small class="fn-day">${dayShort(e)}</small>` : ''}${timeOrLive(e)}`;
 const finalCard = (e, withDay = false) => `
-  <button class="fn-card ${e.live ? 'live' : ''} ${e.favorite ? 'fav' : ''}" data-open="${e.id}">
+  <button class="fn-card ${e.live ? 'live' : ''} ${e.favorite ? 'fav' : ''} ${e.done ? 'done' : ''}" data-open="${e.id}">
     ${twoLines(e, 24, false)}
     <div class="fn-side">${finalSide(e, withDay)}</div>
     <small class="fn-lg">${leagueLogo(e.league, 12)}${h(e.league)}</small>
     <small class="fn-ch">${h(e.channel)}</small>
   </button>`;
+const icons = {
+  search: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+  gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
+  week: '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+};
+const icon = (name, size = 16) => `<svg class="ic" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icons[name]}</svg>`;
+const finalTop = (title, subtitle, weekOn = false) => `
+  <div class="s-top"><div><small>${h(subtitle)}</small><h1>${h(title)}</h1></div>
+    <div class="fn-acts">
+      <button class="fn-week ${weekOn ? 'on' : ''}" data-go="${weekOn ? 'home' : 'week'}">${icon('week', 14)}Hafta</button>
+      <button class="s-ico" aria-label="Ara">${icon('search')}</button>
+      <button class="s-ico" data-go="settings" aria-label="Ayarlar">${icon('gear')}</button>
+    </div>
+  </div>`;
+const dayHead = ([d, list]) => `
+  <div class="fn-dayhead ${d.today ? 'today' : ''} ${d.past ? 'past' : ''}">
+    <b>${h(d.long)}</b><small>${d.num} ${h(d.month)}${d.today ? ' · Bugün' : d.past ? ' · Geçti' : ''}</small>
+    <em>${list.length ? `${list.length} etkinlik` : 'Boş'}</em>
+  </div>`;
+const settingRow = (label, value, cls = '') => `<div class="row static fn-set ${cls}"><span>${h(label)}</span>${value}</div>`;
+const sw = (on) => `<i class="fn-sw ${on ? 'on' : ''}"></i>`;
+const chev = (v) => `<span class="r"><small>${h(v)}</small><em>›</em></span>`;
 const finalDir = {
   home: () => `
-    ${top('Bugün', 'Cuma, 26 Eylül')}
+    ${finalTop('Bugün', 'Cuma, 26 Eylül')}
     ${dayStrip()}
     <details class="fn-fold">
       <summary><i class="star">★</i><span>Favorilerim</span><b>${favs.length}</b><em>▸</em></summary>
@@ -268,6 +299,35 @@ const finalDir = {
           ${list.map((e) => finalCard(e)).join('')}
         </div>`).join('')}
     </div>`,
+  week: () => `
+    ${finalTop('Bu hafta', '25 Eyl – 1 Eki', true)}
+    <div class="fn-week-list">
+      ${week.map(([d, list]) => `
+        ${dayHead([d, list])}
+        ${list.length ? list.map((e) => finalCard(e)).join('') : '<div class="fn-empty">Bu gün için etkinlik yok</div>'}`).join('')}
+    </div>`,
+  settings: () => `
+    <div class="m-top"><button class="s-ico" data-back>‹</button><div><b>Ayarlar</b><small>Profil ve tercihler</small></div><span class="s-ico ghost"></span></div>
+    <div class="fn-me">${logo('BJK', 44)}<div><strong>Berke</strong><small>Beşiktaş · 3 takım, 4 lig takipte</small></div></div>
+    <section class="card"><header><span>Bildirimler</span></header>
+      ${settingRow('Maç başlangıcı', sw(true))}
+      ${settingRow('Gol bildirimi', sw(true))}
+      ${settingRow('Hatırlatma', chev('15 dk önce'))}
+    </section>
+    <section class="card"><header><span>Görünüm</span></header>
+      ${settingRow('Tema', chev(state.theme === 'dark' ? 'Koyu' : 'Açık'))}
+      ${settingRow('Kanal gösterimi', chev('Yazı'))}
+    </section>
+    <section class="card"><header><span>Takip</span></header>
+      ${settingRow('Takımlar', chev('3'))}
+      ${settingRow('Ligler', chev('4'))}
+      ${settingRow('Sporcular', chev('1'))}
+    </section>
+    <section class="card"><header><span>Hesap</span></header>
+      ${settingRow('Gizlilik', chev(''))}
+      ${settingRow('Hakkında', chev('1.4.0'))}
+      ${settingRow('Çıkış yap', '', 'danger')}
+    </section>`,
 };
 
 /* ORTAK · MAÇ + TAKIM ------------------------------------------------- */
@@ -314,24 +374,27 @@ const tabs = [['home', 'Takvim'], ['explore', 'Keşfet'], ['me', 'Profil']];
 function render() {
   document.querySelectorAll('.direction').forEach((sec) => {
     const dir = dirs[sec.dataset.dir];
-    sec.querySelector('[data-app]').innerHTML = (dir[state.screen] ?? shared[state.screen]).call(dir);
-    sec.querySelector('[data-tabbar]').innerHTML = tabs.map(([id, l]) => `<button class="${({ home: 'home', team: 'explore' })[state.screen] === id ? 'on' : ''}" data-tab="${id}"><i></i>${l}</button>`).join('');
+    sec.querySelector('[data-app]').innerHTML = (dir[state.screen] ?? shared[state.screen] ?? dir.home).call(dir);
+    sec.querySelector('[data-tabbar]').innerHTML = tabs.map(([id, l]) => `<button class="${({ home: 'home', week: 'home', team: 'explore', settings: 'me' })[state.screen] === id ? 'on' : ''}" data-tab="${id}"><i></i>${l}</button>`).join('');
     sec.querySelector('.app').scrollTop = 0;
   });
   const stage = document.getElementById('stage');
   stage.dataset.focus = state.focus;
   stage.dataset.theme = state.theme;
-  for (const k of ['screen', 'focus', 'theme', 'density']) document.getElementById(k).value = state[k];
-  history.replaceState(null, '', `#screen=${state.screen}&focus=${state.focus}&theme=${state.theme}&density=${state.density}`);
+  stage.dataset.tone = state.tone;
+  for (const k of controls) document.getElementById(k).value = state[k];
+  history.replaceState(null, '', `#screen=${state.screen}&focus=${state.focus}&theme=${state.theme}&density=${state.density}&tone=${state.tone}`);
 }
-for (const k of ['screen', 'focus', 'theme', 'density']) document.getElementById(k).addEventListener('change', (ev) => { state[k] = ev.target.value; prepare(); render(); });
+for (const k of controls) document.getElementById(k).addEventListener('change', (ev) => { state[k] = ev.target.value; prepare(); render(); });
 document.addEventListener('click', (ev) => {
-  const t = ev.target.closest('[data-open],[data-back],[data-tab]');
+  const t = ev.target.closest('[data-open],[data-back],[data-tab],[data-go]');
   if (!t) return;
   if (t.dataset.open) state.screen = t.dataset.open === 'bjk-amed' ? 'team' : 'match';
+  else if (t.dataset.go) state.screen = t.dataset.go;
   else if ('back' in t.dataset) state.screen = 'home';
   else if (t.dataset.tab === 'home') state.screen = 'home';
   else if (t.dataset.tab === 'explore') state.screen = 'team';
+  else if (t.dataset.tab === 'me') state.screen = 'settings';
   render();
 });
 render();

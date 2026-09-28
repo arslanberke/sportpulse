@@ -26,7 +26,7 @@ export const teamLogos = {
   MCI: espn(382), CHE: espn(363), TOT: espn(367), NEW: espn(361), AVL: espn(362), MUN: espn(360), ARS: espn(359), LIV: espn(364),
   ATH: espn(93), VIL: espn(102), BAR: espn(83), SEV: espn(243), RMA: espn(86), ATM: espn(1068), RSO: espn(89), BET: espn(244),
   NAP: espn(114), MIL: espn(103), INT: espn(110), JUV: espn(111), ATA: espn(105),
-  PSG: espn(160), OM: espn(176), OL: espn(167), ASM: espn(174),
+  PSG: espn(160), OM: espn(176), OL: espn(167), ASM: espn(174), NCE: espn(2502),
   POR: espn(482), BEL: espn(476), GER: espn(481), ITA: espn(162),
   DJO: tsdb('player/cutout/h6od2i1748970226.png'),
   ZVE: tsdb('player/cutout/c8fy2l1748969907.png'),
@@ -47,6 +47,8 @@ export const leagueLogos = {
   Bundesliga: 'https://a.espncdn.com/i/leaguelogos/soccer/500/10.png',
   'Serie A': 'https://a.espncdn.com/i/leaguelogos/soccer/500/12.png',
   'Ligue 1': 'https://a.espncdn.com/i/leaguelogos/soccer/500/9.png',
+  'Şampiyonlar Ligi': 'https://a.espncdn.com/i/leaguelogos/soccer/500/2.png',
+  'Avrupa Ligi': 'https://a.espncdn.com/i/leaguelogos/soccer/500/2310.png',
 };
 
 // Repoda logosu olan kanallar. Olmayanlar (ATV, A Spor, Eurosport 1) metin kalır;

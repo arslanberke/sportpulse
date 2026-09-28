@@ -13,8 +13,8 @@
   <header class="studio-bar">
     <div>
       <div class="studio-kicker">SPORTPULSE · TASARIM YÖNLERİ · <a href="./">SET 1</a> / <a href="set2.html">SET 2</a> / <a href="set3.html">SET 3</a> / <a href="set4.html">SET 4</a> / <b>SET 5 · FİNAL</b></div>
-      <h1>Final: hafta şeridi, kapalı favoriler, saate göre akış.</h1>
-      <p>Set 4 geri bildiriminin toplamı. Üstte hafta şeridi (seçili gün açık pil). Favoriler kapalı gelen bir bölüm, başlıkta kaç etkinlik olduğu yazar; açınca takımlarının maçları listelenir. Liste 20'deki gibi saate göre akar, kırmızı "şimdi" çizgisi canlı maçların hizasında. Kanal logosu yok: 17'deki gibi düz yazı, kartın sağ alt köşesinde, sol alttaki lig adıyla aynı boyutta. Sağda yalnız saat ya da dakika; skorlar takım satırlarında hizalı durur.</p>
+      <h1>Final: hafta şeridi, kapalı favoriler, saate göre akış — 5 renk tonu.</h1>
+      <p>Aynı düzen, yalnızca renk tokenları farklı beş ton (22a–22e). Üstte "Hafta" butonu tüm haftayı gün gün açar, dişli ayarlara gider. Set 4 geri bildiriminin toplamı. Üstte hafta şeridi (seçili gün açık pil). Favoriler kapalı gelen bir bölüm, başlıkta kaç etkinlik olduğu yazar; açınca takımlarının maçları listelenir. Liste 20'deki gibi saate göre akar, kırmızı "şimdi" çizgisi canlı maçların hizasında. Kanal logosu yok: 17'deki gibi düz yazı, kartın sağ alt köşesinde, sol alttaki lig adıyla aynı boyutta. Sağda yalnız saat ya da dakika; skorlar takım satırlarında hizalı durur.</p>
     </div>
     <div class="studio-controls">
       <label>Ekran
@@ -22,6 +22,8 @@
           <option value="home">Ana ekran</option>
           <option value="match">Maç detayı</option>
           <option value="team">Takım sayfası</option>
+          <option value="week">Bu hafta</option>
+          <option value="settings">Ayarlar</option>
         </select>
       </label>
       <label>Yoğunluk
@@ -36,7 +38,17 @@
           <option value="dark">Koyu</option>
         </select>
       </label>
-      <label>Görünüm
+      <label>Renk tonu
+        <select id="tone">
+          <option value="all">5 ton yan yana</option>
+          <option value="a">22a · Nane (mevcut)</option>
+          <option value="b">22b · Orman</option>
+          <option value="c">22c · Deniz</option>
+          <option value="d">22d · Krem</option>
+          <option value="e">22e · Grafit</option>
+        </select>
+      </label>
+      <label style="display:none">Görünüm
         <select id="focus">
           <option value="final">22 · Final</option>
         </select>
@@ -44,9 +56,25 @@
     </div>
   </header>
 
-  <main class="stage" id="stage">
-    <section class="direction" data-dir="final">
-      <div class="direction-head"><span class="num">22</span><div><h2>Final</h2><p>Hafta şeridi + kapalı favoriler (sayı rozeti) + saate göre akış (20) + kanal düz yazı (17). Maç ve takım ekranı Set 4 ile ortak.</p></div></div>
+  <main class="stage tones" id="stage">
+    <section class="direction" data-dir="final" data-tone="a">
+      <div class="direction-head"><span class="num">22a</span><div><h2>Nane</h2><p>Mevcut Final: yeşil vurgu (#10b981), serin açık yeşil zemin. 20 Kronoloji ile aynı.</p></div></div>
+      <div class="phone"><div class="app" data-app></div><nav class="tabbar" data-tabbar></nav></div>
+    </section>
+    <section class="direction" data-dir="final" data-tone="b">
+      <div class="direction-head"><span class="num">22b</span><div><h2>Orman</h2><p>Bir ton koyu yeşil vurgu (#059669), zemin biraz daha yeşil ve doygun; kartlar daha belirgin.</p></div></div>
+      <div class="phone"><div class="app" data-app></div><nav class="tabbar" data-tabbar></nav></div>
+    </section>
+    <section class="direction" data-dir="final" data-tone="c">
+      <div class="direction-head"><span class="num">22c</span><div><h2>Deniz</h2><p>Yeşil yerine turkuaza kayan vurgu (#0d9488), zemin ve yazılar hafif mavi-gri.</p></div></div>
+      <div class="phone"><div class="app" data-app></div><nav class="tabbar" data-tabbar></nav></div>
+    </section>
+    <section class="direction" data-dir="final" data-tone="d">
+      <div class="direction-head"><span class="num">22d</span><div><h2>Krem</h2><p>Sıcak krem zemin, kirli beyaz kartlar, orman yeşili vurgu (#15803d). Koyu temada ılık siyah.</p></div></div>
+      <div class="phone"><div class="app" data-app></div><nav class="tabbar" data-tabbar></nav></div>
+    </section>
+    <section class="direction" data-dir="final" data-tone="e">
+      <div class="direction-head"><span class="num">22e</span><div><h2>Grafit</h2><p>Nötr gri zemin ve çizgiler, yeşil yalnızca vurguda (#16a34a). Koyu temada saf grafit.</p></div></div>
       <div class="phone"><div class="app" data-app></div><nav class="tabbar" data-tabbar></nav></div>
     </section>
   </main>
