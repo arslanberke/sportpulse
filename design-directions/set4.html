@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SportPulse — Tasarım Yönleri · Set 4</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&family=Inter+Tight:wght@400..900&family=JetBrains+Mono:wght@400..800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="set4.css">
+</head>
+<body>
+  <header class="studio-bar">
+    <div>
+      <div class="studio-kicker">SPORTPULSE · TASARIM YÖNLERİ · <a href="./">SET 1</a> / <a href="set2.html">SET 2</a> / <a href="set3.html">SET 3</a> / <b>SET 4</b></div>
+      <h1>On yön, gerçek logolarla, açık ve koyu.</h1>
+      <p>Takım, lig ve kanal logoları uygulamanın kullandığı kaynaklardan (ESPN, TheSportsDB, assets/channels). Her yönün kendi açık/koyu paleti var; "Tema"dan geçiş yapabilirsin. Maç ve takım ekranı ortak, fark ana ekranda. Numaralar Set 3'ten devam eder.</p>
+    </div>
+    <div class="studio-controls">
+      <label>Ekran
+        <select id="screen">
+          <option value="home">Ana ekran</option>
+          <option value="match">Maç detayı</option>
+          <option value="team">Takım sayfası</option>
+        </select>
+      </label>
+      <label>Tema
+        <select id="theme">
+          <option value="light">Açık</option>
+          <option value="dark">Koyu</option>
+        </select>
+      </label>
+      <label>Görünüm
+        <select id="focus">
+          <option value="all">Hepsi yan yana</option>
+          <option value="calm">12 · Sakin</option>
+          <option value="grid">13 · Izgara</option>
+          <option value="strip">14 · Şerit</option>
+          <option value="agenda">15 · Ajanda</option>
+          <option value="focus">16 · Odak</option>
+          <option value="ink">17 · Mürekkep</option>
+          <option value="brand">18 · Marka</option>
+          <option value="channel">19 · Kanal</option>
+          <option value="timeline">20 · Kronoloji</option>
+          <option value="compact">21 · Kompakt</option>
+        </select>
+      </label>
+    </div>
+  </header>
+
+  <main class="stage" id="stage">
+    <section class="direction" data-dir="calm">
+      <div class="direction-head"><span class="num">12</span><div><h2>Sakin</h2><p>Kart yok, sadece ince çizgiler. Her satırda iki logo, iki isim, sağda saat. Lig adı küçük büyük harfli bölüm başlığı. En az bilgiyle en çok boşluk.</p></div></div>
+      <div class="phone"><div class="app" data-app></div><nav class="tabbar" data-tabbar></nav></div>
+    </section>
+    <section class="direction" data-dir="grid">
+      <div class="direction-head"><span class="num">13</span><div><h2>Izgara</h2><p>Her maç kare bir kart, iki sütun. Logolar büyük ve kartın ortasında; saat ya da skor altta. Favori maç üstte tam genişlikte tek kart.</p></div></div>
+      <div class="phone"><div class="app" data-app></div><nav class="tabbar" data-tabbar></nav></div>
+    </section>
+    <section class="direction" data-dir="strip">
+      <div class="direction-head"><span class="num">14</span><div><h2>Şerit</h2><p>Takımlarım üstte yatay kaydırılan dik kartlar (logo çifti, saat, kanal). Altında geri kalan her şey düz liste. Favoriler öne çıkar, liste kalabalıklaşmaz.</p></div></div>
+      <div class="phone"><div class="app" data-app></div><nav class="tabbar" data-tabbar></nav></div>
+    </section>
+    <section class="direction" data-dir="agenda">
+      <div class="direction-head"><span class="num">15</span><div><h2>Ajanda</h2><p>Günlük ajanda gibi: solda mono saat sütunu, yanında üst üste binen iki logo ve maç adı. Günler kalın tarih başlığıyla ayrılır. Takvim uygulaması hissi.</p></div></div>
+      <div class="phone"><div class="app" data-app></div><nav class="tabbar" data-tabbar></nav></div>
+    </section>
+    <section class="direction" data-dir="focus">
+      <div class="direction-head"><span class="num">16</span><div><h2>Odak</h2><p>Bugün / Yarın / Hafta sekmeleri. Az ama büyük: üç uzun kart, logolar 56px, saat ve skor çok büyük. Geri kalan maçlar tek satırlık "diğer" listesinde.</p></div></div>
+      <div class="phone"><div class="app" data-app></div><nav class="tabbar" data-tabbar></nav></div>
+    </section>
+    <section class="direction" data-dir="ink">
+      <div class="direction-head"><span class="num">17</span><div><h2>Mürekkep</h2><p>Editoryal: açıkta kağıt rengi zemin ve siyah mürekkep, koyuda tam siyah. Yeşil yalnızca canlı/favori vurgusunda. Logolar ince çerçeveli daire içinde, saatler mono.</p></div></div>
+      <div class="phone"><div class="app" data-app></div><nav class="tabbar" data-tabbar></nav></div>
+    </section>
+    <section class="direction" data-dir="brand">
+      <div class="direction-head"><span class="num">18</span><div><h2>Marka</h2><p>Üstte yeşil marka bloğu: selam, tarih ve gün şeridi. Altından beyaz sayfa yükselir, maçlar yuvarlak kartlarda. Uygulamanın rengi en görünür olduğu yön.</p></div></div>
+      <div class="phone"><div class="app" data-app></div><nav class="tabbar" data-tabbar></nav></div>
+    </section>
+    <section class="direction" data-dir="channel">
+      <div class="direction-head"><span class="num">19</span><div><h2>Kanal</h2><p>SportPulse'un asıl sorusu "hangi kanalda?" olduğu için liste kanala göre gruplu. Her kartın başında kanal logosu, altında o kanaldaki maçlar. "Şu an yayında" en üstte.</p></div></div>
+      <div class="phone"><div class="app" data-app></div><nav class="tabbar" data-tabbar></nav></div>
+    </section>
+    <section class="direction" data-dir="timeline">
+      <div class="direction-head"><span class="num">20</span><div><h2>Kronoloji</h2><p>Dikey zaman çizgisi. Her maç çizgi üzerinde bir nokta, yanında küçük kart. Kırmızı "şimdi" çizgisi canlı maçların hizasında. Günün akışı bir bakışta okunur.</p></div></div>
+      <div class="phone"><div class="app" data-app></div><nav class="tabbar" data-tabbar></nav></div>
+    </section>
+    <section class="direction" data-dir="compact">
+      <div class="direction-head"><span class="num">21</span><div><h2>Kompakt</h2><p>Yoğun'un ferah hali: 48px satırlar, 22px logolar, tek satırda ev–deplasman ve saat. Lig başlığında lig logosu. Spor filtresi segment kontrolü. Ekranda 10+ maç, ama kart ve rozet kalabalığı yok.</p></div></div>
+      <div class="phone"><div class="app" data-app></div><nav class="tabbar" data-tabbar></nav></div>
+    </section>
+  </main>
+  <script type="module" src="set4.js"></script>
+</body>
+</html>
