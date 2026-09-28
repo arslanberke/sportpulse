@@ -1,14 +1,20 @@
-import { days, events, team } from './data.mjs';
+import { days, denseEvents, events as baseEvents, team } from './data.mjs';
 import { channelLogos, leagueLogos, teamLogos } from './logos.mjs';
 
 const h = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const params = new URLSearchParams(location.hash.slice(1));
-const state = { screen: params.get('screen') ?? 'home', focus: params.get('focus') ?? 'all', theme: params.get('theme') ?? 'light' };
+const state = { screen: params.get('screen') ?? 'home', focus: params.get('focus') ?? 'all', theme: params.get('theme') ?? 'light', density: params.get('density') ?? 'normal' };
 
-const live = events.find((e) => e.id === 'eng-esp');
-const favs = events.filter((e) => e.favorite);
-const today = events.filter((e) => !e.day);
-const sat = events.filter((e) => e.day === 'sat');
+const byTime = (a, b) => a.time.localeCompare(b.time);
+const live = baseEvents.find((e) => e.id === 'eng-esp');
+let events = baseEvents, favs = [], today = [], sat = [];
+function prepare() {
+  events = state.density === 'dense' ? [...baseEvents, ...denseEvents] : baseEvents;
+  favs = events.filter((e) => e.favorite);
+  today = events.filter((e) => !e.day).sort(byTime);
+  sat = events.filter((e) => e.day === 'sat').sort(byTime);
+}
+prepare();
 const byKey = (list, key) => {
   const map = new Map();
   for (const e of list) { const k = key(e); if (!map.has(k)) map.set(k, []); map.get(k).push(e); }
@@ -16,7 +22,7 @@ const byKey = (list, key) => {
 };
 const scoreOf = (e, side) => e.sport === 'tennis' ? e.sets.at(-1)[side === 'home' ? 0 : 1] : e[side === 'home' ? 'homeScore' : 'awayScore'];
 const liveLabel = (e) => e.sport === 'tennis' ? e.detail : e.minute;
-const isPhoto = (abbr) => abbr === 'ALC' || abbr === 'SIN';
+const isPhoto = (abbr) => ['ALC', 'SIN', 'DJO', 'ZVE'].includes(abbr);
 
 /* logo: gerçek görsel; yüklenmezse kısaltma görünür */
 const logo = (abbr, size = 28, cls = '') => {
@@ -37,7 +43,7 @@ const nm = (e) => `<span>${names(e)}${star(e)}</span>`;
 
 const top = (title, sub, extra = '') => `<div class="s-top"><div><small>${h(sub)}</small><h1>${h(title)}</h1></div>${extra}<button class="s-ico" aria-label="Ara">⌕</button></div>`;
 const dayStrip = () => `<div class="s-days">${days.map((d) => `<button class="${d.today ? 'on' : ''}"><span>${d.short}</span><b>${d.num}</b></button>`).join('')}</div>`;
-const chips = () => `<div class="s-chips"><button class="on">Tümü</button><button><i class="dot"></i>Canlı 2</button><button>Futbol</button><button>Tenis</button><button>Basketbol</button><button>F1</button></div>`;
+const chips = () => `<div class="s-chips"><button class="on">Tümü</button><button><i class="dot"></i>Canlı ${events.filter((e) => e.live).length}</button><button>Futbol</button><button>Tenis</button><button>Basketbol</button><button>F1</button></div>`;
 const seg = (items, on = 0) => `<div class="s-seg">${items.map((t, i) => `<button class="${i === on ? 'on' : ''}">${h(t)}</button>`).join('')}</div>`;
 
 /* iki satır: ev / deplasman (logo + isim + skor) */
@@ -142,7 +148,7 @@ const focus = {
 /* 17 · MÜREKKEP -------------------------------------------------------- */
 const ink = {
   home: () => `
-    <div class="ik-top"><small>Cuma · 26 Eylül</small><h1>Bu akşam <em>4</em> maç, <em>2</em> canlı.</h1></div>
+    <div class="ik-top"><small>Cuma · 26 Eylül</small><h1>Bugün <em>${today.length}</em> maç, <em>${today.filter((e) => e.live).length}</em> canlı.</h1></div>
     ${byKey(today, (e) => e.league).map(([lg, list]) => `
       <div class="ik-lg">${leagueLogo(lg, 18)}<span>${h(lg)}</span><i></i></div>
       ${list.map((e) => `<button class="ik-row ${e.live ? 'live' : ''} ${e.favorite ? 'fav' : ''}" data-open="${e.id}">
@@ -176,7 +182,7 @@ const brand = {
 const channelDir = {
   home: () => {
     const liveNow = events.filter((e) => e.live);
-    const rest = events.filter((e) => !e.live);
+    const rest = [...today, ...sat].filter((e) => !e.live);
     const chRow = (e) => `<button class="kn-row ${e.live ? 'live' : ''}" data-open="${e.id}">${pair(e, 26, 'over')}<span class="c-names">${nm(e)}<small>${h(e.league)}${e.day ? ' · Cumartesi' : ''}</small></span>${e.live && e.away ? score(e) : timeOrLive(e)}</button>`;
     return `
       ${top('Yayında', 'Cuma, 26 Eylül')}
@@ -192,13 +198,12 @@ const channelDir = {
 /* 20 · KRONOLOJİ ------------------------------------------------------- */
 const timeline = {
   home: () => {
+    const liveNow = today.filter((e) => e.live);
     const slots = [
-      ['13:00', events.filter((e) => e.id === 'alc-sin')],
-      ['Şimdi · 21:52', events.filter((e) => e.id === 'eng-esp'), true],
-      ['21:45', events.filter((e) => e.id === 'tur-fra')],
-      ['Cumartesi 15:00', events.filter((e) => e.id === 'f1-sgp')],
-      ['Cumartesi 20:00', events.filter((e) => e.id === 'bjk-amed')],
-      ['Cumartesi 20:30', events.filter((e) => e.id === 'efes-oly')],
+      ...byKey(today.filter((e) => !e.live && e.time < '21:52'), (e) => e.time),
+      ['Şimdi · 21:52', liveNow, true],
+      ...byKey(today.filter((e) => !e.live && e.time >= '21:52'), (e) => e.time),
+      ...byKey(sat, (e) => e.time).map(([t, l]) => [`Cumartesi ${t}`, l]),
     ];
     return `
       ${top('Akış', 'Cuma, 26 Eylül')}
@@ -286,10 +291,10 @@ function render() {
   const stage = document.getElementById('stage');
   stage.dataset.focus = state.focus;
   stage.dataset.theme = state.theme;
-  for (const k of ['screen', 'focus', 'theme']) document.getElementById(k).value = state[k];
-  history.replaceState(null, '', `#screen=${state.screen}&focus=${state.focus}&theme=${state.theme}`);
+  for (const k of ['screen', 'focus', 'theme', 'density']) document.getElementById(k).value = state[k];
+  history.replaceState(null, '', `#screen=${state.screen}&focus=${state.focus}&theme=${state.theme}&density=${state.density}`);
 }
-for (const k of ['screen', 'focus', 'theme']) document.getElementById(k).addEventListener('change', (ev) => { state[k] = ev.target.value; render(); });
+for (const k of ['screen', 'focus', 'theme', 'density']) document.getElementById(k).addEventListener('change', (ev) => { state[k] = ev.target.value; prepare(); render(); });
 document.addEventListener('click', (ev) => {
   const t = ev.target.closest('[data-open],[data-back],[data-tab]');
   if (!t) return;

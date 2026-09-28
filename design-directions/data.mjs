@@ -65,6 +65,39 @@ export const events = [
   },
 ];
 
+// "Yoğun gün": aynı güne düşen ek maçlar. Yalnızca yoğunluk anahtarı açıkken listeye eklenir.
+const m = (id, league, round, home, away, homeAbbr, awayAbbr, time, channel, extra = {}) =>
+  ({ id, sport: 'football', league, round, home, away, homeAbbr, awayAbbr, homeColor: '#333', awayColor: '#666', time, live: false, channel, ...extra });
+
+export const denseEvents = [
+  // Cuma
+  m('kas-kon', 'Süper Lig', '7. Hafta', 'Kasımpaşa', 'Konyaspor', 'KAS', 'KON', '14:30', 'beIN SPORTS 2'),
+  { id: 'djo-zve', sport: 'tennis', league: 'ATP · Tokyo', round: 'Yarı final', home: 'N. Djokovic', away: 'A. Zverev', homeAbbr: 'DJO', awayAbbr: 'ZVE', homeColor: '#1d3a8a', awayColor: '#333', time: '15:30', live: false, channel: 'Eurosport 2', venue: 'Ariake Coliseum' },
+  m('lev-sge', 'Bundesliga', '5. Hafta', 'Leverkusen', 'Frankfurt', 'LEV', 'SGE', '16:30', 'S Sport 2'),
+  m('mci-che', 'Premier Lig', '6. Hafta', 'Man City', 'Chelsea', 'MCI', 'CHE', '17:00', 'beIN SPORTS 3'),
+  m('ath-vil', 'La Liga', '7. Hafta', 'Athletic', 'Villarreal', 'ATH', 'VIL', '17:00', 'S Sport'),
+  m('ts-goz', 'Süper Lig', '7. Hafta', 'Trabzonspor', 'Göztepe', 'TRB', 'GOZ', '17:00', 'beIN SPORTS 1'),
+  m('nap-mil', 'Serie A', '5. Hafta', 'Napoli', 'Milan', 'NAP', 'MIL', '19:00', 'S Sport 2'),
+  m('por-bel', 'UEFA Uluslar Ligi', 'A Ligi · 2. Hafta', 'Portekiz', 'Belçika', 'POR', 'BEL', '19:00', 'A Spor'),
+  m('tot-new', 'Premier Lig', '6. Hafta', 'Tottenham', 'Newcastle', 'TOT', 'NEW', '19:30', 'beIN SPORTS 2'),
+  m('avl-mun', 'Premier Lig', '6. Hafta', 'Aston Villa', 'Man United', 'AVL', 'MUN', '19:30', 'beIN SPORTS 4'),
+  m('bar-sev', 'La Liga', '7. Hafta', 'Barcelona', 'Sevilla', 'BAR', 'SEV', '19:30', 'S Sport'),
+  m('gs-fb', 'Süper Lig', '7. Hafta', 'Galatasaray', 'Fenerbahçe', 'GS', 'FB', '20:00', 'beIN SPORTS 1', { live: true, homeScore: 1, awayScore: 1, minute: "45+2'" }),
+  { id: 'pao-zal', sport: 'basketball', league: 'EuroLeague', round: '1. Hafta', home: 'Panathinaikos', away: 'Zalgiris', homeAbbr: 'PAO', awayAbbr: 'ZAL', homeColor: '#0a7a3a', awayColor: '#1a7a3a', time: '20:15', live: false, channel: 'S Sport Plus', venue: 'OAKA' },
+  m('rma-atm', 'La Liga', '7. Hafta', 'Real Madrid', 'Atlético', 'RMA', 'ATM', '21:00', 'S Sport'),
+  { id: 'rmb-fcb', sport: 'basketball', league: 'EuroLeague', round: '1. Hafta', home: 'R. Madrid', away: 'Barcelona', homeAbbr: 'RMB', awayAbbr: 'FCB', homeColor: '#fff', awayColor: '#a50044', time: '21:30', live: false, channel: 'S Sport 2', venue: 'WiZink Center' },
+  m('fcb-bvb', 'Bundesliga', '5. Hafta', 'Bayern', 'Dortmund', 'BAY', 'BVB', '21:30', 'S Sport 2'),
+  m('ger-ita', 'UEFA Uluslar Ligi', 'A Ligi · 2. Hafta', 'Almanya', 'İtalya', 'GER', 'ITA', '21:45', 'ATV', { live: true, homeScore: 0, awayScore: 1, minute: "12'" }),
+  m('int-juv', 'Serie A', '5. Hafta', 'Inter', 'Juventus', 'INT', 'JUV', '21:45', 'S Sport'),
+  m('ars-liv', 'Premier Lig', '6. Hafta', 'Arsenal', 'Liverpool', 'ARS', 'LIV', '22:00', 'beIN SPORTS 1'),
+  m('psg-om', 'Ligue 1', '6. Hafta', 'PSG', 'Marsilya', 'PSG', 'OM', '22:05', 'beIN SPORTS 3'),
+  // Cumartesi
+  m('rso-bet', 'La Liga', '7. Hafta', 'Real Sociedad', 'Betis', 'RSO', 'BET', '17:15', 'S Sport', { day: 'sat' }),
+  m('ata-rom', 'Serie A', '5. Hafta', 'Atalanta', 'Roma', 'ATA', 'ROM', '19:00', 'S Sport 2', { day: 'sat' }),
+  m('fb-sam', 'Süper Lig', '7. Hafta', 'Fenerbahçe', 'Samsunspor', 'FB', 'SAM', '17:00', 'beIN SPORTS 1', { day: 'sat' }),
+  m('ol-asm', 'Ligue 1', '6. Hafta', 'Lyon', 'Monaco', 'OL', 'ASM', '22:05', 'beIN SPORTS 3', { day: 'sat' }),
+];
+
 export const team = {
   name: 'Beşiktaş', abbr: 'BJK', league: 'Süper Lig', country: 'Türkiye',
   color: '#1a1a1a', accent: '#f5f5f5',
