@@ -47,10 +47,10 @@ const chips = () => `<div class="s-chips"><button class="on">Tümü</button><but
 const seg = (items, on = 0) => `<div class="s-seg">${items.map((t, i) => `<button class="${i === on ? 'on' : ''}">${h(t)}</button>`).join('')}</div>`;
 
 /* iki satır: ev / deplasman (logo + isim + skor) */
-const twoLines = (e, size = 24) => `
+const twoLines = (e, size = 24, withScore = true) => `
   <div class="two">
-    <div class="tl">${logo(e.homeAbbr, size)}<span>${h(e.home)}</span>${e.live && e.away ? `<b>${scoreOf(e, 'home')}</b>` : ''}</div>
-    ${e.away ? `<div class="tl">${logo(e.awayAbbr, size)}<span>${h(e.away)}</span>${e.live ? `<b>${scoreOf(e, 'away')}</b>` : ''}</div>` : `<div class="tl sub"><span>${h(sub(e))}</span></div>`}
+    <div class="tl">${logo(e.homeAbbr, size)}<span>${h(e.home)}</span>${withScore && e.live && e.away ? `<b>${scoreOf(e, 'home')}</b>` : ''}</div>
+    ${e.away ? `<div class="tl">${logo(e.awayAbbr, size)}<span>${h(e.away)}</span>${withScore && e.live ? `<b>${scoreOf(e, 'away')}</b>` : ''}</div>` : `<div class="tl sub"><span>${h(sub(e))}</span></div>`}
   </div>`;
 
 /* 12 · SAKİN ----------------------------------------------------------- */
@@ -242,10 +242,14 @@ const compact = {
 
 /* 22 · FINAL (Set 5) ---------------------------------------------------
    hafta şeridi + kapalı favoriler + saate göre akış (20) + kanal düz yazı (17) */
-const finalCard = (e) => `
+/* sağ sütun: skor (canlı) ya da saat her zaman en sağda; durum (dakika/set) skorun solunda */
+const finalSide = (e, withDay) => e.live && e.away
+  ? `<em class="live-tag">● ${h(liveLabel(e))}</em><span class="fn-sc"><b>${scoreOf(e, 'home')}</b><b>${scoreOf(e, 'away')}</b></span>`
+  : `${withDay ? `<small class="fn-day">${e.day ? 'Cmt' : 'Bugün'}</small>` : ''}${timeOrLive(e)}`;
+const finalCard = (e, withDay = false) => `
   <button class="fn-card ${e.live ? 'live' : ''} ${e.favorite ? 'fav' : ''}" data-open="${e.id}">
-    ${twoLines(e, 24)}
-    <div class="fn-right">${timeOrLive(e)}</div>
+    ${twoLines(e, 24, false)}
+    <div class="fn-side">${finalSide(e, withDay)}</div>
     <small class="fn-lg">${leagueLogo(e.league, 12)}${h(e.league)}</small>
     <small class="fn-ch">${h(e.channel)}</small>
   </button>`;
@@ -255,15 +259,13 @@ const finalDir = {
     ${dayStrip()}
     <details class="fn-fold">
       <summary><i class="star">★</i><span>Favorilerim</span><b>${favs.length}</b><em>▸</em></summary>
-      <div class="fn-fold-body">
-        ${favs.map((e) => `<button class="fn-row ${e.live ? 'live' : ''}" data-open="${e.id}">${pair(e, 22)}<span class="c-names"><span>${names(e)}</span><small>${h(e.league)} · ${h(e.channel)}</small></span>${e.live && e.away ? score(e) : timeOrLive(e)}</button>`).join('')}
-      </div>
+      <div class="fn-fold-body">${favs.map((e) => finalCard(e, true)).join('')}</div>
     </details>
     ${chips()}
     <div class="tlx fn">
       ${timeSlots().map(([label, list, now]) => `
         <div class="tlx-slot ${now ? 'now' : ''}"><div class="tlx-dot"></div><small class="tlx-lbl">${h(label)}</small>
-          ${list.map(finalCard).join('')}
+          ${list.map((e) => finalCard(e)).join('')}
         </div>`).join('')}
     </div>`,
 };
