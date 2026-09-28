@@ -196,15 +196,15 @@ const channelDir = {
 };
 
 /* 20 · KRONOLOJİ ------------------------------------------------------- */
+const timeSlots = () => [
+  ...byKey(today.filter((e) => !e.live && e.time < '21:52'), (e) => e.time),
+  ['Şimdi · 21:52', today.filter((e) => e.live), true],
+  ...byKey(today.filter((e) => !e.live && e.time >= '21:52'), (e) => e.time),
+  ...byKey(sat, (e) => e.time).map(([t, l]) => [`Cumartesi ${t}`, l]),
+];
 const timeline = {
   home: () => {
-    const liveNow = today.filter((e) => e.live);
-    const slots = [
-      ...byKey(today.filter((e) => !e.live && e.time < '21:52'), (e) => e.time),
-      ['Şimdi · 21:52', liveNow, true],
-      ...byKey(today.filter((e) => !e.live && e.time >= '21:52'), (e) => e.time),
-      ...byKey(sat, (e) => e.time).map(([t, l]) => [`Cumartesi ${t}`, l]),
-    ];
+    const slots = timeSlots();
     return `
       ${top('Akış', 'Cuma, 26 Eylül')}
       ${chips()}
@@ -238,6 +238,34 @@ const compact = {
     <div class="kp-day">Cumartesi</div>
     ${byKey(sat, (e) => e.league).map(([lg, list]) => `
       <div class="kp-lg">${leagueLogo(lg, 16)}<span>${h(lg)}</span><small>${h(list[0].channel)}</small></div>${list.map(compactRow).join('')}`).join('')}`,
+};
+
+/* 22 · FINAL (Set 5) ---------------------------------------------------
+   hafta şeridi + kapalı favoriler + saate göre akış (20) + kanal düz yazı (17) */
+const finalCard = (e) => `
+  <button class="fn-card ${e.live ? 'live' : ''} ${e.favorite ? 'fav' : ''}" data-open="${e.id}">
+    ${twoLines(e, 24)}
+    <div class="fn-right">${timeOrLive(e)}</div>
+    <small class="fn-lg">${leagueLogo(e.league, 12)}${h(e.league)}</small>
+    <small class="fn-ch">${h(e.channel)}</small>
+  </button>`;
+const finalDir = {
+  home: () => `
+    ${top('Bugün', 'Cuma, 26 Eylül')}
+    ${dayStrip()}
+    <details class="fn-fold">
+      <summary><i class="star">★</i><span>Favorilerim</span><b>${favs.length}</b><em>▸</em></summary>
+      <div class="fn-fold-body">
+        ${favs.map((e) => `<button class="fn-row ${e.live ? 'live' : ''}" data-open="${e.id}">${pair(e, 22)}<span class="c-names"><span>${names(e)}</span><small>${h(e.league)} · ${h(e.channel)}</small></span>${e.live && e.away ? score(e) : timeOrLive(e)}</button>`).join('')}
+      </div>
+    </details>
+    ${chips()}
+    <div class="tlx fn">
+      ${timeSlots().map(([label, list, now]) => `
+        <div class="tlx-slot ${now ? 'now' : ''}"><div class="tlx-dot"></div><small class="tlx-lbl">${h(label)}</small>
+          ${list.map(finalCard).join('')}
+        </div>`).join('')}
+    </div>`,
 };
 
 /* ORTAK · MAÇ + TAKIM ------------------------------------------------- */
@@ -278,7 +306,7 @@ const shared = {
   },
 };
 
-const dirs = { calm, grid, strip, agenda, focus, ink, brand, channel: channelDir, timeline, compact };
+const dirs = { calm, grid, strip, agenda, focus, ink, brand, channel: channelDir, timeline, compact, final: finalDir };
 const tabs = [['home', 'Takvim'], ['explore', 'Keşfet'], ['me', 'Profil']];
 
 function render() {

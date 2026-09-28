@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SportPulse — Tasarım Yönleri · Set 5 · Final</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&family=Inter+Tight:wght@400..900&family=JetBrains+Mono:wght@400..800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="set4.css">
+</head>
+<body>
+  <header class="studio-bar">
+    <div>
+      <div class="studio-kicker">SPORTPULSE · TASARIM YÖNLERİ · <a href="./">SET 1</a> / <a href="set2.html">SET 2</a> / <a href="set3.html">SET 3</a> / <a href="set4.html">SET 4</a> / <b>SET 5 · FİNAL</b></div>
+      <h1>Final: hafta şeridi, kapalı favoriler, saate göre akış.</h1>
+      <p>Set 4 geri bildiriminin toplamı. Üstte hafta şeridi (seçili gün açık pil). Favoriler kapalı gelen bir bölüm, başlıkta kaç etkinlik olduğu yazar; açınca takımlarının maçları listelenir. Liste 20'deki gibi saate göre akar, kırmızı "şimdi" çizgisi canlı maçların hizasında. Kanal logosu yok: 17'deki gibi düz yazı, kartın sağ alt köşesinde, sol alttaki lig adıyla aynı boyutta. Sağda yalnız saat ya da dakika; skorlar takım satırlarında hizalı durur.</p>
+    </div>
+    <div class="studio-controls">
+      <label>Ekran
+        <select id="screen">
+          <option value="home">Ana ekran</option>
+          <option value="match">Maç detayı</option>
+          <option value="team">Takım sayfası</option>
+        </select>
+      </label>
+      <label>Yoğunluk
+        <select id="density">
+          <option value="normal">Normal gün · 6 maç</option>
+          <option value="dense">Yoğun gün · 30 maç</option>
+        </select>
+      </label>
+      <label>Tema
+        <select id="theme">
+          <option value="light">Açık</option>
+          <option value="dark">Koyu</option>
+        </select>
+      </label>
+      <label>Görünüm
+        <select id="focus">
+          <option value="final">22 · Final</option>
+        </select>
+      </label>
+    </div>
+  </header>
+
+  <main class="stage" id="stage">
+    <section class="direction" data-dir="final">
+      <div class="direction-head"><span class="num">22</span><div><h2>Final</h2><p>Hafta şeridi + kapalı favoriler (sayı rozeti) + saate göre akış (20) + kanal düz yazı (17). Maç ve takım ekranı Set 4 ile ortak.</p></div></div>
+      <div class="phone"><div class="app" data-app></div><nav class="tabbar" data-tabbar></nav></div>
+    </section>
+  </main>
+  <script>if (!/focus=/.test(location.hash)) location.hash = (location.hash ? location.hash + '&' : '#') + 'focus=final';</script>
+  <script type="module" src="set4.js"></script>
+</body>
+</html>
