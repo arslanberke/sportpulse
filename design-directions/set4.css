@@ -237,10 +237,10 @@ body { background: #101012; color: #e9e9e6; font: 14px/1.45 "Inter Tight", syste
 .tlx { position: relative; padding-left: 22px; margin-top: 6px; }
 .tlx::before { content: ""; position: absolute; left: 6px; top: 4px; bottom: 0; width: 2px; background: var(--line); border-radius: 1px; }
 .tlx-slot { position: relative; padding-bottom: 14px; }
-.tlx-dot { position: absolute; left: -20px; top: 3px; width: 10px; height: 10px; border-radius: 50%; background: var(--bg); border: 2px solid var(--faint); }
+.tlx-dot { position: absolute; left: -20px; top: 2px; width: 10px; height: 10px; border-radius: 50%; background: var(--bg); border: 2px solid var(--faint); }
 .tlx-slot.now .tlx-dot { background: var(--live); border-color: var(--live); box-shadow: 0 0 0 4px color-mix(in srgb, var(--live) 20%, transparent); }
 .tlx-slot.now::before { content: ""; position: absolute; left: -22px; right: 0; top: 7px; height: 1px; background: var(--live); opacity: .5; }
-.tlx-lbl { display: block; font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 6px; line-height: 1.2; position: relative; background: var(--bg); width: max-content; padding-right: 6px; }
+.tlx-lbl { display: block; font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 6px; line-height: 14px; position: relative; background: var(--bg); width: max-content; padding-right: 6px; }
 .tlx-slot.now .tlx-lbl { color: var(--live); }
 .tlx-card + .tlx-card { margin-top: 6px; }
 .tlx-card { width: 100%; display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; }
