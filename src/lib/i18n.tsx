@@ -133,6 +133,10 @@ const en = {
   // Home / week list
   'home.title': 'Your game plan.',
   'home.week': 'This week',
+  'home.weekButton': 'Week',
+  'home.now': 'Now',
+  'home.fullTimeShort': 'FT',
+  'home.dayEmpty': 'Nothing on this day',
   'home.filters': 'Filters',
   'home.live': 'Live',
   'home.liveUnavailable': 'Could not check which matches are live right now.',
@@ -474,6 +478,10 @@ const tr: Record<TranslationKey, string> = {
 
   'home.title': 'Maçın var.',
   'home.week': 'Bu hafta',
+  'home.weekButton': 'Hafta',
+  'home.now': 'Şimdi',
+  'home.fullTimeShort': 'MS',
+  'home.dayEmpty': 'Bu gün için etkinlik yok',
   'home.filters': 'Filtreler',
   'home.live': 'Canlı',
   'home.liveUnavailable': 'Hangi maçların canlı olduğu şu an kontrol edilemedi.',

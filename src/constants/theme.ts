@@ -7,14 +7,16 @@ import { useThemeStore } from '@/lib/theme';
  * Keep these values in sync with `src/global.css` and `tailwind.config.js`.
  */
 export const Colors = {
-  primary: '#10B981',
-  primaryDark: '#047857',
-  background: '#F3F6F4',
+  primary: '#16A34A',
+  primaryDark: '#15803D',
+  background: '#F4F4F5',
   surface: '#FFFFFF',
-  ink: '#0F1A14',
-  inkSecondary: '#5A7064',
-  inkTertiary: '#8FA197',
+  border: '#E4E4E7',
+  ink: '#111114',
+  inkSecondary: '#63636B',
+  inkTertiary: '#93939B',
   danger: '#FF3B30',
+  live: '#E5484D',
   success: '#34C759',
 } as const;
 
@@ -30,14 +32,16 @@ export type ThemeColors = Record<keyof typeof Colors, string>;
 export const FAVORITE_COLOR = '#E6B85C';
 
 export const DarkColors: ThemeColors = {
-  primary: '#10B981',
-  primaryDark: '#047857',
-  background: '#080E0B',
-  surface: '#101C15',
-  ink: '#EDF3EE',
-  inkSecondary: '#98AC9E',
-  inkTertiary: '#84978A',
+  primary: '#16A34A',
+  primaryDark: '#15803D',
+  background: '#0A0A0B',
+  surface: '#141416',
+  border: '#26262A',
+  ink: '#F4F4F5',
+  inkSecondary: '#A1A1AA',
+  inkTertiary: '#77777F',
   danger: '#FF3B30',
+  live: '#E5484D',
   success: '#34C759',
 };
 
@@ -54,7 +58,7 @@ export function useIsDark(): boolean {
 }
 
 /** Dark screens fade from a green-tinted top into near-black for depth. */
-export const DarkBackdrop = ['#102018', '#0B1510', '#080E0B'] as const;
+export const DarkBackdrop = ['#121214', '#0D0D0F', '#0A0A0B'] as const;
 
 export const Spacing = {
   xs: 4,

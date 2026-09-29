@@ -11,11 +11,18 @@ import { useI18n } from '@/lib/i18n';
 import { searchNeedles } from '@/lib/search';
 
 interface WeekHeaderProps {
+  /** Buyuk baslik ("Bugun", "Bu hafta", gun adi). */
+  title: string;
+  /** Basligin ustundeki kucuk tarih satiri. */
+  subtitle: string;
   term: string;
   onTermChange: (term: string) => void;
   /** Arama alani acik mi; kapaliyken baslik ve dugmeler gorunur. */
   expanded: boolean;
   onExpandedChange: (expanded: boolean) => void;
+  /** Tum haftayi gun gun listeleyen gorunum acik mi. */
+  weekActive: boolean;
+  onToggleWeek: () => void;
 }
 
 /**
@@ -77,7 +84,16 @@ function SuggestionTile({
  * kaydirilinca ekran alani kapatir ve yalnizca yazilan terim bir dugmede
  * kalir. O dugmeye dokunmak alani ve onerileri yeniden acar.
  */
-export function WeekHeader({ term, onTermChange, expanded, onExpandedChange }: WeekHeaderProps) {
+export function WeekHeader({
+  title,
+  subtitle,
+  term,
+  onTermChange,
+  expanded,
+  onExpandedChange,
+  weekActive,
+  onToggleWeek,
+}: WeekHeaderProps) {
   const { t } = useI18n();
   const colors = useThemeColors();
   const router = useRouter();
@@ -98,8 +114,8 @@ export function WeekHeader({ term, onTermChange, expanded, onExpandedChange }: W
     leagues.length > 0 || teams.length > 0 || players.length > 0 || footballers.length > 0;
 
   return (
-    <View className="mb-6">
-      <View className="flex-row items-center gap-3">
+    <View className="mb-3">
+      <View className="flex-row items-end gap-2">
         {/* Slayt animasyonu ekran yeniden gorunurken tekrar tetiklenip alani
             yandan kaydiriyordu; solma ayni hissi yan etkisiz veriyor. */}
         {expanded ? (
@@ -133,25 +149,41 @@ export function WeekHeader({ term, onTermChange, expanded, onExpandedChange }: W
         ) : (
           <>
             <View className="flex-1">
-              <Text className="text-sm font-semibold uppercase tracking-widest text-primary">
-                SportPulse
+              <Text className="text-xs font-semibold text-ink-secondary" numberOfLines={1}>
+                {subtitle}
               </Text>
-              <Text className="text-3xl font-bold text-ink">{t('home.title')}</Text>
+              <Text className="mt-0.5 text-[28px] font-extrabold tracking-tight text-ink" numberOfLines={1}>
+                {title}
+              </Text>
             </View>
+
+            <Pressable
+              onPress={onToggleWeek}
+              accessibilityRole="button"
+              accessibilityState={{ selected: weekActive }}
+              className={`h-10 flex-row items-center gap-1.5 rounded-pill pl-3 pr-3.5 active:opacity-70 ${
+                weekActive ? 'bg-primary-light' : 'border border-line bg-surface'
+              }`}
+            >
+              <Ionicons name="calendar-outline" size={14} color={colors.primary} />
+              <Text className={`text-xs font-bold ${weekActive ? 'text-primary' : 'text-ink-secondary'}`}>
+                {t('home.weekButton')}
+              </Text>
+            </Pressable>
 
             {trimmed === '' ? (
               <Pressable
                 onPress={() => onExpandedChange(true)}
                 accessibilityLabel={t('home.searchOpen')}
-                className="h-11 w-11 items-center justify-center rounded-pill border border-line bg-surface active:opacity-70"
+                className="h-10 w-10 items-center justify-center rounded-pill border border-line bg-surface active:opacity-70"
               >
-                <Ionicons name="search" size={20} color={colors.ink} />
+                <Ionicons name="search" size={18} color={colors.ink} />
               </Pressable>
             ) : (
               // Kaydirdiktan sonra terim gorunur kalir; dokunus alani geri acar.
               <Pressable
                 onPress={() => onExpandedChange(true)}
-                className="h-11 max-w-[45%] flex-row items-center gap-2 rounded-pill border border-primary bg-surface px-4 active:opacity-70"
+                className="h-10 max-w-[35%] flex-row items-center gap-2 rounded-pill border border-primary bg-surface px-3 active:opacity-70"
               >
                 <Ionicons name="search" size={16} color={colors.primary} />
                 <Text className="shrink text-sm font-medium text-ink" numberOfLines={1}>
@@ -161,8 +193,11 @@ export function WeekHeader({ term, onTermChange, expanded, onExpandedChange }: W
             )}
 
             <Link href="/settings" asChild>
-              <Pressable className="h-11 w-11 items-center justify-center rounded-pill border border-line bg-surface active:opacity-70">
-                <Ionicons name="settings-outline" size={20} color={colors.ink} />
+              <Pressable
+                accessibilityLabel={t('common.settings')}
+                className="h-10 w-10 items-center justify-center rounded-pill border border-line bg-surface active:opacity-70"
+              >
+                <Ionicons name="settings-outline" size={18} color={colors.ink} />
               </Pressable>
             </Link>
           </>

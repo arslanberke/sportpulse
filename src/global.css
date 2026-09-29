@@ -10,28 +10,28 @@
  */
 @layer base {
   :root {
-    --color-background: 243 246 244;
+    --color-background: 244 244 245;
     --color-surface: 255 255 255;
-    --color-surface-raised: 249 251 250;
-    --color-ink: 15 26 20;
-    --color-ink-secondary: 90 112 100;
-    --color-ink-tertiary: 143 161 151;
-    --color-primary-light: 209 250 229;
+    --color-surface-raised: 250 250 250;
+    --color-ink: 17 17 20;
+    --color-ink-secondary: 99 99 107;
+    --color-ink-tertiary: 147 147 155;
+    --color-primary-light: 220 252 231;
     --color-success-light: 228 248 234;
     --color-warning-light: 255 243 224;
-    --color-border: 226 233 229;
+    --color-border: 228 228 231;
   }
 
   .dark:root {
-    --color-background: 8 14 11;
-    --color-surface: 16 28 21;
-    --color-surface-raised: 22 39 29;
-    --color-ink: 237 243 238;
-    --color-ink-secondary: 152 172 158;
-    --color-ink-tertiary: 132 151 138;
-    --color-primary-light: 6 51 38;
+    --color-background: 10 10 11;
+    --color-surface: 20 20 22;
+    --color-surface-raised: 27 27 30;
+    --color-ink: 244 244 245;
+    --color-ink-secondary: 161 161 170;
+    --color-ink-tertiary: 119 119 127;
+    --color-primary-light: 5 46 22;
     --color-success-light: 16 61 32;
     --color-warning-light: 66 45 10;
-    --color-border: 34 46 39;
+    --color-border: 38 38 42;
   }
 }
