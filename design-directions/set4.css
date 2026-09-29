@@ -375,8 +375,9 @@ body { background: #101012; color: #e9e9e6; font: 14px/1.45 "Inter Tight", syste
 .stage.tones[data-tone="cmp"] [data-dir="timeline"][data-cmp] { display: grid; }
 .stage.tones[data-tone="cmp"] { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 1000px; margin: 0 auto; }
 .stage.tones[data-tone="cmp"] .direction { grid-template-columns: 1fr; max-width: none; }
-[data-tone="f"] .app .fn-card { background: transparent; border: 0; border-radius: 0; padding: 8px 4px; }
-[data-tone="f"] .fn-card + .fn-card, [data-tone="f"] .fn-week-list .fn-card + .fn-card { margin-top: 0; border-top: 1px solid var(--line); }
+[data-tone="f"] .app .fn-card { position: relative; background: transparent; border: 0; border-radius: 0; padding: 8px 4px; }
+[data-tone="f"] .fn-card + .fn-card, [data-tone="f"] .fn-week-list .fn-card + .fn-card { margin-top: 0; }
+[data-tone="f"] .fn-card + .fn-card::before { content: ''; position: absolute; top: 0; left: 2px; right: 0; height: 1px; background: var(--line); }
 [data-tone="f"] .app .fn-card.live { box-shadow: inset 2px 0 0 var(--live); padding-left: 10px; }
 [data-tone="f"] .app .fn-card.fav { box-shadow: inset 2px 0 0 var(--fav); padding-left: 10px; }
 [data-tone="f"] .app .fn-card.live.fav { box-shadow: inset 2px 0 0 var(--live); }
