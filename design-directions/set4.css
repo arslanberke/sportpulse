@@ -255,6 +255,9 @@ body { background: #101012; color: #e9e9e6; font: 14px/1.45 "Inter Tight", syste
 [data-dir="final"] .s-days button.on { background: var(--surface) !important; color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
 [data-dir="final"] .s-days button.on b { color: var(--ink); }
 [data-dir="final"] .s-days button.on span { color: var(--accent); font-weight: 700; }
+.s-chips .fn-favchip { display: inline-flex; align-items: center; gap: 4px; padding-left: 10px; padding-right: 10px; }
+.s-chips .fn-favchip .star { margin: 0; font-size: 12px; line-height: 1; color: var(--fav); }
+.s-chips .fn-favchip.on .star { color: var(--fav); }
 .fn-fold { margin-bottom: 12px; }
 .fn-fold summary { list-style: none; display: flex; align-items: center; gap: 8px; padding: 11px 14px; font-size: 13px; font-weight: 700; cursor: pointer; user-select: none; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
 .fn-fold summary::-webkit-details-marker { display: none; }

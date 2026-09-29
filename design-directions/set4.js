@@ -202,12 +202,12 @@ const channelDir = {
 };
 
 /* 20 · KRONOLOJİ ------------------------------------------------------- */
-const timeSlots = () => [
-  ...byKey(today.filter((e) => !e.live && e.time < '21:52'), (e) => e.time),
-  ['Şimdi · 21:52', today.filter((e) => e.live), true],
-  ...byKey(today.filter((e) => !e.live && e.time >= '21:52'), (e) => e.time),
-  ...byKey(sat, (e) => e.time).map(([t, l]) => [`Cumartesi ${t}`, l]),
-];
+const timeSlots = (src = today, satSrc = sat) => [
+  ...byKey(src.filter((e) => !e.live && e.time < '21:52'), (e) => e.time),
+  ['Şimdi · 21:52', src.filter((e) => e.live), true],
+  ...byKey(src.filter((e) => !e.live && e.time >= '21:52'), (e) => e.time),
+  ...byKey(satSrc, (e) => e.time).map(([t, l]) => [`Cumartesi ${t}`, l]),
+].filter(([, l]) => l.length);
 const timeline = {
   home: () => {
     const slots = timeSlots();
@@ -247,7 +247,7 @@ const compact = {
 };
 
 /* 22 · FINAL (Set 5) ---------------------------------------------------
-   hafta şeridi + kapalı favoriler + saate göre akış (20) + kanal düz yazı (17) */
+   hafta şeridi + yıldız (favori) filtresi + saate göre akış (20) + kanal düz yazı (17) */
 /* sağ sütun: skor (canlı) ya da saat her zaman en sağda; durum (dakika/set) skorun solunda */
 const fnScore = (e) => `<span class="fn-sc"><b>${scoreOf(e, 'home')}</b><b>${scoreOf(e, 'away')}</b></span>`;
 const finalSide = (e, withDay) => e.live && e.away
@@ -284,21 +284,32 @@ const dayHead = ([d, list]) => `
 const settingRow = (label, value, cls = '') => `<div class="row static fn-set ${cls}"><span>${h(label)}</span>${value}</div>`;
 const sw = (on) => `<i class="fn-sw ${on ? 'on' : ''}"></i>`;
 const chev = (v) => `<span class="r"><small>${h(v)}</small><em>›</em></span>`;
+/* filtre şeridi: Tümü · ★ (favoriler) · Canlı · sporlar */
+let fnFilter = 'all';
+const fnChips = () => `<div class="s-chips">
+  <button class="${fnFilter === 'all' ? 'on' : ''}" data-filter="all">Tümü</button>
+  <button class="fn-favchip ${fnFilter === 'fav' ? 'on' : ''}" data-filter="fav" aria-label="Favoriler"><i class="star">★</i>${favs.length}</button>
+  <button><i class="dot"></i>Canlı ${events.filter((e) => e.live).length}</button>
+  <button>Futbol</button><button>Tenis</button><button>Basketbol</button><button>F1</button></div>`;
 const finalDir = {
-  home: () => `
+  home: () => {
+    const fav = fnFilter === 'fav';
+    const slots = fav
+      ? timeSlots(favs.filter((e) => !e.day), favs.filter((e) => e.day === 'sat'))
+        .concat(byKey(favs.filter((e) => e.day && e.day !== 'sat'), (e) => `${dayLong(e)} ${e.time}`))
+      : timeSlots();
+    return `
     ${finalTop('Bugün', 'Cuma, 26 Eylül')}
     ${dayStrip()}
-    <details class="fn-fold">
-      <summary><i class="star">★</i><span>Favorilerim</span><b>${favs.length}</b><em>▸</em></summary>
-      <div class="fn-fold-body">${favs.map((e) => finalCard(e, true)).join('')}</div>
-    </details>
-    ${chips()}
+    ${fnChips()}
     <div class="tlx fn">
-      ${timeSlots().map(([label, list, now]) => `
+      ${slots.map(([label, list, now]) => `
         <div class="tlx-slot ${now ? 'now' : ''}"><div class="tlx-dot"></div><small class="tlx-lbl">${h(label)}</small>
           ${list.map((e) => finalCard(e)).join('')}
         </div>`).join('')}
-    </div>`,
+      ${slots.length ? '' : '<div class="fn-empty">Favori etkinlik yok</div>'}
+    </div>`;
+  },
   week: () => `
     ${finalTop('Bu hafta', '25 Eyl – 1 Eki', true)}
     <div class="fn-week-list">
@@ -387,9 +398,10 @@ function render() {
 }
 for (const k of controls) document.getElementById(k).addEventListener('change', (ev) => { state[k] = ev.target.value; prepare(); render(); });
 document.addEventListener('click', (ev) => {
-  const t = ev.target.closest('[data-open],[data-back],[data-tab],[data-go]');
+  const t = ev.target.closest('[data-open],[data-back],[data-tab],[data-go],[data-filter]');
   if (!t) return;
-  if (t.dataset.open) state.screen = t.dataset.open === 'bjk-amed' ? 'team' : 'match';
+  if (t.dataset.filter) fnFilter = t.dataset.filter;
+  else if (t.dataset.open) state.screen = t.dataset.open === 'bjk-amed' ? 'team' : 'match';
   else if (t.dataset.go) state.screen = t.dataset.go;
   else if ('back' in t.dataset) state.screen = 'home';
   else if (t.dataset.tab === 'home') state.screen = 'home';
