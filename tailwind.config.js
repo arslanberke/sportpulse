@@ -9,8 +9,8 @@ module.exports = {
         // Brand palette. Theme-dependent tokens live as CSS variables in
         // src/global.css (light + dark values); brand accents stay fixed.
         primary: {
-          DEFAULT: '#10B981',
-          dark: '#047857',
+          DEFAULT: '#16A34A',
+          dark: '#15803D',
           light: 'rgb(var(--color-primary-light) / <alpha-value>)',
         },
         surface: {
@@ -25,6 +25,7 @@ module.exports = {
           tertiary: 'rgb(var(--color-ink-tertiary) / <alpha-value>)',
         },
         danger: '#FF3B30',
+        live: '#E5484D',
         success: {
           DEFAULT: '#34C759',
           light: 'rgb(var(--color-success-light) / <alpha-value>)',
