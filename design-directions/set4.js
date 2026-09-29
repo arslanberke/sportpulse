@@ -257,7 +257,7 @@ const finalSide = (e, withDay) => e.live && e.away
     : `${withDay ? `<small class="fn-day">${dayShort(e)}</small>` : ''}${timeOrLive(e)}`;
 const finalCard = (e, withDay = false) => `
   <button class="fn-card ${e.live ? 'live' : ''} ${e.favorite ? 'fav' : ''} ${e.done ? 'done' : ''}" data-open="${e.id}">
-    ${twoLines(e, 24, false)}
+    ${twoLines(e, 22, false)}
     <div class="fn-side">${finalSide(e, withDay)}</div>
     <small class="fn-lg">${leagueLogo(e.league, 12)}${h(e.league)}</small>
     <small class="fn-ch">${h(e.channel)}</small>
