@@ -181,20 +181,33 @@ entitlement kaldirmasini devre disi birakir.
 npx eas build -p ios --profile production
 ```
 
-Ilk kullanimdan once yapilmasi gerekenler (Expo hesabi girisi ister, bu yuzden
-elle):
+EAS projesi `@rljer/sportpulse` (`extra.eas.projectId` ve `updates.url`
+app.json'da). EAS komutlari `EXPO_TOKEN` ortam degiskeniyle giris yapar;
+`eas login` gerekmez. Devin oturumlarinda token repo secret'i
+`SPORTPULSE_EXPO_TOKEN` olarak durur ve komuta `EXPO_TOKEN` adiyla baglanir.
 
-- `npx eas init` -- `projectId` ve `updates.url` degerlerini yazar; expo-updates
-  bunlar olmadan calismaz.
-- `EXPO_PUBLIC_SUPABASE_URL` ve `EXPO_PUBLIC_SUPABASE_ANON_KEY` degerleri EAS
-  ortam degiskeni olarak tanimlanmali: `.env` git'te tutulmadigi icin bulut
-  derlemesine kendiliginden gitmez.
+`EXPO_PUBLIC_SUPABASE_URL` ve `EXPO_PUBLIC_SUPABASE_ANON_KEY` degerleri EAS
+ortam degiskeni olarak tanimlanmali: `.env` git'te tutulmadigi icin bulut
+derlemesine ve `eas update` paketine kendiliginden gitmez.
 
-`expo-updates` yayindan sonra JS duzeltmesini App Store incelemesini beklemeden
-gondermek icindir. `runtimeVersion` politikasi `fingerprint`: native bagimliliklar
-degisince runtime kimligi de degisir, boylece uyumsuz bir paket eski derlemeye
-gonderilemez. Yalnizca JS/varlik degisiklikleri boyle gonderilebilir; native
-degisiklik yeni bir derleme gerektirir.
+### OTA guncelleme (eas update)
+
+`expo-updates` JS/varlik degisikligini yeniden derleme olmadan telefona
+gondermek icindir. Kanal `production` (`updates.requestHeaders` icinde
+sabit; yerel `npm run release:phone` derlemesi de bu kanali kullanir, EAS
+production derlemesi de). Dev surumu (Debug) Metro'dan beslendigi icin
+guncelleme almaz; guncellemeler gunluk kullanilan "sportpulse" surumuna gider.
+
+```bash
+npx eas update --channel production --environment production --message "<ozet>"
+```
+
+Uygulama guncellemeyi acilista indirir ve **bir sonraki acilista** calistirir
+(`fallbackToCacheTimeout: 0`). `runtimeVersion` politikasi `fingerprint`:
+native bagimliliklar veya app config degisince runtime kimligi de degisir ve
+guncelleme eski derlemeye gitmez; o durumda telefonda yeniden derleme gerekir
+(`npm run release:phone`). Yayinlanan guncellemeler ve hedef runtime:
+`https://expo.dev/accounts/rljer/projects/sportpulse/updates`.
 
 ## Yasal metinler
 
