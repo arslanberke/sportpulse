@@ -203,10 +203,19 @@ npx eas update --channel production --environment production --message "<ozet>"
 ```
 
 Uygulama guncellemeyi acilista indirir ve **bir sonraki acilista** calistirir
-(`fallbackToCacheTimeout: 0`). `runtimeVersion` politikasi `fingerprint`:
-native bagimliliklar veya app config degisince runtime kimligi de degisir ve
-guncelleme eski derlemeye gitmez; o durumda telefonda yeniden derleme gerekir
-(`npm run release:phone`). Yayinlanan guncellemeler ve hedef runtime:
+(`fallbackToCacheTimeout: 0`). `runtimeVersion` sabit bir dizedir (`"1.0.0"`);
+guncelleme yalnizca ayni runtime ile derlenmis uygulamaya gider. Native
+bagimlilik eklenince, kaldirilinca veya app config'in native tarafi
+degisince bu dize **elle** yukseltilmeli (`1.0.0` -> `1.1.0`) ve telefonda
+yeniden derleme yapilmali (`npm run release:phone`); aksi halde eski derleme
+uyumsuz JS alir ve acilista coker.
+
+`fingerprint` politikasi kullanilmaz: fingerprint `ios/` klasorunu de
+hash'ler, klasor Mac'te var (prebuild ciktisi, git'te degil) bulutta yok, bu
+yuzden telefondaki derleme ile `eas update`'in runtime kimligi hicbir zaman
+tutmuyordu ve guncellemeler sessizce yok sayiliyordu.
+
+Yayinlanan guncellemeler ve hedef runtime:
 `https://expo.dev/accounts/rljer/projects/sportpulse/updates`.
 
 ## Yasal metinler
