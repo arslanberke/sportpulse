@@ -1,4 +1,6 @@
+import Constants from 'expo-constants';
 import { Link } from 'expo-router';
+import * as Updates from 'expo-updates';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
@@ -9,6 +11,7 @@ import { CountryPicker } from '@/features/settings/components/country-picker';
 import { ExtraAlertsSection } from '@/features/settings/components/extra-alerts-section';
 import { ReminderPrefsSection } from '@/features/settings/components/reminder-prefs-section';
 import { confirmAsync, showAlert } from '@/lib/alert';
+import { formatDateTime } from '@/lib/dates';
 import { useI18n, useLanguageStore, type Language } from '@/lib/i18n';
 import { useThemeStore, type ThemePreference } from '@/lib/theme';
 import { deleteAccount, signOut } from '@/services/auth';
@@ -84,6 +87,22 @@ function ThemeSection() {
         ))}
       </View>
     </Card>
+  );
+}
+
+/** App version plus, when running an OTA update, its publish date and id. */
+function BuildInfo() {
+  const { t } = useI18n();
+  const version = Constants.expoConfig?.version ?? '';
+  const update =
+    !Updates.isEmbeddedLaunch && Updates.createdAt && Updates.updateId
+      ? `${t('settings.update')} ${formatDateTime(Updates.createdAt.toISOString())} · ${Updates.updateId.slice(0, 8)}`
+      : t('settings.embeddedBuild');
+
+  return (
+    <Text className="mb-6 text-center text-xs text-ink-tertiary">
+      SportPulse {version} · {update}
+    </Text>
   );
 }
 
@@ -183,6 +202,8 @@ export default function SettingsScreen() {
             loading={isDeleting}
           />
         </Card>
+
+        <BuildInfo />
       </View>
     </Screen>
   );

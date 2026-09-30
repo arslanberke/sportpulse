@@ -361,6 +361,8 @@ const en = {
     'Team, league and competition names and crests are used for identification purposes only. No club, league or federation endorses, sponsors, collaborates with or is affiliated with this application.',
   'settings.legalSources':
     'Fixtures, results and standings are compiled from apifootball.com, ESPN, MotoGP, EuroLeague, Jolpica and TheSportsDB. Broadcast listings may change without notice.',
+  'settings.update': 'update',
+  'settings.embeddedBuild': 'built-in version',
 
   // Profile
   'profile.title': 'Profile',
@@ -700,6 +702,8 @@ const tr: Record<TranslationKey, string> = {
     'Takım, lig ve turnuva adları ile amblemleri yalnızca tanımlama amacıyla kullanılır. Hiçbir kulüp, lig ya da federasyon bu uygulamayı onaylamaz, desteklemez, uygulamayla işbirliği içinde değildir ve uygulamayla herhangi bir ilişkisi yoktur.',
   'settings.legalSources':
     'Fikstür, sonuç ve puan durumları apifootball.com, ESPN, MotoGP, EuroLeague, Jolpica ve TheSportsDB kaynaklarından derlenir. Yayın bilgileri önceden haber verilmeksizin değişebilir.',
+  'settings.update': 'güncelleme',
+  'settings.embeddedBuild': 'gömülü sürüm',
 
   'profile.title': 'Profil',
   'profile.edit': 'Profili düzenle',
