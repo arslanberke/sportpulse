@@ -11,7 +11,6 @@ import { Screen } from '@/components/ui/screen';
 import { EmptyCard, ErrorCard, LoadingCard } from '@/components/ui/states';
 import { FAVORITE_COLOR, useThemeColors } from '@/constants/theme';
 import { useSports } from '@/features/catalog/hooks/use-catalog';
-import { FixtureHealthNotice } from '@/features/events/components/fixture-health-notice';
 import { Timeline, timelineSlots } from '@/features/events/components/timeline';
 import { TimelineCard, liveFromScore, liveFromText, type TimelineLive } from '@/features/events/components/timeline-card';
 import { WeekHeader } from '@/features/events/components/week-header';
@@ -345,7 +344,6 @@ export default function HomeScreen() {
           />
         </ScrollView>
 
-        <FixtureHealthNotice records={fixtureHealth.data} error={fixtureHealth.isError} now={now} />
         {liveOnly && liveScores.isError && <EmptyCard iconName="radio-outline" message={t('home.liveUnavailable')} />}
         {liveOnly && liveScores.isLoading && <LoadingCard label={t('home.liveLoading')} />}
         <Modal visible={filtersOpen} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setFiltersOpen(false)}>

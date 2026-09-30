@@ -334,11 +334,9 @@ tekrarlanmaz. Uzun Retry-After yanitinda veya gun taramasindaki kalici hatada
 TheSportsDB taramasi durur; daha once toplanan veri tam pencere sayilmaz.
 Basarisiz sezon sorgusu mevcut sezon tarihlerini bosaltmaz.
 
-Ana ekrandaki `FixtureHealthNotice` artik alarm renkli "Fikstur eksik olabilir"
-banner'i degildir: kullaniciya gereksiz kotu ilk izlenim vermemek icin
-surface-raised zeminde kucuk `Bazı ligler güncelleniyor` bilgi satiridir.
-Etkilenen lig adlari yalnizca acilinca gorunur; uyarinin kendisi tamamen
-gizlenmez, cunku kapsanmayan branşları tam gibi sunmak yanlis olur.
+`FixtureHealthNotice` ana ekranda gosterilmez (kullanici istegiyle kaldirildi);
+bilesen duruyor, `useFixtureHealth` yalnizca bos liste metnini secmek icin
+kullanilir.
 
 `FixtureHealthNotice`, takip edilen liglerin ve sporlarin,
 takip edilen takimlarin lig uyeliklerinin ve favori sporcularin turlarinin
