@@ -42,7 +42,7 @@ export default function OnboardingScreen() {
 
         <View className="items-center">
           <View className="mb-8 h-28 w-28 items-center justify-center rounded-full bg-primary-light">
-            <Ionicons name={slide.icon} size={56} color={colors.primary} />
+            <Ionicons name={slide.icon} size={56} color={colors.primaryDark} />
           </View>
           <Text className="mb-3 text-center text-3xl font-bold text-ink">
             {t(slide.title)}

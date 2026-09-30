@@ -115,19 +115,19 @@ export default function ProfileScreen() {
               icon="shirt"
               value={counts.team}
               label={t('explore.teams')}
-              tint={colors.primary}
+              tint={colors.primaryDark}
             />
             <StatTile
               icon="trophy"
               value={counts.league}
               label={t('explore.leagues')}
-              tint={colors.primary}
+              tint={colors.primaryDark}
             />
             <StatTile
               icon="football"
               value={counts.sport}
               label={t('explore.sports')}
-              tint={colors.primary}
+              tint={colors.primaryDark}
             />
           </View>
         </Card>
@@ -138,7 +138,7 @@ export default function ProfileScreen() {
               className="h-9 w-9 items-center justify-center rounded-xl"
               style={{ backgroundColor: `${colors.primary}1F` }}
             >
-              <Ionicons name="person" size={18} color={colors.primary} />
+              <Ionicons name="person" size={18} color={colors.primaryDark} />
             </View>
             <Text className="text-base font-semibold text-ink">{t('profile.edit')}</Text>
           </View>

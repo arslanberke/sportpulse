@@ -8,11 +8,14 @@ module.exports = {
       colors: {
         // Brand palette. Theme-dependent tokens live as CSS variables in
         // src/global.css (light + dark values); brand accents stay fixed.
+        // Logo'daki S harfinin nanesi. Acik zeminde metin olarak okunmadigi
+        // icin `text-primary` asagida temaya gore ayri bir tona baglanir.
         primary: {
-          DEFAULT: '#16A34A',
-          dark: '#15803D',
+          DEFAULT: '#4DE3B5',
+          dark: '#0F9C78',
           light: 'rgb(var(--color-primary-light) / <alpha-value>)',
         },
+        'on-primary': '#081311',
         surface: {
           DEFAULT: 'rgb(var(--color-surface) / <alpha-value>)',
           raised: 'rgb(var(--color-surface-raised) / <alpha-value>)',
@@ -34,6 +37,9 @@ module.exports = {
           DEFAULT: '#FF9500',
           light: 'rgb(var(--color-warning-light) / <alpha-value>)',
         },
+      },
+      textColor: {
+        primary: 'rgb(var(--color-primary-text) / <alpha-value>)',
       },
       borderRadius: {
         card: '24px',

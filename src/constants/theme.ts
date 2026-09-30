@@ -7,8 +7,12 @@ import { useThemeStore } from '@/lib/theme';
  * Keep these values in sync with `src/global.css` and `tailwind.config.js`.
  */
 export const Colors = {
-  primary: '#16A34A',
-  primaryDark: '#15803D',
+  /** Logo'daki S harfinin nanesi; dolgu, simge ve vurgu rengi. */
+  primary: '#4DE3B5',
+  /** Ayni nanenin acik zeminde okunan koyu tonu (metin, basili durum). */
+  primaryDark: '#0F9C78',
+  /** Nane dolgu ustundeki metin ve simgeler: logonun kendi zemini. */
+  onPrimary: '#081311',
   background: '#F4F4F5',
   surface: '#FFFFFF',
   border: '#E4E4E7',
@@ -32,8 +36,9 @@ export type ThemeColors = Record<keyof typeof Colors, string>;
 export const FAVORITE_COLOR = '#E6B85C';
 
 export const DarkColors: ThemeColors = {
-  primary: '#16A34A',
-  primaryDark: '#15803D',
+  primary: '#4DE3B5',
+  primaryDark: '#4DE3B5',
+  onPrimary: '#081311',
   background: '#0A0A0B',
   surface: '#141416',
   border: '#26262A',

@@ -77,7 +77,7 @@ export function LiveMatchCard({ event, index }: { event: SportEvent; index?: num
 
   return (
     <Card className="mb-4" index={index}>
-      <SectionHeader icon="pulse" label={t('event.matchCentre')} tint={colors.primary} />
+      <SectionHeader icon="pulse" label={t('event.matchCentre')} tint={colors.primaryDark} />
       <View className="mb-4 flex-row items-center justify-between rounded-2xl bg-surface-raised px-4 py-3">
         <Text className="flex-1 text-sm font-semibold text-ink" numberOfLines={1}>{event.homeTeamName}</Text>
         <View className="items-center px-3">

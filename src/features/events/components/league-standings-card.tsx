@@ -109,7 +109,7 @@ export function LeagueStandingsCard({
           className="h-9 w-9 items-center justify-center rounded-xl"
           style={{ backgroundColor: `${colors.primary}1F` }}
         >
-          <Ionicons name="podium" size={18} color={colors.primary} />
+          <Ionicons name="podium" size={18} color={colors.primaryDark} />
         </View>
         <Text className="text-base font-semibold text-ink">
           {t("event.leagueStandings")}

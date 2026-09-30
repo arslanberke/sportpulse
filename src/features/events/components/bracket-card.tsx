@@ -113,7 +113,7 @@ export function BracketCard({ event, index = 0 }: { event: SportEvent; index?: n
 
   return (
     <Card className="mb-4" index={index}>
-      <SectionHeader icon="git-network" label={t('event.bracket')} tint={colors.primary} />
+      <SectionHeader icon="git-network" label={t('event.bracket')} tint={colors.primaryDark} />
       <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-3">
         <DrawOption label={t('home.allSports')} active={!filters.category} onPress={() => setFilters(value => ({ ...value, category: null }))} />
         {categories.map(category => <DrawOption key={category} label={category} active={filters.category === category} onPress={() => setFilters(value => ({ ...value, category }))} />)}
@@ -155,7 +155,7 @@ export function BracketCard({ event, index = 0 }: { event: SportEvent; index?: n
                 rank={match.awayPlayerRank}
                 playerId={match.awayPlayerId}
               />
-              <Link href={`/event/${match.id}`} asChild><Pressable className="min-h-11 flex-row items-center justify-end gap-1"><Text className="text-xs text-primary">{t('home.matchDetails')}</Text><Ionicons name="chevron-forward" size={12} color={colors.primary} /></Pressable></Link>
+              <Link href={`/event/${match.id}`} asChild><Pressable className="min-h-11 flex-row items-center justify-end gap-1"><Text className="text-xs text-primary">{t('home.matchDetails')}</Text><Ionicons name="chevron-forward" size={12} color={colors.primaryDark} /></Pressable></Link>
             </View>
         ))}
       </View>

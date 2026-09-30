@@ -321,7 +321,7 @@ export default function FootballPlayerScreen() {
             <SectionHeader
               icon="stats-chart"
               label={`${t('footballPlayer.thisSeason')}${currentLabel ? ` · ${currentLabel}` : ''}`}
-              tint={colors.primary}
+              tint={colors.primaryDark}
             />
             <SeasonHeader />
             {current.map((stat) => (
@@ -332,7 +332,7 @@ export default function FootballPlayerScreen() {
 
         {pastGroups.length > 0 && (
           <Card className="mb-4" index={2}>
-            <SectionHeader icon="time" label={t('footballPlayer.career')} tint={colors.primary} />
+            <SectionHeader icon="time" label={t('footballPlayer.career')} tint={colors.primaryDark} />
             <SeasonHeader />
             {pastGroups.map((group, i) => (
               <SeasonGroup key={group.label ?? `season-${i}`} label={group.label} stats={group.stats} playerId={player.id} />

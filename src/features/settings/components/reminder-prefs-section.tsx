@@ -81,7 +81,7 @@ function LoadedSection({ prefs }: { prefs: ReminderPrefs }) {
                   active ? 'bg-primary' : 'bg-background'
                 }`}
               >
-                <Text className={`font-semibold ${active ? 'text-white' : 'text-ink-secondary'}`}>
+                <Text className={`font-semibold ${active ? 'text-on-primary' : 'text-ink-secondary'}`}>
                   {t(option.key)}
                 </Text>
               </Pressable>
@@ -122,7 +122,7 @@ function LoadedSection({ prefs }: { prefs: ReminderPrefs }) {
           </View>
         </View>
         <Pressable onPress={saveQuietHours} className="items-center rounded-button bg-primary py-3">
-          <Text className="font-semibold text-white">{t('common.save')}</Text>
+          <Text className="font-semibold text-on-primary">{t('common.save')}</Text>
         </Pressable>
       </Card>
     </>

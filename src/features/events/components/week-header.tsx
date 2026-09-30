@@ -1,8 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { Link, useRouter } from 'expo-router';
+import { useEffect, useRef } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
-import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { useThemeColors } from '@/constants/theme';
 import { useCatalogSearch, useSports } from '@/features/catalog/hooks/use-catalog';
@@ -80,9 +80,9 @@ function SuggestionTile({
  * (bu isi ekran yapar) ve burada terimle eslesen lig/takimlar kare kare
  * listelenir, boylece bir takimin kendi sayfasina da gecilebilir.
  *
- * Alan acikken baslik ve ayarlar dugmesi yerini alana birakir; asagi
- * kaydirilinca ekran alani kapatir ve yalnizca yazilan terim bir dugmede
- * kalir. O dugmeye dokunmak alani ve onerileri yeniden acar.
+ * Alan acikken baslik ve ayarlar dugmesi yerini alana birakir. Klavyedeki
+ * "Ara" alani kapatir, terim bir dugmede kalir ve liste suzulmus kalir; o
+ * dugmeye dokunmak alani ve onerileri yeniden acar. Carpi terimi siler.
  */
 export function WeekHeader({
   title,
@@ -102,6 +102,14 @@ export function WeekHeader({
   const [, canonical] = searchNeedles(term);
   const { data: results } = useCatalogSearch(canonical ?? term);
   const { data: sports } = useSports();
+  const inputRef = useRef<TextInput>(null);
+
+  // Alan acilinca klavye de acilir; odak alan yerlestikten bir kare sonra verilir.
+  useEffect(() => {
+    if (!expanded) return;
+    const frame = requestAnimationFrame(() => inputRef.current?.focus());
+    return () => cancelAnimationFrame(frame);
+  }, [expanded]);
 
   const sportIcon = (sportId: string) => (sports ?? []).find((s) => s.id === sportId)?.icon;
 
@@ -116,23 +124,21 @@ export function WeekHeader({
   return (
     <View className="mb-3">
       <View className="flex-row items-end gap-2">
-        {/* Slayt animasyonu ekran yeniden gorunurken tekrar tetiklenip alani
-            yandan kaydiriyordu; solma ayni hissi yan etkisiz veriyor. */}
         {expanded ? (
-          <Animated.View
-            entering={FadeIn.duration(150)}
-            className="flex-1 flex-row items-center gap-2 rounded-pill border border-line bg-surface px-4"
-          >
+          <View className="h-10 flex-1 flex-row items-center gap-2 rounded-pill border border-line bg-surface px-4">
             <Ionicons name="search" size={18} color={colors.inkTertiary} />
             <TextInput
-              className="flex-1 py-3 text-ink"
+              ref={inputRef}
+              className="flex-1 text-ink"
+              style={{ paddingVertical: 0 }}
               placeholder={t('home.search')}
               placeholderTextColor={colors.inkTertiary}
               value={term}
               onChangeText={onTermChange}
-              autoFocus
               autoCorrect={false}
+              autoCapitalize="none"
               returnKeyType="search"
+              onSubmitEditing={() => onExpandedChange(false)}
             />
             <Pressable
               onPress={() => {
@@ -145,7 +151,7 @@ export function WeekHeader({
             >
               <Ionicons name="close" size={20} color={colors.inkSecondary} />
             </Pressable>
-          </Animated.View>
+          </View>
         ) : (
           <>
             <View className="flex-1">
@@ -165,7 +171,7 @@ export function WeekHeader({
                 weekActive ? 'bg-primary-light' : 'border border-line bg-surface'
               }`}
             >
-              <Ionicons name="calendar-outline" size={14} color={colors.primary} />
+              <Ionicons name="calendar-outline" size={14} color={colors.primaryDark} />
               <Text className={`text-xs font-bold ${weekActive ? 'text-primary' : 'text-ink-secondary'}`}>
                 {t('home.weekButton')}
               </Text>
@@ -180,12 +186,11 @@ export function WeekHeader({
                 <Ionicons name="search" size={18} color={colors.ink} />
               </Pressable>
             ) : (
-              // Kaydirdiktan sonra terim gorunur kalir; dokunus alani geri acar.
               <Pressable
                 onPress={() => onExpandedChange(true)}
                 className="h-10 max-w-[35%] flex-row items-center gap-2 rounded-pill border border-primary bg-surface px-3 active:opacity-70"
               >
-                <Ionicons name="search" size={16} color={colors.primary} />
+                <Ionicons name="search" size={16} color={colors.primaryDark} />
                 <Text className="shrink text-sm font-medium text-ink" numberOfLines={1}>
                   {trimmed}
                 </Text>

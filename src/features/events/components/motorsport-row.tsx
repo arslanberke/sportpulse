@@ -105,7 +105,7 @@ export function MotorsportRow({
       >
         <Text
           className="text-sm font-bold"
-          style={{ color: highlight ? colors.primary : colors.inkSecondary }}
+          style={{ color: highlight ? colors.primaryDark : colors.inkSecondary }}
         >
           {position}
         </Text>
