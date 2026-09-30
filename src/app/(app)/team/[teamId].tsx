@@ -126,11 +126,11 @@ export default function TeamScreen() {
               <Ionicons
                 name={following ? 'checkmark' : 'add'}
                 size={16}
-                color={following ? colors.primary : '#FFFFFF'}
+                color={following ? colors.primary : colors.onPrimary}
               />
               <Text
                 className="text-sm font-semibold"
-                style={{ color: following ? colors.primary : '#FFFFFF' }}
+                style={{ color: following ? colors.primaryDark : colors.onPrimary }}
               >
                 {following ? t('team.following') : t('team.follow')}
               </Text>
@@ -141,10 +141,10 @@ export default function TeamScreen() {
         <TabBar tab={activeTab} onChange={setTab} hasSquad={hasSquad} />
 
         {!team && teamLoading ? (
-          <ActivityIndicator color={colors.primary} />
+          <ActivityIndicator color={colors.primaryDark} />
         ) : activeTab === 'squad' ? (
           squadLoading ? (
-            <ActivityIndicator color={colors.primary} />
+            <ActivityIndicator color={colors.primaryDark} />
           ) : (squad ?? []).length === 0 ? (
             <Card index={1}>
               <Text className="text-sm text-ink-secondary">{t('team.noSquad')}</Text>
@@ -207,7 +207,7 @@ export default function TeamScreen() {
           )
         ) : activeTab === 'results' || activeTab === 'fixtures' ? (
           eventsLoading ? (
-            <ActivityIndicator color={colors.primary} />
+            <ActivityIndicator color={colors.primaryDark} />
           ) : (activeTab === 'results' ? season.results : season.upcoming).length === 0 ? (
             <Card index={1}>
               <Text className="text-sm text-ink-secondary">
@@ -221,7 +221,7 @@ export default function TeamScreen() {
           )
         ) : tablesLoading ? (
           <View className="items-center gap-2 py-6">
-            <ActivityIndicator color={colors.primary} />
+            <ActivityIndicator color={colors.primaryDark} />
             <Text className="text-sm text-ink-secondary">{t('team.standingsLoading')}</Text>
           </View>
         ) : (tables ?? []).length === 0 ? (

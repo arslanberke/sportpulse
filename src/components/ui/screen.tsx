@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { useCallback } from 'react';
 import { Platform, RefreshControl, StyleSheet, View } from 'react-native';
 import Animated, { type AnimatedScrollViewProps } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -19,12 +19,6 @@ interface ScreenProps {
   refreshing?: boolean;
   /** Reanimated scroll handler (enables e.g. hero parallax on the screen). */
   onScroll?: AnimatedScrollViewProps['onScroll'];
-  /**
-   * Kullanici parmagiyla kaydirmaya basladi. `onScroll`'dan farki: icerik
-   * yuksekligi degistiginde (liste suzulunce) tetiklenmez, yani "kullanici
-   * kaydiriyor" niyetini dogru temsil eder.
-   */
-  onScrollBeginDrag?: AnimatedScrollViewProps['onScrollBeginDrag'];
 }
 
 /** In dark mode the flat background is replaced with a subtle vertical fade. */
@@ -44,9 +38,9 @@ export function Screen({
   onRefresh,
   refreshing = false,
   onScroll,
-  onScrollBeginDrag,
 }: ScreenProps) {
   const colors = useThemeColors();
+  const insets = useSafeAreaInsets();
 
   const handleRefresh = useCallback(() => {
     if (Platform.OS !== 'web') {
@@ -64,15 +58,17 @@ export function Screen({
     );
   }
 
+  // Alt guvenli alan kutuya degil kaydirilan icerige eklenir: sekme cubugu
+  // olan ekranlarda liste cubuga kadar iner.
   return (
-    <SafeAreaView className="flex-1 bg-background">
+    <SafeAreaView edges={['top', 'left', 'right']} className="flex-1 bg-background">
       <Backdrop />
       <Animated.ScrollView
         className="flex-1"
-        contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 48 }}
+        contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 48 + insets.bottom }}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
         onScroll={onScroll}
-        onScrollBeginDrag={onScrollBeginDrag}
         scrollEventThrottle={16}
         refreshControl={
           onRefresh ? (

@@ -324,7 +324,7 @@ export default function EventDetailScreen() {
           <SectionHeader
             icon="calendar"
             label={t("event.details")}
-            tint={colors.primary}
+            tint={colors.primaryDark}
           />
           <View className="gap-2.5">
             <View className="flex-row items-center gap-3">
@@ -338,7 +338,7 @@ export default function EventDetailScreen() {
                   size={16}
                   color={
                     event.status === "scheduled"
-                      ? colors.primary
+                      ? colors.primaryDark
                       : colors.danger
                   }
                 />
@@ -424,7 +424,7 @@ export default function EventDetailScreen() {
           <SectionHeader
             icon="tv"
             label={t("event.channel")}
-            tint={colors.primary}
+            tint={colors.primaryDark}
           />
           {channels.length === 0 && (
             <Text className="text-sm text-ink-secondary">
@@ -477,7 +477,7 @@ export default function EventDetailScreen() {
           <SectionHeader
             icon="notifications"
             label={t("event.reminders")}
-            tint={colors.primary}
+            tint={colors.primaryDark}
           />
           <Text className="mb-3 text-sm text-ink-secondary">
             {t("event.remindersBody")}
@@ -496,7 +496,7 @@ export default function EventDetailScreen() {
                   <Ionicons
                     name="notifications-outline"
                     size={14}
-                    color={colors.primary}
+                    color={colors.primaryDark}
                   />
                   <Text className="text-sm font-medium text-ink">
                     {formatDateTime(trigger.toISOString())}

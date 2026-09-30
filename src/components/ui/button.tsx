@@ -23,7 +23,7 @@ const containerStyles: Record<ButtonVariant, string> = {
 };
 
 const labelStyles: Record<ButtonVariant, string> = {
-  primary: 'text-white',
+  primary: 'text-on-primary',
   secondary: 'text-primary',
   danger: 'text-white',
 };
@@ -74,7 +74,15 @@ export function Button({
           pointerEvents="none"
         />
         {loading ? (
-          <ActivityIndicator color={variant === 'secondary' ? Colors.primary : '#FFFFFF'} />
+          <ActivityIndicator
+            color={
+              variant === 'secondary'
+                ? Colors.primary
+                : variant === 'primary'
+                  ? Colors.onPrimary
+                  : '#FFFFFF'
+            }
+          />
         ) : (
           <Text className={`text-base font-semibold ${labelStyles[variant]}`}>{title}</Text>
         )}

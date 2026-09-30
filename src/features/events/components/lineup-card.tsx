@@ -231,7 +231,7 @@ export function LineupCard({
           className="h-9 w-9 items-center justify-center rounded-xl"
           style={{ backgroundColor: `${colors.primary}1F` }}
         >
-          <Ionicons name="people" size={18} color={colors.primary} />
+          <Ionicons name="people" size={18} color={colors.primaryDark} />
         </View>
         <Text className="text-base font-semibold text-ink">
           {t("event.lineups")}
@@ -242,7 +242,7 @@ export function LineupCard({
         <LineupBody lineup={withRatings(lineup, stats)} event={event} />
       ) : isLoading ? (
         <View className="flex-row items-center gap-2 py-1">
-          <ActivityIndicator size="small" color={colors.primary} />
+          <ActivityIndicator size="small" color={colors.primaryDark} />
           <Text className="text-sm text-ink-secondary">
             {t("event.lineupsLoading")}
           </Text>

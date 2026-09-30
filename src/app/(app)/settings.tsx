@@ -43,7 +43,7 @@ function LanguageSection() {
           >
             <Text
               className={`font-semibold ${
-                language === option.value ? 'text-white' : 'text-ink-secondary'
+                language === option.value ? 'text-on-primary' : 'text-ink-secondary'
               }`}
             >
               {option.label}
@@ -75,7 +75,7 @@ function ThemeSection() {
           >
             <Text
               className={`font-semibold ${
-                preference === option.value ? 'text-white' : 'text-ink-secondary'
+                preference === option.value ? 'text-on-primary' : 'text-ink-secondary'
               }`}
             >
               {t(option.key)}

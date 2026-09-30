@@ -109,7 +109,7 @@ export function ErrorCard({
           onPress={onRetry}
           className="rounded-button bg-primary px-6 py-3"
         >
-          <Text className="font-semibold text-white">{t('common.retry')}</Text>
+          <Text className="font-semibold text-on-primary">{t('common.retry')}</Text>
         </Pressable>
       )}
     </View>

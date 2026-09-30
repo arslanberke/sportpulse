@@ -113,7 +113,7 @@ export function MatchStatsCard({
           <SectionHeader
             icon="stats-chart"
             label={t("event.stats")}
-            tint={colors.primary}
+            tint={colors.primaryDark}
           />
           <Text className="text-sm text-ink-secondary">
             {t("event.statsLoading")}
@@ -130,7 +130,7 @@ export function MatchStatsCard({
       <SectionHeader
         icon="stats-chart"
         label={t("event.stats")}
-        tint={colors.primary}
+        tint={colors.primaryDark}
       />
       <View className="gap-3">
         {rows.map((row) => (

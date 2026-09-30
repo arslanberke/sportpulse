@@ -73,7 +73,7 @@ export default function LeagueFollowScreen() {
         {leagueStart.startsAt && leagueStart.daysUntil !== null && (
           <Card className="mb-4" index={0}>
             <View className="flex-row items-center gap-3">
-              <Ionicons name="hourglass-outline" size={22} color={colors.primary} />
+              <Ionicons name="hourglass-outline" size={22} color={colors.primaryDark} />
               <View className="flex-1">
                 <Text className="text-base font-semibold text-ink">
                   {leagueStart.daysUntil === 1

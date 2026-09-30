@@ -54,11 +54,11 @@ function SportTab({
         <Ionicons
           name={icon as keyof typeof Ionicons.glyphMap}
           size={15}
-          color={active ? '#FFFFFF' : colors.inkSecondary}
+          color={active ? colors.onPrimary : colors.inkSecondary}
         />
       )}
       <Text
-        className={`text-sm font-semibold ${active ? 'text-white' : 'text-ink-secondary'}`}
+        className={`text-sm font-semibold ${active ? 'text-on-primary' : 'text-ink-secondary'}`}
       >
         {label}
       </Text>
@@ -125,8 +125,12 @@ export default function HomeScreen() {
   const colors = useThemeColors();
   const now = useNow();
   const days = calendarDays(now);
-  const selectedDay = dayOffset === null ? null : days[dayOffset];
-  const weekActive = dayOffset === null;
+  // Arama secili gunle sinirli kalmaz: aranan mac cumartesiyse "Bugun"
+  // seciliyken de bulunmali. Terim varken tum hafta taranir, sonuclar gun gun
+  // listelenir ve terim silinince secili gune donulur.
+  const searching = searchTerm.trim() !== '';
+  const weekActive = dayOffset === null || searching;
+  const selectedDay = weekActive ? null : days[dayOffset ?? 0];
   const { favoriteTeamIds, favoritePlayerIds } = useFavorites();
   const fixtureHealth = useFixtureHealth(follows, favoritePlayerIds);
   const [liveOnly, setLiveOnly] = useState(false);
@@ -167,15 +171,6 @@ export default function HomeScreen() {
     },
     [liveMatches, espnMatches, t],
   );
-
-  // Kullanici kaydirmaya basladiginda alan kapanir: liste tam ekran kalir, terim
-  // basliktaki dugmede gorunur olmaya devam eder.
-  //
-  // Kaydirma konumuna degil dokunma hareketine bakiliyor: yazarken liste
-  // suzuldugu icin icerik yuksekligi degisiyor ve bu da kaydirma olayi
-  // uretiyordu. Sonuc olarak kullanici yazmaya baslar baslamaz alan kapaniyor,
-  // yazdigi metni goremiyordu.
-  const collapseOnScroll = useCallback(() => setSearchExpanded(false), []);
 
   // Only offer tabs for sports that actually have events this week.
   const sportTabs = useMemo<Sport[]>(() => {
@@ -270,13 +265,14 @@ export default function HomeScreen() {
   const weekGroups = groupCalendarEvents(visibleEvents, now);
   const slots = timelineSlots(visibleEvents, now, t('home.now'));
   const showEmpty = !isLoading && !error && visibleEvents.length === 0;
+  // Arama sonuclarinda bos gunler listelenmez; hicbiri yoksa asagidaki bos
+  // durum karti gosterilir.
+  const weekDays = searching
+    ? days.filter((day) => weekGroups.some((g) => isSameDay(g.day, day)))
+    : days;
 
   return (
-    <Screen
-      onRefresh={handleRefresh}
-      refreshing={refreshing}
-      onScrollBeginDrag={collapseOnScroll}
-    >
+    <Screen onRefresh={handleRefresh} refreshing={refreshing}>
       <View className="pt-4">
         <WeekHeader
           title={title}
@@ -285,30 +281,32 @@ export default function HomeScreen() {
           onTermChange={setSearchTerm}
           expanded={searchExpanded}
           onExpandedChange={setSearchExpanded}
-          weekActive={weekActive}
-          onToggleWeek={() => setDayOffset(weekActive ? 0 : null)}
+          weekActive={dayOffset === null}
+          onToggleWeek={() => setDayOffset(dayOffset === null ? 0 : null)}
         />
 
-        <View className="mb-2.5 flex-row" style={{ gap: 6 }}>
-          {days.map((day, offset) => {
-            const on = dayOffset === offset;
-            return (
-              <Pressable
-                key={day.toISOString()}
-                onPress={() => setDayOffset(offset)}
-                accessibilityRole="button"
-                accessibilityLabel={longDate(day)}
-                accessibilityState={{ selected: on }}
-                className={`flex-1 items-center rounded-2xl py-1.5 ${on ? 'border border-line bg-surface' : ''}`}
-              >
-                <Text className={`text-[10px] ${on ? 'font-bold text-primary' : 'font-medium text-ink-secondary'}`}>
-                  {formatWeekdayShort(day)}
-                </Text>
-                <Text className="mt-px text-[15px] font-bold text-ink">{day.getDate()}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
+        {!searching && (
+          <View className="mb-2.5 flex-row" style={{ gap: 6 }}>
+            {days.map((day, offset) => {
+              const on = dayOffset === offset;
+              return (
+                <Pressable
+                  key={day.toISOString()}
+                  onPress={() => setDayOffset(offset)}
+                  accessibilityRole="button"
+                  accessibilityLabel={longDate(day)}
+                  accessibilityState={{ selected: on }}
+                  className={`flex-1 items-center rounded-2xl py-1.5 ${on ? 'border border-line bg-surface' : ''}`}
+                >
+                  <Text className={`text-[10px] ${on ? 'font-bold text-primary' : 'font-medium text-ink-secondary'}`}>
+                    {formatWeekdayShort(day)}
+                  </Text>
+                  <Text className="mt-px text-[15px] font-bold text-ink">{day.getDate()}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        )}
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-1 -mx-6" contentContainerStyle={{ paddingHorizontal: 24 }}>
           <Chip
@@ -369,7 +367,7 @@ export default function HomeScreen() {
             </ScrollView>
             <View className="gap-3 px-6 pb-6">
               <Pressable accessibilityRole="button" onPress={resetFilters} className="min-h-11 items-center justify-center"><Text className="text-primary">{t('home.resetFilters')}</Text></Pressable>
-              <Pressable accessibilityRole="button" onPress={() => setFiltersOpen(false)} className="items-center rounded-2xl bg-primary p-4"><Text className="font-bold text-white">{t('home.applyFilters')}</Text></Pressable>
+              <Pressable accessibilityRole="button" onPress={() => setFiltersOpen(false)} className="items-center rounded-2xl bg-primary p-4"><Text className="font-bold text-on-primary">{t('home.applyFilters')}</Text></Pressable>
             </View>
           </SafeAreaView>
         </Modal>
@@ -383,7 +381,7 @@ export default function HomeScreen() {
 
         {weekActive && !liveOnly ? (
           <View className="mt-1">
-            {days.map((day) => {
+            {weekDays.map((day) => {
               const group = weekGroups.find((g) => isSameDay(g.day, day));
               const today = isSameDay(day, now);
               return (
@@ -418,7 +416,7 @@ export default function HomeScreen() {
         {liveOnly && !liveScores.isLoading && !liveScores.isError && visibleEvents.length === 0 && (
           <EmptyCard iconName="radio-outline" message={t('home.liveEmpty')} />
         )}
-        {!liveOnly && !weekActive && showEmpty && (
+        {!liveOnly && (searching || !weekActive) && showEmpty && (
           <EmptyCard
             iconName={searchTerm.trim() ? 'search-outline' : 'calendar-outline'}
             message={

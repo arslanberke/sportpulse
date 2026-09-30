@@ -5,7 +5,7 @@ import { Link } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
 import { Chip } from "@/components/ui/chip";
-import { FAVORITE_COLOR, useThemeColors } from "@/constants/theme";
+import { Colors, FAVORITE_COLOR, useThemeColors } from "@/constants/theme";
 import {
     CircuitOutline,
     findCircuitPath,
@@ -91,10 +91,10 @@ function StatusChip({
       <Chip
         label={formatCountdown(event.startsAt, t, now, event.endsAt)}
         icon="hourglass-outline"
-        iconColor="#FFFFFF"
+        iconColor={accent ? "#FFFFFF" : Colors.onPrimary}
         className={accent ? undefined : "bg-primary"}
         style={accent ? { backgroundColor: accent } : undefined}
-        textClassName="text-white"
+        textClassName={accent ? "text-white" : "text-on-primary"}
       />
     );
   }

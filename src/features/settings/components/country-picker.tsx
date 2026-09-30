@@ -35,7 +35,7 @@ export function CountryPicker() {
             }`}
           >
             <Text>{country.flag}</Text>
-            <Text className={`font-semibold ${active ? 'text-white' : 'text-ink-secondary'}`}>
+            <Text className={`font-semibold ${active ? 'text-on-primary' : 'text-ink-secondary'}`}>
               {country.name}
             </Text>
           </Pressable>

@@ -16,7 +16,8 @@
     --color-ink: 17 17 20;
     --color-ink-secondary: 99 99 107;
     --color-ink-tertiary: 147 147 155;
-    --color-primary-light: 220 252 231;
+    --color-primary-text: 15 156 120;
+    --color-primary-light: 214 248 236;
     --color-success-light: 228 248 234;
     --color-warning-light: 255 243 224;
     --color-border: 228 228 231;
@@ -29,7 +30,8 @@
     --color-ink: 244 244 245;
     --color-ink-secondary: 161 161 170;
     --color-ink-tertiary: 119 119 127;
-    --color-primary-light: 5 46 22;
+    --color-primary-text: 77 227 181;
+    --color-primary-light: 12 54 43;
     --color-success-light: 16 61 32;
     --color-warning-light: 66 45 10;
     --color-border: 38 38 42;
