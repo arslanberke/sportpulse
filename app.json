@@ -45,7 +45,11 @@
       ]
     ],
     "updates": {
-      "fallbackToCacheTimeout": 0
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/8768501d-5d89-4ba6-9b46-5fb858c2c577",
+      "requestHeaders": {
+        "expo-channel-name": "production"
+      }
     },
     "runtimeVersion": {
       "policy": "fingerprint"
@@ -53,6 +57,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "8768501d-5d89-4ba6-9b46-5fb858c2c577"
+      }
+    },
+    "owner": "rljer"
   }
 }
