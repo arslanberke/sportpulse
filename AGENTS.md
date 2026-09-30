@@ -183,7 +183,8 @@ npx eas build -p ios --profile production
 
 EAS projesi `@rljer/sportpulse` (`extra.eas.projectId` ve `updates.url`
 app.json'da). EAS komutlari `EXPO_TOKEN` ortam degiskeniyle giris yapar;
-`eas login` gerekmez.
+`eas login` gerekmez. Devin oturumlarinda token repo secret'i
+`SPORTPULSE_EXPO_TOKEN` olarak durur ve komuta `EXPO_TOKEN` adiyla baglanir.
 
 `EXPO_PUBLIC_SUPABASE_URL` ve `EXPO_PUBLIC_SUPABASE_ANON_KEY` degerleri EAS
 ortam degiskeni olarak tanimlanmali: `.env` git'te tutulmadigi icin bulut
