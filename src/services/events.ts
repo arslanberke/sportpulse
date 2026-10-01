@@ -1,3 +1,4 @@
+import { dedupeEvents } from '@/features/events/lib/dedupe-events';
 import { APISPORTS_LEAGUE_IDS, isCompleteLineup, type ApiSportsFixtureState } from '@/services/providers/api-sports-fixture';
 import type { FootballLiveScore } from '@/services/providers/api-sports-live';
 import { supabase } from '@/services/supabase';
@@ -174,7 +175,7 @@ export async function fetchEvents(params: {
     .or(`starts_at.gte.${from.toISOString()},ends_at.gte.${from.toISOString()}`)
     .order('starts_at');
   if (error) throw error;
-  return withTournamentNames((data as unknown as EventRow[]).map(mapRow));
+  return withTournamentNames(dedupeEvents((data as unknown as EventRow[]).map(mapRow)));
 }
 
 /**
@@ -200,7 +201,7 @@ export async function fetchTeamEvents(params: {
     .or(`home_team_id.eq.${params.teamId},away_team_id.eq.${params.teamId}`)
     .order('starts_at');
   if (error) throw error;
-  return (data as unknown as EventRow[]).map(mapRow);
+  return dedupeEvents((data as unknown as EventRow[]).map(mapRow));
 }
 
 /**
