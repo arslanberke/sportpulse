@@ -15,7 +15,7 @@ import { useFollowActions } from '@/features/follows/hooks/use-follow-actions';
 import { useTeamSquad } from '@/features/players/hooks/use-football-players';
 import { LeagueTableCard } from '@/features/teams/components/league-table';
 import { TeamEventRow } from '@/features/teams/components/team-event-row';
-import { splitTeamSeasonEvents } from '@/features/teams/lib/team-season';
+import { isTeamEventLive, splitTeamSeasonEvents } from '@/features/teams/lib/team-season';
 import { useI18n } from '@/lib/i18n';
 import { useNow } from '@/lib/now';
 type Tab = 'results' | 'fixtures' | 'squad' | 'standings';
@@ -24,8 +24,8 @@ function TabBar({ tab, onChange, hasSquad }: { tab: Tab; onChange: (tab: Tab) =>
   const { t } = useI18n();
   const colors = useThemeColors();
   const tabs: { key: Tab; label: string }[] = [
-    { key: 'results', label: t('team.results') },
     { key: 'fixtures', label: t('team.fixtures') },
+    { key: 'results', label: t('team.results') },
     ...(hasSquad ? [{ key: 'squad' as Tab, label: t('team.squad') }] : []),
     { key: 'standings', label: t('team.standings') },
   ];
@@ -67,7 +67,7 @@ export default function TeamScreen() {
   const colors = useThemeColors();
   const now = useNow();
   const router = useRouter();
-  const [tab, setTab] = useState<Tab>('squad');
+  const [tab, setTab] = useState<Tab>('fixtures');
 
   const { data: team, isLoading: teamLoading } = useTeam(teamId);
   const { events, isLoading: eventsLoading, refetch, isRefetching } = useTeamEvents(teamId);
@@ -119,41 +119,52 @@ export default function TeamScreen() {
             <Text className="flex-1 text-xl font-bold text-ink" numberOfLines={2}>
               {team?.name ?? ''}
             </Text>
+          </View>
+          <View className="mt-3 flex-row gap-2">
             <Pressable
-              onPress={() => toggleFavoriteTeam.mutate({ teamId, isFavorite: favorite })}
+              onPress={() => toggleFollow('team', teamId)}
               hitSlop={8}
-              className="p-1 active:opacity-60"
+              className="flex-1 flex-row items-center justify-center gap-1.5 rounded-button px-3 py-2 active:opacity-70"
+              style={{
+                backgroundColor: following ? `${colors.primary}1F` : colors.primary,
+              }}
+            >
+              <Ionicons
+                name={following ? 'checkmark' : 'add'}
+                size={16}
+                color={following ? colors.primary : colors.onPrimary}
+              />
+              <Text
+                className="text-sm font-semibold"
+                style={{ color: following ? colors.primaryDark : colors.onPrimary }}
+              >
+                {following ? t('team.following') : t('team.follow')}
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                if (!favorite && !following) toggleFollow('team', teamId);
+                toggleFavoriteTeam.mutate({ teamId, isFavorite: favorite });
+              }}
+              hitSlop={8}
+              className="flex-1 flex-row items-center justify-center gap-1.5 rounded-button border px-3 py-2 active:opacity-70"
+              style={{
+                borderColor: favorite ? FAVORITE_COLOR : colors.border,
+                backgroundColor: favorite ? `${FAVORITE_COLOR}1F` : 'transparent',
+              }}
               accessibilityRole="button"
-              accessibilityLabel={t('profile.favorite')}
               accessibilityState={{ selected: favorite }}
             >
               <Ionicons
                 name={favorite ? 'star' : 'star-outline'}
-                size={24}
-                color={favorite ? FAVORITE_COLOR : colors.inkTertiary}
+                size={16}
+                color={favorite ? FAVORITE_COLOR : colors.inkSecondary}
               />
+              <Text className="text-sm font-semibold text-ink">
+                {favorite ? t('team.favorite') : t('team.addFavorite')}
+              </Text>
             </Pressable>
           </View>
-          <Pressable
-            onPress={() => toggleFollow('team', teamId)}
-            hitSlop={8}
-            className="mt-3 flex-row items-center justify-center gap-1.5 rounded-button px-3 py-2 active:opacity-70"
-            style={{
-              backgroundColor: following ? `${colors.primary}1F` : colors.primary,
-            }}
-          >
-            <Ionicons
-              name={following ? 'checkmark' : 'add'}
-              size={16}
-              color={following ? colors.primary : colors.onPrimary}
-            />
-            <Text
-              className="text-sm font-semibold"
-              style={{ color: following ? colors.primaryDark : colors.onPrimary }}
-            >
-              {following ? t('team.following') : t('team.follow')}
-            </Text>
-          </Pressable>
         </Card>
 
         <TabBar tab={activeTab} onChange={setTab} hasSquad={hasSquad} />
@@ -234,7 +245,11 @@ export default function TeamScreen() {
             </Card>
           ) : (
             (activeTab === 'results' ? season.results : season.upcoming).map((event) => (
-              <TeamEventRow key={event.id} event={event} />
+              <TeamEventRow
+                key={event.id}
+                event={event}
+                live={activeTab === 'fixtures' && isTeamEventLive(event, now)}
+              />
             ))
           )
         ) : tablesLoading ? (

@@ -139,12 +139,13 @@ export default function LeagueFollowScreen() {
                 onToggleFollow={() => toggleWithin(group, team.id)}
                 onPress={() => router.push(`/team/${team.id}`)}
                 favorite={favoriteTeamIds.has(team.id)}
-                onToggleFavorite={() =>
-                  toggleFavorite.mutate({
-                    teamId: team.id,
-                    isFavorite: favoriteTeamIds.has(team.id),
-                  })
-                }
+                favoriteLabel={t('team.favorite')}
+                onToggleFavorite={() => {
+                  const favorite = favoriteTeamIds.has(team.id);
+                  const followed = sportFollowed || covered || isFollowing('team', team.id);
+                  if (!favorite && !followed) toggleWithin(group, team.id);
+                  toggleFavorite.mutate({ teamId: team.id, isFavorite: favorite });
+                }}
               />
             ))
           )}

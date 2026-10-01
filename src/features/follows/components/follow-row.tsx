@@ -36,6 +36,8 @@ interface FollowRowProps {
    */
   favorite?: boolean;
   onToggleFavorite?: () => void;
+  /** Yildiz dugmesinin yanindaki yazi ("Favori"). */
+  favoriteLabel?: string;
 }
 
 /**
@@ -54,6 +56,7 @@ export function FollowRow({
   meta,
   favorite = false,
   onToggleFavorite,
+  favoriteLabel,
 }: FollowRowProps) {
   const colors = useThemeColors();
   const ticked = coveredByParent || following;
@@ -131,15 +134,23 @@ export function FollowRow({
         <Pressable
           onPress={onToggleFavorite}
           hitSlop={10}
-          className="py-3 pl-2 pr-1 active:opacity-60"
+          className="ml-2 flex-row items-center gap-1 rounded-pill border px-2 py-1 active:opacity-60"
+          style={{
+            borderColor: favorite ? FAVORITE_COLOR : colors.border,
+            backgroundColor: favorite ? `${FAVORITE_COLOR}1F` : 'transparent',
+          }}
           accessibilityRole="button"
+          accessibilityLabel={favoriteLabel}
           accessibilityState={{ selected: favorite }}
         >
           <Ionicons
             name={favorite ? 'star' : 'star-outline'}
-            size={20}
-            color={favorite ? FAVORITE_COLOR : colors.inkTertiary}
+            size={14}
+            color={favorite ? FAVORITE_COLOR : colors.inkSecondary}
           />
+          {favoriteLabel && (
+            <Text className="text-xs font-semibold text-ink-secondary">{favoriteLabel}</Text>
+          )}
         </Pressable>
       )}
     </View>
