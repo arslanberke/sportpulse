@@ -17,13 +17,26 @@ export function dedupeTeamEvents(events: SportEvent[]): SportEvent[] {
   return [...unique.values()];
 }
 
+const LIVE_WINDOW_MS = 3 * 60 * 60 * 1000;
+
+/**
+ * Baslamis ama sonucu kesinlesmemis etkinlik: bitis saati biliniyorsa ona,
+ * bilinmiyorsa baslangictan uc saat sonrasina kadar canli sayilir.
+ */
+export function isTeamEventLive(event: SportEvent, now: Date): boolean {
+  const start = new Date(event.startsAt).getTime();
+  const end = event.endsAt ? new Date(event.endsAt).getTime() : start + LIVE_WINDOW_MS;
+  const t = now.getTime();
+  return start <= t && t < end && event.resultStatus !== 'finished';
+}
+
 export function splitTeamSeasonEvents(events: SportEvent[], now: Date) {
   const unique = dedupeTeamEvents(events);
   const upcoming = unique
-    .filter(event => new Date(event.startsAt) >= now)
+    .filter(event => new Date(event.startsAt) >= now || isTeamEventLive(event, now))
     .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
   const results = unique
-    .filter(event => new Date(event.startsAt) < now)
+    .filter(event => new Date(event.startsAt) < now && !isTeamEventLive(event, now))
     .sort((a, b) => b.startsAt.localeCompare(a.startsAt));
   return { upcoming, results };
 }

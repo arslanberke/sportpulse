@@ -15,7 +15,7 @@ import { useFollowActions } from '@/features/follows/hooks/use-follow-actions';
 import { useTeamSquad } from '@/features/players/hooks/use-football-players';
 import { LeagueTableCard } from '@/features/teams/components/league-table';
 import { TeamEventRow } from '@/features/teams/components/team-event-row';
-import { splitTeamSeasonEvents } from '@/features/teams/lib/team-season';
+import { isTeamEventLive, splitTeamSeasonEvents } from '@/features/teams/lib/team-season';
 import { useI18n } from '@/lib/i18n';
 import { useNow } from '@/lib/now';
 type Tab = 'results' | 'fixtures' | 'squad' | 'standings';
@@ -24,8 +24,8 @@ function TabBar({ tab, onChange, hasSquad }: { tab: Tab; onChange: (tab: Tab) =>
   const { t } = useI18n();
   const colors = useThemeColors();
   const tabs: { key: Tab; label: string }[] = [
-    { key: 'results', label: t('team.results') },
     { key: 'fixtures', label: t('team.fixtures') },
+    { key: 'results', label: t('team.results') },
     ...(hasSquad ? [{ key: 'squad' as Tab, label: t('team.squad') }] : []),
     { key: 'standings', label: t('team.standings') },
   ];
@@ -67,7 +67,7 @@ export default function TeamScreen() {
   const colors = useThemeColors();
   const now = useNow();
   const router = useRouter();
-  const [tab, setTab] = useState<Tab>('squad');
+  const [tab, setTab] = useState<Tab>('fixtures');
 
   const { data: team, isLoading: teamLoading } = useTeam(teamId);
   const { events, isLoading: eventsLoading, refetch, isRefetching } = useTeamEvents(teamId);
@@ -245,7 +245,11 @@ export default function TeamScreen() {
             </Card>
           ) : (
             (activeTab === 'results' ? season.results : season.upcoming).map((event) => (
-              <TeamEventRow key={event.id} event={event} />
+              <TeamEventRow
+                key={event.id}
+                event={event}
+                live={activeTab === 'fixtures' && isTeamEventLive(event, now)}
+              />
             ))
           )
         ) : tablesLoading ? (

@@ -6,6 +6,7 @@ import { Pressable, Text, View } from 'react-native';
 import { useThemeColors } from '@/constants/theme';
 import { teamEventScore } from '@/features/teams/lib/team-season';
 import { formatDateShort, formatTime } from '@/lib/dates';
+import { useI18n } from '@/lib/i18n';
 import type { SportEvent } from '@/types';
 
 function Crest({ uri }: { uri?: string | null }) {
@@ -19,8 +20,9 @@ function Crest({ uri }: { uri?: string | null }) {
   );
 }
 
-export function TeamEventRow({ event }: { event: SportEvent }) {
+export function TeamEventRow({ event, live = false }: { event: SportEvent; live?: boolean }) {
   const colors = useThemeColors();
+  const { t } = useI18n();
   const score = teamEventScore(event);
   return (
     <Link href={`/event/${event.id}`} asChild>
@@ -37,8 +39,16 @@ export function TeamEventRow({ event }: { event: SportEvent }) {
             <Text className="flex-1 text-sm font-medium text-ink" numberOfLines={1}>{event.homeTeamName}</Text>
           </View>
           <View className="w-14 items-center">
-            <Text className="text-base font-bold text-ink">{score ?? formatTime(event.startsAt)}</Text>
-            {score && <Text className="text-[9px] font-medium uppercase text-ink-tertiary">MS</Text>}
+            <Text className="text-base font-bold" style={{ color: live ? colors.live : colors.ink }}>
+              {score ?? (live ? '–' : formatTime(event.startsAt))}
+            </Text>
+            {live ? (
+              <Text className="text-[9px] font-bold uppercase" style={{ color: colors.live }}>
+                {t('home.live')}
+              </Text>
+            ) : (
+              score && <Text className="text-[9px] font-medium uppercase text-ink-tertiary">MS</Text>
+            )}
           </View>
           <View className="flex-1 flex-row items-center justify-end gap-2">
             <Text className="flex-1 text-right text-sm font-medium text-ink" numberOfLines={1}>{event.awayTeamName}</Text>

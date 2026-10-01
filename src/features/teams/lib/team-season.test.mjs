@@ -33,3 +33,15 @@ test('score is shown only when both sides are known and preserves zero', () => {
   assert.equal(teamEventScore(match('score', '', { homeScore: 0, awayScore: 2 })), '0–2');
   assert.equal(teamEventScore(match('unknown', '', { homeScore: null, awayScore: 2 })), null);
 });
+
+test('a started match without a final result stays on top of fixtures until it ends', () => {
+  const events = [
+    match('live', '2026-09-21T11:00:00Z', { awayTeamId: 'a1' }),
+    match('next', '2026-09-25T12:00:00Z', { awayTeamId: 'a2' }),
+    match('done', '2026-09-21T10:30:00Z', { awayTeamId: 'a3', resultStatus: 'finished', homeScore: 1, awayScore: 0 }),
+    match('stale', '2026-09-21T08:00:00Z', { awayTeamId: 'a4' }),
+  ];
+  const data = splitTeamSeasonEvents(events, now);
+  assert.deepEqual(data.upcoming.map(event => event.id), ['live', 'next']);
+  assert.deepEqual(data.results.map(event => event.id), ['done', 'stale']);
+});
