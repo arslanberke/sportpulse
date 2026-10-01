@@ -5,6 +5,7 @@ import { Link } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
 import { Chip } from "@/components/ui/chip";
+import { useLogoTint } from "@/constants/logo-tint";
 import { Colors, FAVORITE_COLOR, useThemeColors } from "@/constants/theme";
 import {
     CircuitOutline,
@@ -384,6 +385,7 @@ export function EventCard({
   const now = useNow();
   const { favoriteTeamIds, favoritePlayerIds } = useFavorites();
   const colors = useThemeColors();
+  const badgeTint = useLogoTint(event.leagueBadgeUrl);
   const channelNames = (event.channels ?? []).map((c) => c.name).join(', ');
   const favorite = isFavoriteEvent(event, favoriteTeamIds, favoritePlayerIds);
   const matchup = Boolean(event.homeTeamName && event.awayTeamName);
@@ -401,7 +403,7 @@ export function EventCard({
       >
         {effects && <LinearGradient pointerEvents="none" colors={[favorite ? `${FAVORITE_COLOR}0F` : `${colors.primary}0B`, 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ position: 'absolute', inset: 0 }} />}
         <View className="flex-row items-center gap-2 px-4 pt-3">
-          {event.leagueBadgeUrl ? <Image source={{ uri: event.leagueBadgeUrl }} style={{ width: 16, height: 16 }} contentFit="contain" allowDownscaling={false} /> : <Ionicons name="trophy-outline" size={14} color={colors.inkTertiary} />}
+          {event.leagueBadgeUrl ? <Image source={{ uri: event.leagueBadgeUrl }} style={{ width: 16, height: 16 }} contentFit="contain" allowDownscaling={false} tintColor={badgeTint} /> : <Ionicons name="trophy-outline" size={14} color={colors.inkTertiary} />}
           <Text className="flex-1 text-[10px] font-semibold uppercase tracking-wider text-ink-secondary" numberOfLines={1}>{[event.leagueName, event.round].filter(Boolean).join(' · ')}</Text>
           {favorite && <Ionicons name="star" size={13} color={FAVORITE_COLOR} />}
         </View>

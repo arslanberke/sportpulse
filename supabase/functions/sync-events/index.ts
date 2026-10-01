@@ -14,6 +14,7 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { fixtureSyncState } from '../../../src/features/events/lib/fixture-health.ts';
 import { espnProvider, fetchTournamentMatches } from '../../../src/services/providers/espn.ts';
 import { fetchFixtureSnapshot, fetchSeason } from '../../../src/services/providers/index.ts';
+import { fetchTsdbResults } from '../../../src/services/providers/thesportsdb.ts';
 import type { LeagueRef } from '../../../src/services/providers/types.ts';
 import { createProviderDiagnostics } from '../_shared/provider-diagnostics.ts';
 
@@ -21,6 +22,7 @@ const SYNC_DAYS = 14;
 // Bitmis maclarin sonucu icin ESPN'e geriye donuk da bakilir. Varsayilan kisa
 // (cron her 30 dk); ?lookback=N ile bir kerelik geriye donuk doldurma yapilir.
 const RESULT_LOOKBACK_DAYS = 3;
+const TSDB_RESULTS_PER_LEAGUE = 12;
 const MAX_RESULT_LOOKBACK_DAYS = 120;
 // TheSportsDB's free tier allows 30 requests/min and the function has a ~150s
 // wall clock budget, so a full catalog scan doesn't fit in one invocation.
@@ -394,6 +396,31 @@ Deno.serve(async (request) => {
       } catch (resultError) {
         ref.onIssue?.({ source: 'espn.results', kind: 'request', status: null });
         failures.push(`results ${league.id}: ${resultError instanceof Error ? resultError.name : 'UnknownError'}`);
+      }
+    }
+
+    if (league.external_ids.thesportsdb && Date.now() - startedAt <= 100_000) {
+      try {
+        const { data: missing, error: missingError } = await supabase.from('events')
+          .select('id, external_ids')
+          .eq('league_id', league.id).is('merged_into_event_id', null).is('result_status', null)
+          .not('external_ids->>thesportsdb', 'is', null)
+          .lt('starts_at', new Date(Date.now() - 3 * 3_600_000).toISOString())
+          .gt('starts_at', new Date(Date.now() - 120 * 86_400_000).toISOString())
+          .order('starts_at', { ascending: false }).limit(TSDB_RESULTS_PER_LEAGUE);
+        if (missingError) {
+          failures.push(`tsdb results lookup ${league.id}: ${missingError.message}`);
+        } else if (missing?.length) {
+          const byTsdb = new Map(missing.map((row) => [String((row.external_ids as Record<string, unknown>).thesportsdb), row.id as string]));
+          const found = await fetchTsdbResults([...byTsdb.keys()], ref.onIssue);
+          const results = found.map((event) => ({
+            id: byTsdb.get(event.externalId)!, home_score: event.homeScore, away_score: event.awayScore, result_status: 'finished',
+          }));
+          resultsWritten += await writeResults(supabase, results, failures, `tsdb results ${league.id}`);
+        }
+      } catch (resultError) {
+        ref.onIssue?.({ source: 'thesportsdb.results', kind: 'request', status: null });
+        failures.push(`tsdb results ${league.id}: ${resultError instanceof Error ? resultError.name : 'UnknownError'}`);
       }
     }
 
