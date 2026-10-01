@@ -19,31 +19,36 @@ const DOT = 8;
 const LABEL_HEIGHT = 14;
 
 /**
- * Gunun etkinliklerini saat dilimlerine boler. Baslamis olanlar (canli
- * eslesen ya da devam eden cok gunluk etkinlik) tek bir "Simdi" diliminde,
- * kalanlar baslangic saatine gore sirali dilimlerde.
+ * Gunun etkinliklerini saat dilimlerine boler. Suren etkinlikler (canli
+ * eslesen ya da devam eden cok gunluk) tek bir "Simdi" diliminde, kalanlar
+ * baslangic saatine gore sirali dilimlerde. Baslamis ama surmeyen (biten)
+ * etkinlikler en altta, saatleriyle "Bitti" dilimlerinde kalir.
  */
 export function timelineSlots(
   events: SportEvent[],
   now: Date,
   nowLabel: string,
   labelFor: (event: SportEvent) => string = (event) => formatTime(event.startsAt),
+  finished?: { isOngoing: (event: SportEvent) => boolean; label: string },
 ): TimelineSlot[] {
   const sorted = [...events].sort(
     (a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime(),
   );
-  const started = sorted.filter((e) => new Date(e.startsAt).getTime() <= now.getTime());
+  const begun = sorted.filter((e) => new Date(e.startsAt).getTime() <= now.getTime());
+  const started = finished ? begun.filter(finished.isOngoing) : begun;
+  const done = finished ? begun.filter((e) => !finished.isOngoing(e)) : [];
   const upcoming = sorted.filter((e) => new Date(e.startsAt).getTime() > now.getTime());
   const slots: TimelineSlot[] = [];
   if (started.length) {
     slots.push({ key: 'now', label: `${nowLabel} · ${formatTime(now.toISOString())}`, events: started, now: true });
   }
-  for (const event of upcoming) {
-    const label = labelFor(event);
+  const push = (event: SportEvent, label: string) => {
     const last = slots[slots.length - 1];
     if (last && !last.now && last.label === label) last.events.push(event);
     else slots.push({ key: `${label}-${event.startsAt}`, label, events: [event] });
-  }
+  };
+  for (const event of upcoming) push(event, labelFor(event));
+  for (const event of done) push(event, `${finished!.label} · ${labelFor(event)}`);
   return slots;
 }
 

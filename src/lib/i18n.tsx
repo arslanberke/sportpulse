@@ -182,6 +182,8 @@ const en = {
   'home.favorites': 'Favourites',
   'home.favoritesOnly': 'Favourites',
   'home.today': 'Today',
+  'home.yesterday': 'Yesterday',
+  'home.finished': 'Finished',
   'home.tomorrow': 'Tomorrow',
   'home.noEvents': 'No upcoming events for your follows. Follow more sports, leagues or teams!',
   'home.search': 'Search teams, leagues or players',
@@ -558,6 +560,8 @@ const tr: Record<TranslationKey, string> = {
   'home.favorites': 'Favorilerin',
   'home.favoritesOnly': 'Favoriler',
   'home.today': 'Bugün',
+  'home.yesterday': 'Dün',
+  'home.finished': 'Bitti',
   'home.tomorrow': 'Yarın',
   'home.noEvents':
     'Takip ettiklerin için yaklaşan etkinlik yok. Daha fazla branş, lig veya takım takip et!',

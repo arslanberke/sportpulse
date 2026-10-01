@@ -26,7 +26,8 @@ import { matchesAny, searchNeedles } from '@/lib/search';
 import type { Sport, SportEvent } from '@/types';
 
 /** Son 3 saatte baslamis mac canli akista bulunabilir; daha eskisi bitmistir. */
-const LIVE_LOOKBACK_MS = 3 * 60 * 60 * 1000;
+const HOUR_MS = 60 * 60 * 1000;
+const LIVE_LOOKBACK_MS = 3 * HOUR_MS;
 
 function SportTab({
   label,
@@ -108,28 +109,29 @@ export default function HomeScreen() {
   const queryClient = useQueryClient();
   const { data: follows, isFetched: followsFetched } = useFollows();
   const { data: sports } = useSports();
-  // Son 3 saatte baslamis maclar da ham adaylarda tutulur: canli akis
-  // dogrularsa "Simdi" diliminde kalirlar, dogrulamazsa listeden duserler.
-  const { events, isLoading, error } = useUpcomingEvents(7, 3);
+  const now = useNow();
+  const days = calendarDays(now);
+  const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+  // Dun de gun seridinde: sorgu dunun basindan alinir, biten maclar skoruyla
+  // gun bitene kadar listede kalir.
+  const { events, isLoading, error } = useUpcomingEvents(7, Math.ceil((now.getTime() - yesterday.getTime()) / HOUR_MS));
   const [sportFilter, setSportFilter] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [favoritesOnly, setFavoritesOnly] = useState(false);
-  // null: tum hafta gun gun; 0..6: gun seridinden secilen gun.
+  // null: tum hafta gun gun; -1: dun; 0..6: gun seridinden secilen gun.
   const [dayOffset, setDayOffset] = useState<number | null>(0);
   const [leagueFilter, setLeagueFilter] = useState<string | null>(null);
   const [channelFilter, setChannelFilter] = useState<string | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const colors = useThemeColors();
-  const now = useNow();
-  const days = calendarDays(now);
   // Arama secili gunle sinirli kalmaz: aranan mac cumartesiyse "Bugun"
   // seciliyken de bulunmali. Terim varken tum hafta taranir, sonuclar gun gun
   // listelenir ve terim silinince secili gune donulur.
   const searching = searchTerm.trim() !== '';
   const weekActive = dayOffset === null || searching;
-  const selectedDay = weekActive ? null : days[dayOffset ?? 0];
+  const selectedDay = weekActive ? null : dayOffset === -1 ? yesterday : days[dayOffset ?? 0];
   const { favoriteTeamIds, favoritePlayerIds } = useFavorites();
   const fixtureHealth = useFixtureHealth(follows, favoritePlayerIds);
   const [liveOnly, setLiveOnly] = useState(false);
@@ -195,18 +197,19 @@ export default function HomeScreen() {
   const filteredEvents = filterCalendarEvents(searchedEvents, {
     sportId: activeFilter, leagueId: leagueFilter, channelId: channelFilter,
   }, isFavorite);
-  // Takvim baslamis maclari dusurur; canli akisin dogruladiklari geri eklenir
-  // ki "Simdi" dilimi bos kalmasin.
+  // Takvim bugunden once baslamis maclari dusurur; canli akisin dogruladiklari
+  // geri eklenir ki "Simdi" dilimi bos kalmasin.
   const liveEvents = filteredEvents.filter(isLive);
   const weekEvents = [
     ...liveEvents,
-    ...currentCalendarEvents(filteredEvents, now).filter((e) => !isLive(e)),
+    ...currentCalendarEvents(filteredEvents, days[0]).filter((e) => !isLive(e)),
   ];
   // Yildiz cipindeki sayi suzgecten bagimsiz sayilir; kapatan kullanici cipi
   // de kaybetmesin.
   const favoriteCount = weekEvents.filter(isFavorite).length;
   const liveCount = liveEvents.length;
-  const calendarWeekEvents = favoritesOnly ? weekEvents.filter(isFavorite) : weekEvents;
+  const dayPool = dayOffset === -1 && !weekActive ? filteredEvents : weekEvents;
+  const calendarWeekEvents = favoritesOnly ? dayPool.filter(isFavorite) : dayPool;
   const visibleEvents = liveOnly
     ? calendarWeekEvents.filter(isLive)
     : filterCalendarEvents(calendarWeekEvents, { day: selectedDay }, () => true);
@@ -250,6 +253,7 @@ export default function HomeScreen() {
 
   const locale = language === 'tr' ? 'tr-TR' : 'en-GB';
   const dayName = (day: Date) => {
+    if (isSameDay(day, yesterday)) return t('home.yesterday');
     if (isSameDay(day, days[0])) return t('home.today');
     if (isSameDay(day, days[1])) return t('home.tomorrow');
     return day.toLocaleDateString(locale, { weekday: 'long' });
@@ -262,7 +266,10 @@ export default function HomeScreen() {
 
   const hasFilters = Boolean(activeFilter || favoritesOnly || liveOnly || weekActive || dayOffset !== 0 || leagueFilter || channelFilter || searchTerm.trim());
   const weekGroups = groupCalendarEvents(visibleEvents, now);
-  const slots = timelineSlots(visibleEvents, now, t('home.now'));
+  const slots = timelineSlots(visibleEvents, now, t('home.now'), undefined, {
+    isOngoing: (e) => isLive(e) || Boolean(e.endsAt && new Date(e.endsAt) > now),
+    label: t('home.finished'),
+  });
   const showEmpty = !isLoading && !error && visibleEvents.length === 0;
   // Arama sonuclarinda bos gunler listelenmez; hicbiri yoksa asagidaki bos
   // durum karti gosterilir.
@@ -286,7 +293,8 @@ export default function HomeScreen() {
 
         {!searching && (
           <View className="mb-2.5 flex-row" style={{ gap: 6 }}>
-            {days.map((day, offset) => {
+            {[yesterday, ...days].map((day, i) => {
+              const offset = i - 1;
               const on = dayOffset === offset;
               return (
                 <Pressable
