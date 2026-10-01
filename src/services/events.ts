@@ -126,12 +126,19 @@ export async function fetchEvents(params: {
    * gormek istiyor, turnuvanin 163 macini degil.
    */
   favoritePlayerIds?: string[];
+  /** Yildizli kulupler: takip edilmeseler de tum turnuvalardaki maclari listeye girer. */
+  favoriteTeamIds?: string[];
 }): Promise<SportEvent[]> {
   const { from, to, follows } = params;
 
   const sportIds = follows.filter((f) => f.kind === 'sport').map((f) => f.sportId!);
   const leagueIds = follows.filter((f) => f.kind === 'league').map((f) => f.leagueId!);
-  const teamIds = follows.filter((f) => f.kind === 'team').map((f) => f.teamId!);
+  const teamIds = [
+    ...new Set([
+      ...follows.filter((f) => f.kind === 'team').map((f) => f.teamId!),
+      ...(params.favoriteTeamIds ?? []),
+    ]),
+  ];
   if (sportIds.length === 0 && leagueIds.length === 0 && teamIds.length === 0) return [];
 
   const clauses: string[] = [];
