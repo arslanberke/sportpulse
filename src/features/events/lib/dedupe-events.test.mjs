@@ -16,6 +16,7 @@ test('same pair within 12h merges, keeps richest row and all ids', () => {
   assert.equal(out.length, 1);
   assert.equal(out[0].id, 'bsd');
   assert.deepEqual(out[0].externalIds, { thesportsdb: '1', bsd: '2', goal: '3' });
+  assert.deepEqual(out[0].duplicateIds, ['tsdb']);
 });
 
 test('one shared side at the same kickoff merges (Lens / RC Lens)', () => {

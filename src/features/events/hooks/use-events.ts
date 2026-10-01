@@ -83,7 +83,7 @@ export function useUpcomingEvents(days = 7, pastHours = 0) {
   const { data: leagueChannels } = useLeagueChannels(profile?.countryCode);
   const { data: coveredDays } = useBroadcastCoverage(profile?.countryCode);
 
-  const eventIds = (eventsQuery.data ?? []).map((e) => e.id);
+  const eventIds = (eventsQuery.data ?? []).flatMap((e) => [e.id, ...(e.duplicateIds ?? [])]);
   const { data: eventBroadcasts } = useQuery({
     queryKey: ['event-broadcasts', eventIds.join(','), profile?.countryCode],
     queryFn: () =>
@@ -120,7 +120,7 @@ export function useTeamEvents(teamId: string | undefined, days = 120) {
     staleTime: 5 * 60_000,
   });
 
-  const eventIds = (eventsQuery.data ?? []).map((e) => e.id);
+  const eventIds = (eventsQuery.data ?? []).flatMap((e) => [e.id, ...(e.duplicateIds ?? [])]);
   const { data: eventBroadcasts } = useQuery({
     queryKey: ['event-broadcasts', eventIds.join(','), profile?.countryCode],
     queryFn: () =>

@@ -15,7 +15,8 @@ const SAME_PAIR_WINDOW_MS = 12 * 60 * 60 * 1000;
  *
  * Kalan satir once bsd kimligi tasiyan (canli skor, kadro ve istatistik
  * sunucuda satirin kendi bsd kimligiyle cekilir), sonra en cok kaynak kimligi
- * tasiyandir; digerlerinin kimlikleri ve
+ * tasiyandir; digerlerinin satir kimlikleri `duplicateIds`'e, kaynak kimlikleri
+ * ve
  * eksikse skor bilgisi ona aktarilir.
  */
 export function dedupeEvents(events: SportEvent[]): SportEvent[] {
@@ -50,6 +51,7 @@ function merge(a: SportEvent, b: SportEvent): SportEvent {
   return {
     ...winner,
     externalIds: { ...loser.externalIds, ...winner.externalIds },
+    duplicateIds: [...(winner.duplicateIds ?? []), loser.id, ...(loser.duplicateIds ?? [])],
     homeScore: winner.homeScore ?? loser.homeScore,
     awayScore: winner.awayScore ?? loser.awayScore,
     resultStatus: winner.resultStatus ?? loser.resultStatus,

@@ -108,6 +108,8 @@ export interface SportEvent {
   venueImageUrl: string | null;
   importance: number; // 0 = normal, higher = more prominent
   externalIds: Record<string, string>;
+  /** Ayni macin listede birlestirilen diger kaynak satirlari (yayin kayitlari onlarda olabilir). */
+  duplicateIds?: string[];
   // Joined data (present when fetched via the events service):
   leagueName?: string | null;
   leagueArtworkUrl?: string | null;
