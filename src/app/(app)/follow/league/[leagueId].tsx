@@ -32,7 +32,7 @@ export default function LeagueFollowScreen() {
   const { isFollowing, toggleAll, toggleWithin } = useFollowActions();
   const { favoriteTeamIds } = useFavoriteTeams();
   const toggleFavorite = useToggleFavoriteTeam();
-  const [search, setSearch] = useState('fenerbahçe');
+  const [search, setSearch] = useState('');
 
   const league = (leagues ?? []).find((l) => l.id === leagueId);
   const leagueStart = useLeagueStart(league);
@@ -124,7 +124,9 @@ export default function LeagueFollowScreen() {
             />
           )}
           {visibleTeams.length === 0 ? (
-            <Text className="py-2 text-sm text-ink-secondary">{t('explore.noTeams')}</Text>
+            <Text className="py-2 text-sm text-ink-secondary">
+              {hasRoster ? t('explore.noTeamMatches') : t('explore.noTeams')}
+            </Text>
           ) : (
             visibleTeams.map((team, i) => (
               <FollowRow
