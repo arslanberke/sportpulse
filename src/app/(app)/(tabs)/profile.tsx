@@ -11,6 +11,7 @@ import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Screen } from '@/components/ui/screen';
 import { TextField } from '@/components/ui/text-field';
+import { useLogoTint } from '@/constants/logo-tint';
 import { FAVORITE_COLOR, useThemeColors } from '@/constants/theme';
 import { useLeagues, useSports, useTeam } from '@/features/catalog/hooks/use-catalog';
 import { useFollowActions } from '@/features/follows/hooks/use-follow-actions';
@@ -75,6 +76,7 @@ function ItemRow({
 }: ItemRowProps) {
   const { t } = useI18n();
   const colors = useThemeColors();
+  const logoTint = useLogoTint(imageUrl);
   return (
     <View
       className="flex-row items-center"
@@ -104,7 +106,7 @@ function ItemRow({
         <Pressable className="flex-1 flex-row items-center active:opacity-60" style={{ gap: 9 }}>
           <View className="items-center justify-center" style={{ width: 26, height: 26 }}>
             {imageUrl ? (
-              <Image source={{ uri: imageUrl }} style={{ width: 24, height: 24 }} contentFit="contain" allowDownscaling={false} />
+              <Image source={{ uri: imageUrl }} style={{ width: 24, height: 24 }} contentFit="contain" allowDownscaling={false} tintColor={logoTint} />
             ) : (
               <Ionicons name={(icon ?? 'shield-outline') as keyof typeof Ionicons.glyphMap} size={18} color={colors.inkSecondary} />
             )}

@@ -3,6 +3,7 @@ import { Image } from 'expo-image';
 import { Link } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
+import { useLogoTint } from '@/constants/logo-tint';
 import { FAVORITE_COLOR, useThemeColors } from '@/constants/theme';
 import { isFavoriteEvent, useFavorites } from '@/features/follows/hooks/use-favorites';
 import { formatDayTime, formatTime } from '@/lib/dates';
@@ -41,10 +42,11 @@ export function liveFromText(scoreText: string | null, detail: string | null): T
 
 function TeamLine({ name, logoUrl, player }: { name: string; logoUrl?: string | null; player: boolean }) {
   const colors = useThemeColors();
+  const tint = useLogoTint(logoUrl);
   return (
     <View className="flex-row items-center" style={{ minHeight: LINE_HEIGHT, gap: 7 }}>
       {logoUrl ? (
-        <Image source={{ uri: logoUrl }} style={{ width: LOGO_SIZE, height: LOGO_SIZE }} contentFit="contain" allowDownscaling={false} />
+        <Image source={{ uri: logoUrl }} style={{ width: LOGO_SIZE, height: LOGO_SIZE }} contentFit="contain" allowDownscaling={false} tintColor={tint} />
       ) : (
         <View className="items-center justify-center" style={{ width: LOGO_SIZE, height: LOGO_SIZE }}>
           <Ionicons name={player ? 'person-outline' : 'shield-outline'} size={16} color={colors.inkTertiary} />
@@ -92,6 +94,7 @@ export function TimelineCard({
 }) {
   const { t } = useI18n();
   const colors = useThemeColors();
+  const badgeTint = useLogoTint(event.leagueBadgeUrl);
   const { favoriteTeamIds, favoritePlayerIds } = useFavorites();
   const favorite = isFavoriteEvent(event, favoriteTeamIds, favoritePlayerIds);
   const matchup = Boolean(event.homeTeamName && event.awayTeamName);
@@ -169,7 +172,7 @@ export function TimelineCard({
         <View className="mt-1 flex-row items-center justify-between" style={{ gap: 10 }}>
           <View className="flex-1 flex-row items-center" style={{ gap: 5 }}>
             {event.leagueBadgeUrl && (
-              <Image source={{ uri: event.leagueBadgeUrl }} style={{ width: 12, height: 12 }} contentFit="contain" allowDownscaling={false} />
+              <Image source={{ uri: event.leagueBadgeUrl }} style={{ width: 12, height: 12 }} contentFit="contain" allowDownscaling={false} tintColor={badgeTint} />
             )}
             <Text className="shrink text-[10px] font-semibold text-ink-tertiary" numberOfLines={1}>{event.leagueName ?? ''}</Text>
           </View>

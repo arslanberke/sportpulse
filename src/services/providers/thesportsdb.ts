@@ -50,6 +50,8 @@ interface TsdbEvent {
   strThumb: string | null;
   strPoster: string | null;
   strStatus: string | null;
+  intHomeScore?: string | null;
+  intAwayScore?: string | null;
   idLeague: string;
   idVenue: string | null;
   strVenue: string | null;
@@ -138,7 +140,44 @@ function normalize(event: TsdbEvent, venueImageUrl: string | null): ProviderEven
     venue: event.strVenue || null,
     venueImageUrl,
     postponed: (event.strStatus ?? '').toLowerCase().includes('postponed'),
+    ...tsdbResult(event),
   };
+}
+
+const FINISHED_STATUSES = new Set(['ft', 'aet', 'aot', 'ap', 'pen', 'match finished', 'finished']);
+
+function tsdbResult(event: TsdbEvent): Pick<ProviderEvent, 'homeScore' | 'awayScore' | 'resultStatus'> {
+  const status = (event.strStatus ?? '').trim().toLowerCase();
+  const home = event.intHomeScore == null || event.intHomeScore === '' ? null : Number(event.intHomeScore);
+  const away = event.intAwayScore == null || event.intAwayScore === '' ? null : Number(event.intAwayScore);
+  if (status.includes('postponed')) return { homeScore: null, awayScore: null, resultStatus: 'postponed' };
+  if (!FINISHED_STATUSES.has(status) || !Number.isFinite(home) || !Number.isFinite(away)) {
+    return { homeScore: null, awayScore: null, resultStatus: null };
+  }
+  return { homeScore: home, awayScore: away, resultStatus: 'finished' };
+}
+
+/**
+ * Biten maclarin sonucu. Fikstur taramasi bugunden basladigi icin gecmis
+ * maclar tek tek `lookupevent.php` ile sorulur; istek basina bir mac.
+ */
+export async function fetchTsdbResults(
+  ids: string[],
+  onIssue?: ReportProviderIssue,
+): Promise<{ externalId: string; homeScore: number; awayScore: number }[]> {
+  const results: { externalId: string; homeScore: number; awayScore: number }[] = [];
+  for (const id of ids) {
+    const data = (await getJson(`${BASE}/lookupevent.php?id=${encodeURIComponent(id)}`, onIssue)) as {
+      events: TsdbEvent[] | null;
+    } | null;
+    const event = data?.events?.[0];
+    if (!event || event.idEvent !== id) continue;
+    const result = tsdbResult(event);
+    if (result.resultStatus === 'finished' && result.homeScore != null && result.awayScore != null) {
+      results.push({ externalId: id, homeScore: result.homeScore, awayScore: result.awayScore });
+    }
+  }
+  return results;
 }
 
 /** Sports where the venue (circuit) image is worth an extra lookup. */
