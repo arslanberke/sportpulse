@@ -6,7 +6,7 @@ import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-nativ
 
 import { Card } from '@/components/ui/card';
 import { useThemeColors } from '@/constants/theme';
-import { useCatalogSearch, useSports } from '@/features/catalog/hooks/use-catalog';
+import { useCatalogSearch, useSportLogos, useSports } from '@/features/catalog/hooks/use-catalog';
 import { hasTeams } from '@/features/catalog/lib/team-sports';
 import { FollowRow } from '@/features/follows/components/follow-row';
 import { useFavorites, useToggleFavoriteTeam } from '@/features/follows/hooks/use-favorites';
@@ -24,6 +24,7 @@ export function FollowSearch() {
   const router = useRouter();
   const [term, setTerm] = useState('');
   const { data: sports } = useSports();
+  const sportLogos = useSportLogos();
   const { data: results, isFetching } = useCatalogSearch(term);
   const { isFollowing, toggleFollow } = useFollowActions();
   const { favoriteTeamIds } = useFavorites();
@@ -99,6 +100,7 @@ export function FollowSearch() {
               index={i}
               label={language === 'tr' ? sport.nameTr : sport.nameEn}
               icon={sport.icon}
+              imageUrl={sportLogos.get(sport.id)}
               following={isFollowing('sport', sport.id)}
               onToggleFollow={() => toggleFollow('sport', sport.id)}
               onPress={() => router.push(`/follow/sport/${sport.id}`)}

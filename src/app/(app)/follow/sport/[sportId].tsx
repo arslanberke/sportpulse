@@ -5,7 +5,7 @@ import { Text, TextInput, View } from 'react-native';
 import { Card } from '@/components/ui/card';
 import { Screen } from '@/components/ui/screen';
 import { useThemeColors } from '@/constants/theme';
-import { useLeagues, useSports } from '@/features/catalog/hooks/use-catalog';
+import { useLeagues, useSportLogos, useSports } from '@/features/catalog/hooks/use-catalog';
 import { groupByKind, type LeagueKind } from '@/features/catalog/lib/league-kind';
 import { hasTeams } from '@/features/catalog/lib/team-sports';
 import { FollowRow } from '@/features/follows/components/follow-row';
@@ -32,6 +32,7 @@ export default function SportFollowScreen() {
   const router = useRouter();
   const { data: sports } = useSports();
   const { data: leagues } = useLeagues();
+  const sportLogos = useSportLogos();
   const { isFollowing, toggleAll, toggleWithin } = useFollowActions();
   const [search, setSearch] = useState('');
 
@@ -77,6 +78,7 @@ export default function SportFollowScreen() {
           <FollowRow
             label={t('explore.followWholeSport', { sport: sportName })}
             icon={sport?.icon}
+            imageUrl={sportLogos.get(sportId)}
             following={sportFollowed}
             onToggleFollow={() => toggleAll(group)}
           />
