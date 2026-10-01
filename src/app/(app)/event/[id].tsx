@@ -29,6 +29,7 @@ import {
 import { formatCountdown } from "@/features/events/components/event-card";
 import { EventEffect } from "@/features/events/components/event-effects";
 import { LeagueStandingsCard } from "@/features/events/components/league-standings-card";
+import { PreMatchCard } from "@/features/events/components/pre-match-card";
 import { LineupCard } from "@/features/events/components/lineup-card";
 import { LiveMatchCard } from "@/features/events/components/live-match-card";
 import { MatchStatsCard } from "@/features/events/components/match-stats-card";
@@ -409,6 +410,8 @@ export default function EventDetailScreen() {
         <LineupCard event={event} index={2} />
 
         <MatchStatsCard event={event} index={6} />
+
+        <PreMatchCard event={event} index={3} />
 
         <BriefingCard event={event} index={3} />
 
