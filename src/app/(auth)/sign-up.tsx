@@ -16,6 +16,7 @@ import {
     makeSignUpSchema,
     type SignUpFormValues,
 } from "@/features/auth/schemas";
+import { authErrorMessage } from "@/features/auth/auth-error";
 import { showAlert } from "@/lib/alert";
 import { useI18n } from "@/lib/i18n";
 import { signUp } from "@/services/auth";
@@ -38,7 +39,7 @@ export default function SignUpScreen() {
     } catch (error) {
       showAlert(
         t("auth.signUpFailed"),
-        error instanceof Error ? error.message : t("common.tryAgain"),
+        authErrorMessage(error, t),
       );
     } finally {
       setIsSubmitting(false);
