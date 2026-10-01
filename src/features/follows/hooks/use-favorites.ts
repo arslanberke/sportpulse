@@ -7,6 +7,7 @@ import {
     fetchFavorites,
     removeFavoritePlayer,
     removeFavoriteTeam,
+    type Favorites,
 } from '@/services/favorites';
 import { useAuthStore } from '@/store/auth-store';
 import type { SportEvent } from '@/types';
@@ -44,6 +45,25 @@ export function useToggleFavoriteTeam() {
         await removeFavoriteTeam({ userId: userId!, teamId: params.teamId });
       } else {
         await addFavoriteTeam({ userId: userId!, teamId: params.teamId });
+      }
+    },
+    onMutate: async (params) => {
+      const key = ['favorites', userId];
+      await queryClient.cancelQueries({ queryKey: key });
+      const previous = queryClient.getQueryData<Favorites>(key);
+      if (previous) {
+        queryClient.setQueryData<Favorites>(key, {
+          ...previous,
+          teamIds: params.isFavorite
+            ? previous.teamIds.filter((id) => id !== params.teamId)
+            : [...previous.teamIds, params.teamId],
+        });
+      }
+      return { previous };
+    },
+    onError: (_error, _params, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(['favorites', userId], context.previous);
       }
     },
     onSuccess: () => {

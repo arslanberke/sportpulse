@@ -151,12 +151,16 @@ export function FollowSearch() {
               }
               onToggleFollow={() => toggleFollow('team', team.id)}
               favorite={favoriteTeamIds.has(team.id)}
-              onToggleFavorite={() =>
-                toggleFavoriteTeam.mutate({
-                  teamId: team.id,
-                  isFavorite: favoriteTeamIds.has(team.id),
-                })
-              }
+              favoriteLabel={t('team.favorite')}
+              onToggleFavorite={() => {
+                const favorite = favoriteTeamIds.has(team.id);
+                const covered =
+                  isFollowing('team', team.id) ||
+                  isFollowing('sport', team.sportId) ||
+                  Boolean(team.leagueId && isFollowing('league', team.leagueId));
+                if (!favorite && !covered) toggleFollow('team', team.id);
+                toggleFavoriteTeam.mutate({ teamId: team.id, isFavorite: favorite });
+              }}
               onPress={() => router.push(`/team/${team.id}`)}
             />
           ))}
