@@ -75,10 +75,10 @@ function notifs() {
   ];
   const n = s.notif;
   const sample = n.goal
-    ? `<div class="push"><span class="ap">S</span><div><b>⚽ GOL · Galatasaray 1–0 Fenerbahçe</b><span>Icardi 54' · beIN SPORTS 1</span></div><small>şimdi</small></div>`
+    ? `<div class="push"><img class="ap" src="img/app-icon.png" alt=""><div><b>GOL · Galatasaray 1–0 Fenerbahçe</b><span>Icardi 54' · beIN SPORTS 1</span></div><small>şimdi</small></div>`
     : n.kick
-      ? `<div class="push"><span class="ap">S</span><div><b>Galatasaray – Fenerbahçe başladı</b><span>beIN SPORTS 1</span></div><small>şimdi</small></div>`
-      : `<div class="push" style="opacity:.5"><span class="ap">S</span><div><b>Canlı bildirim kapalı</b><span>Sadece hatırlatıcı gelir</span></div></div>`;
+      ? `<div class="push"><img class="ap" src="img/app-icon.png" alt=""><div><b>Galatasaray – Fenerbahçe başladı</b><span>beIN SPORTS 1</span></div><small>şimdi</small></div>`
+      : `<div class="push" style="opacity:.5"><img class="ap" src="img/app-icon.png" alt=""><div><b>Canlı bildirim kapalı</b><span>Sadece hatırlatıcı gelir</span></div></div>`;
   return `<div class="top"><h2></h2><span class="ico">✕</span></div>
     <div class="hdr">${img('GS')}<div><b>Galatasaray</b><small>Bildirimler · ★ favori</small></div></div>
     ${sample}
