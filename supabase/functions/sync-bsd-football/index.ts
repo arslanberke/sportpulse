@@ -100,12 +100,16 @@ async function bsd(name: string, key: string): Promise<Event[]> {
     resultStatus: String(row.status ?? 'notstarted'),
   }));
 }
-async function goal(name: string, key: string): Promise<Event[]> {
+async function goal(
+  name: string, key: string,
+  from = seasonStart(), to = new Date(Date.now() + DAYS * 86_400_000),
+  counter?: { requests: number },
+): Promise<Event[]> {
   const goalId = GOAL_IDS[name];
   if (!goalId) throw Object.assign(new Error('http'), { status: 404 });
-  const from = seasonStart(); const to = new Date(Date.now() + DAYS * 86_400_000);
   const rows: Record<string, unknown>[] = [];
   for (let offset = 0; offset < 1_000; offset += 100) {
+    if (counter) counter.requests++;
     const body = await request(`https://api.goal-api.com/v1/fixtures?leagueId=${goalId}&from=${day(from)}&to=${day(to)}&limit=100&offset=${offset}`, `Bearer ${key}`);
     if (!Array.isArray(body.data)) throw new Error('invalid_response');
     rows.push(...body.data);
@@ -145,6 +149,7 @@ Deno.serve(async request => {
   const goalKey = Deno.env.get('GOAL_API_KEY');
   const runId = crypto.randomUUID();
   const results = [];
+  const goalUsage = { requests: 0 };
 
   // Ligler sirayla islenince tek cagri duvar saati siniri asiyordu; kucuk bir
   // isci havuzu yeterli (BSD istekleri agir degil, DB yazimlari ic).
@@ -159,7 +164,9 @@ Deno.serve(async request => {
     ]) {
       if (!candidate.key) continue;
       try {
-        const rows = await candidate.fetcher(league.name, candidate.key);
+        const rows = candidate.name === 'goal'
+          ? await goal(league.name, candidate.key, undefined, undefined, goalUsage)
+          : await candidate.fetcher(league.name, candidate.key);
         source = candidate.name;
         if (rows.length > 0) { events = rows; break; }
       } catch (caught) {
@@ -201,6 +208,43 @@ Deno.serve(async request => {
         scoresWritten = typeof count === 'number' ? count : 0;
       }
     }
+    // BSD dolu dondugunde GOAL hic sorulmaz; yalnizca GOAL'da olan maclar
+    // (milli hazirlik, kupa on turlari) boylece sonucsuz kaliyordu. Bu ligde
+    // sonucu eksik GOAL maci varsa GOAL o tarih araligi icin ayrica sorulur.
+    let goalResultsWritten = 0;
+    if (goalKey && source !== 'goal' && league.name in GOAL_IDS) {
+      const { data: missing } = await supabase.from('events')
+        .select('id, starts_at, external_ids')
+        .eq('league_id', league.id).is('merged_into_event_id', null).is('result_status', null)
+        .not('external_ids->>goal', 'is', null)
+        .lt('starts_at', new Date(Date.now() - 3 * 3_600_000).toISOString())
+        .order('starts_at').limit(500);
+      if (missing?.length) {
+        const byGoalId = new Map(missing.map((row) => [String((row.external_ids as Record<string, unknown>).goal), row.id as string]));
+        try {
+          const fetched = await goal(league.name, goalKey, new Date(missing[0].starts_at as string), new Date(), goalUsage);
+          const rows = fetched.flatMap((event) => {
+            const id = byGoalId.get(event.externalId);
+            return id && event.homeScore != null && event.awayScore != null
+              ? [{ id, home_score: event.homeScore, away_score: event.awayScore, result_status: event.resultStatus }]
+              : [];
+          });
+          if (rows.length) {
+            const { data: count, error: goalError } = await supabase.rpc('set_event_results', { p_rows: rows });
+            if (goalError) {
+              issues.push({ source: 'db.set_event_results', kind: 'write', status: null });
+              await supabase.from('provider_issues').insert({ run_id: runId, job: 'sync-bsd-football', league_id: league.id, source: 'db.set_event_results', kind: 'write', http_status: null, observed_at: new Date().toISOString() });
+            } else {
+              goalResultsWritten = typeof count === 'number' ? count : 0;
+            }
+          }
+        } catch (caught) {
+          const status = typeof (caught as { status?: unknown }).status === 'number' ? (caught as { status: number }).status : null;
+          issues.push({ source: 'goal.results', kind: status ? 'http' : 'request', status });
+          await supabase.from('provider_issues').insert({ run_id: runId, job: 'sync-bsd-football', league_id: league.id, source: 'goal.results', kind: status ? 'http' : 'request', http_status: status, observed_at: new Date().toISOString() });
+        }
+      }
+    }
     const status = !source || (events.length > 0 && written === 0) ? 'failed'
       : issues.length || written < events.length ? 'degraded' : events.length ? 'ok' : 'empty';
     const completed = new Date().toISOString();
@@ -210,7 +254,7 @@ Deno.serve(async request => {
       window_start: seasonStart().toISOString(), window_end: new Date(Date.now() + DAYS * 86_400_000).toISOString(),
       received_count: events.length, written_count: written, issue_count: issues.length + Math.max(0, events.length - written),
     }).eq('league_id', league.id).eq('run_id', runId);
-    results.push({ league: league.name, status, source, received: events.length, written, scoresWritten, issues: issues.length });
+    results.push({ league: league.name, status, source, received: events.length, written, scoresWritten, goalResultsWritten, issues: issues.length });
   };
 
   // Ligler her calismada ayni sirayla islenince ~150 sn'lik duvar saati
@@ -229,5 +273,5 @@ Deno.serve(async request => {
       league = queue.shift();
     }
   }));
-  return json({ runId, results });
+  return json({ runId, goalRequests: goalUsage.requests, results });
 });
