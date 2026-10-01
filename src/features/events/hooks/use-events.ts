@@ -48,12 +48,13 @@ function useRawEvents(
   to: Date,
   follows: UserFollow[] | undefined,
   favoritePlayerIds: string[],
+  favoriteTeamIds: string[],
 ) {
   const followsKey = (follows ?? []).map((f) => f.id).join(',');
-  const favoritesKey = [...favoritePlayerIds].sort().join(',');
+  const favoritesKey = [...favoritePlayerIds, ...favoriteTeamIds].sort().join(',');
   return useQuery({
     queryKey: ['events', from.toISOString(), to.toISOString(), followsKey, favoritesKey],
-    queryFn: () => fetchEvents({ from, to, follows: follows ?? [], favoritePlayerIds }),
+    queryFn: () => fetchEvents({ from, to, follows: follows ?? [], favoritePlayerIds, favoriteTeamIds }),
     enabled: follows !== undefined,
   });
 }
@@ -75,9 +76,10 @@ export function useUpcomingEvents(days = 7, pastHours = 0) {
     };
   }, [days, pastHours]);
 
-  const { favoritePlayerIds } = useFavorites();
+  const { favoritePlayerIds, favoriteTeamIds } = useFavorites();
   const favoritePlayerList = useMemo(() => [...favoritePlayerIds], [favoritePlayerIds]);
-  const eventsQuery = useRawEvents(from, to, follows, favoritePlayerList);
+  const favoriteTeamList = useMemo(() => [...favoriteTeamIds], [favoriteTeamIds]);
+  const eventsQuery = useRawEvents(from, to, follows, favoritePlayerList, favoriteTeamList);
   const { data: leagueChannels } = useLeagueChannels(profile?.countryCode);
   const { data: coveredDays } = useBroadcastCoverage(profile?.countryCode);
 

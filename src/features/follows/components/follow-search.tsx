@@ -9,6 +9,7 @@ import { useThemeColors } from '@/constants/theme';
 import { useCatalogSearch, useSports } from '@/features/catalog/hooks/use-catalog';
 import { hasTeams } from '@/features/catalog/lib/team-sports';
 import { FollowRow } from '@/features/follows/components/follow-row';
+import { useFavorites, useToggleFavoriteTeam } from '@/features/follows/hooks/use-favorites';
 import { useFollowActions } from '@/features/follows/hooks/use-follow-actions';
 import { useI18n } from '@/lib/i18n';
 
@@ -25,6 +26,8 @@ export function FollowSearch() {
   const { data: sports } = useSports();
   const { data: results, isFetching } = useCatalogSearch(term);
   const { isFollowing, toggleFollow } = useFollowActions();
+  const { favoriteTeamIds } = useFavorites();
+  const toggleFavoriteTeam = useToggleFavoriteTeam();
 
   const trimmed = term.trim();
   const needle = trimmed.toLocaleLowerCase(language === 'tr' ? 'tr-TR' : 'en-US');
@@ -147,6 +150,13 @@ export function FollowSearch() {
                 Boolean(team.leagueId && isFollowing('league', team.leagueId))
               }
               onToggleFollow={() => toggleFollow('team', team.id)}
+              favorite={favoriteTeamIds.has(team.id)}
+              onToggleFavorite={() =>
+                toggleFavoriteTeam.mutate({
+                  teamId: team.id,
+                  isFavorite: favoriteTeamIds.has(team.id),
+                })
+              }
               onPress={() => router.push(`/team/${team.id}`)}
             />
           ))}

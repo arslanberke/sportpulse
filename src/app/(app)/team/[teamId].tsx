@@ -6,10 +6,11 @@ import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
 import { Card } from '@/components/ui/card';
 import { Screen } from '@/components/ui/screen';
-import { useThemeColors } from '@/constants/theme';
+import { FAVORITE_COLOR, useThemeColors } from '@/constants/theme';
 import { useTeam, useTeamTables } from '@/features/catalog/hooks/use-catalog';
 import { hasTeams } from '@/features/catalog/lib/team-sports';
 import { useTeamEvents } from '@/features/events/hooks/use-events';
+import { useFavorites, useToggleFavoriteTeam } from '@/features/follows/hooks/use-favorites';
 import { useFollowActions } from '@/features/follows/hooks/use-follow-actions';
 import { useTeamSquad } from '@/features/players/hooks/use-football-players';
 import { LeagueTableCard } from '@/features/teams/components/league-table';
@@ -82,6 +83,8 @@ export default function TeamScreen() {
     tab === 'squad' && hasSquad ? teamId : undefined,
   );
   const { isFollowing, toggleFollow } = useFollowActions();
+  const { favoriteTeamIds } = useFavorites();
+  const toggleFavoriteTeam = useToggleFavoriteTeam();
 
   // Kadro sekmesi secilemeyen takimda (takim sporu degil) "kadro yok"
   // kartiyla degil fiksturle acilmali.
@@ -89,6 +92,7 @@ export default function TeamScreen() {
 
   const season = useMemo(() => splitTeamSeasonEvents(events, now), [events, now]);
   const following = isFollowing('team', teamId);
+  const favorite = favoriteTeamIds.has(teamId);
 
   if (!team && !teamLoading) {
     return (
@@ -115,6 +119,20 @@ export default function TeamScreen() {
             <Text className="flex-1 text-xl font-bold text-ink" numberOfLines={2}>
               {team?.name ?? ''}
             </Text>
+            <Pressable
+              onPress={() => toggleFavoriteTeam.mutate({ teamId, isFavorite: favorite })}
+              hitSlop={8}
+              className="p-1 active:opacity-60"
+              accessibilityRole="button"
+              accessibilityLabel={t('profile.favorite')}
+              accessibilityState={{ selected: favorite }}
+            >
+              <Ionicons
+                name={favorite ? 'star' : 'star-outline'}
+                size={24}
+                color={favorite ? FAVORITE_COLOR : colors.inkTertiary}
+              />
+            </Pressable>
             <Pressable
               onPress={() => toggleFollow('team', teamId)}
               hitSlop={8}
