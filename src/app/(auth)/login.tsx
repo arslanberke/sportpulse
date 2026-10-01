@@ -12,6 +12,7 @@ import {
     AuthBackdrop,
     AuthEntrance,
 } from "@/features/auth/components/auth-backdrop";
+import { authErrorMessage } from "@/features/auth/auth-error";
 import { hasSeenOnboarding } from "@/features/auth/onboarding";
 import { makeLoginSchema, type LoginFormValues } from "@/features/auth/schemas";
 import { showAlert } from "@/lib/alert";
@@ -44,7 +45,7 @@ export default function LoginScreen() {
     } catch (error) {
       showAlert(
         t("auth.loginFailed"),
-        error instanceof Error ? error.message : t("common.tryAgain"),
+        authErrorMessage(error, t),
       );
     } finally {
       setIsSubmitting(false);

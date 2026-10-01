@@ -39,3 +39,8 @@ test('BSD football coverage only suppresses BSD-indexed events', () => {
   const basket = event('Basketbol Ligi', { sportId: 'basketball', externalIds: { bsd: '1' } });
   assert.deepEqual(resolveEventChannels(basket, undefined, defaults, bsdCoverage).map(c => c.name), ['Bein Sports 4', 'TOD']);
 });
+
+test('merged duplicate rows lend their event-specific broadcasts', () => {
+  const merged = event('Süper Lig', { sportId: 'football', id: 'kept', duplicateIds: ['e'] });
+  assert.deepEqual(resolveEventChannels(merged, eventSpecific, defaults, undefined).map(c => c.name), ['Wrong daily channel']);
+});

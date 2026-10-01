@@ -20,7 +20,9 @@ export function resolveEventChannels(
 ): Channel[] {
   const defaults = event.leagueId ? (leagueChannels?.get(event.leagueId) ?? []) : [];
   if (event.leagueName && SEASON_LOCKED_LEAGUES.has(event.leagueName)) return defaults;
-  const confirmed = eventBroadcasts?.get(event.id);
+  const confirmed = [event.id, ...(event.duplicateIds ?? [])]
+    .map((id) => eventBroadcasts?.get(id))
+    .find((channels) => channels && channels.length > 0);
   if (confirmed && confirmed.length > 0) return confirmed;
   const day = ISTANBUL_DAY.format(new Date(event.startsAt));
   // '' = tum sporlari kapsayan gunluk kaynak (sporekrani). 'football' = BSD'nin
