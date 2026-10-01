@@ -1,264 +1,84 @@
 starts_at_utc,sport_id,league,title,source,provider_status,external_ids,event_id
-2026-09-25 15:00,basketball,Basketbol Süper Ligi,Tofaş SK vs Bordo Sportif,thesportsdb,,"{""thesportsdb"": ""2571205""}",c22d6585-e48f-421a-b368-2c750bcf1694
-2026-09-25 15:00,basketball,Basketbol Süper Ligi,Petkim Spor vs Merkezefendi Belediyesi Denizli Basket,thesportsdb,,"{""thesportsdb"": ""2571204""}",e1052b0e-b3b1-4f47-bab5-acad67decdd5
-2026-09-25 15:00,basketball,Basketbol Süper Ligi,Manisa BB vs Esenler Erokspor Basketball,thesportsdb,,"{""thesportsdb"": ""2571203""}",6e70d183-749f-4866-9756-3b5f8c803429
-2026-09-26 10:00,basketball,Basketbol Süper Ligi,Türk Telekom BK vs Karşıyaka Basket,thesportsdb,,"{""thesportsdb"": ""2571207""}",494446ab-5765-42f9-9b56-17e8238938a0
-2026-09-26 15:00,basketball,Basketbol Süper Ligi,Galatasaray SK vs Çayirova,thesportsdb,,"{""thesportsdb"": ""2571202""}",5c034389-0adf-4c35-a65e-d95a6942f164
-2026-09-27 12:30,basketball,Basketbol Süper Ligi,Trabzonspor BK vs Bursaspor Basketbol,thesportsdb,,"{""thesportsdb"": ""2571206""}",65c7e288-ebdd-461b-8d4e-26e359093a74
-2026-09-27 15:00,basketball,Basketbol Süper Ligi,Bahçeşehir Koleji SK vs Fenerbahçe Basketbol,thesportsdb,,"{""thesportsdb"": ""2571208""}",1a8eba36-3230-4427-8b6c-47533e6a0032
-2026-09-27 17:30,basketball,Basketbol Süper Ligi,Anadolu Efes SK vs Besiktas Basketbol,thesportsdb,,"{""thesportsdb"": ""2571201""}",a359b4dd-11c3-40b5-ae88-c136ef7a0cca
-2026-09-24 16:00,basketball,EuroLeague,Hapoel Tel Aviv BC vs Bayern München Basketball,thesportsdb,,"{""thesportsdb"": ""2565447""}",d967aef0-acc4-4c15-98a8-518a591a0149
-2026-09-24 16:00,basketball,EuroLeague,Dubai Basketball vs Real Madrid Baloncesto,thesportsdb,,"{""thesportsdb"": ""2565446""}",e2dca44b-dc6c-4ed1-a933-0829bebea803
-2026-09-24 18:00,basketball,EuroLeague,KK Crvena zvezda vs BC Žalgiris,thesportsdb,,"{""thesportsdb"": ""2565448""}",22a3ac3f-e700-4736-8305-a9b792a75ecc
-2026-09-25 17:00,basketball,EuroLeague,Besiktas Basketbol vs Valencia Basket,thesportsdb,,"{""thesportsdb"": ""2565453""}",03964f6c-d0d1-48d0-aec9-a908b1868dd1
-2026-09-25 17:45,basketball,EuroLeague,Fenerbahçe Basketbol vs Virtus Pallacanestro Bologna,thesportsdb,,"{""thesportsdb"": ""2565454""}",93d425d2-fc4a-4f86-9ecb-dba57eb5757b
-2026-09-25 18:45,basketball,EuroLeague,KK Partizan vs Olimpia Milano,thesportsdb,,"{""thesportsdb"": ""2565455""}",148b9549-eaa7-42ef-b422-e51e19e17b23
-2026-09-29 16:00,basketball,EuroLeague,Dubai Basketball vs FC Barcelona Basquet,thesportsdb,,"{""thesportsdb"": ""2565456""}",3ca6e5cd-3151-4851-9360-c32cd83a9ecd
-2026-09-29 17:00,basketball,EuroLeague,Anadolu Efes SK vs Real Madrid Baloncesto,thesportsdb,,"{""thesportsdb"": ""2565457""}",54575ef8-9b07-435c-a381-0d912cbca9a2
-2026-09-29 17:00,basketball,EuroLeague,BC Žalgiris vs Olympiacos BC,thesportsdb,,"{""thesportsdb"": ""2565458""}",8b4fc34a-533c-4a1b-9d65-9247b2eefbb1
-2026-08-08 14:00,football,Carabao Cup,Leicester vs Northampton,goal,,"{""goal"": ""cms9lwlq6fzxxkw06ne2ejur4""}",a19867e3-afd5-451e-a554-ebdf49904485
-2026-08-08 14:00,football,Carabao Cup,Burton vs Blackburn,goal,,"{""goal"": ""cms9lwlj6fzw7kw06eklxojuf""}",cc00a7a5-d927-4271-a3ef-c0d592c93c21
-2026-08-08 14:00,football,Carabao Cup,Cardiff vs Swindon,goal,,"{""goal"": ""cms9lwlj7fzw9kw06mj1u4oz6""}",1e76ecc1-50cc-4c2d-a78c-9ea32d2df4b2
-2026-08-08 14:00,football,Carabao Cup,Sheffield Wed vs Bolton,goal,,"{""goal"": ""cms9lwlu6fzyxkw06jufsfrei""}",6512f4ea-adca-4f35-b9da-fde2077f9bd6
-2026-08-08 14:00,football,Carabao Cup,Stoke vs Oldham,goal,,"{""goal"": ""cms9lwltjfzytkw06kd4ebxyx""}",e617bbb6-5a2a-4062-91a6-1a8c6051be82
-2026-08-08 14:00,football,Carabao Cup,Salford vs Shrewsbury,goal,,"{""goal"": ""cms9lwlstfzylkw06da3ns9cp""}",3de455af-4086-444c-9288-fa0feeeac63b
-2026-08-08 16:30,football,Carabao Cup,Cheltenham vs Charlton,goal,,"{""goal"": ""cms9lwoolg0j7kw06807msqiu""}",b4f4b370-ffe4-491c-babf-f49f774b4f1c
-2026-08-08 16:30,football,Carabao Cup,Rotherham vs West Brom,goal,,"{""goal"": ""cms9lwop9g0jfkw06gtmtc7n6""}",c50cb370-e93d-406d-97f2-833667343d25
-2026-08-09 15:00,football,Carabao Cup,Mansfield vs Sheffield Utd,goal,,"{""goal"": ""cmsb1dcfm8rm3kw067emqlev3""}",3f62483c-c8e1-4a55-ad9b-676fb83b366d
-2026-08-10 19:00,football,Carabao Cup,Plymouth vs Exeter,goal,,"{""goal"": ""cmscgtlrri7ykkw06w81j2rml""}",e2bcd138-efb4-49f2-9936-e51c36dca36d
-2026-08-25 18:45,football,Carabao Cup,Blackburn vs Sheffield Utd,goal,,"{""goal"": ""cmsxwga97f4rgqg07ta37p66l""}",ab927fad-ab7d-4f15-81cd-770251cfaafd
-2026-09-26 16:00,football,Copa del Rey,Lebrijana vs Ceuta 6 de Junio,goal,,"{""goal"": ""cmtyby6gaojv1lc07tywso1mg""}",4794b0f7-888d-4613-a445-dc5f0930fe5f
-2026-09-27 10:00,football,Copa del Rey,Auriense vs San Jose,goal,,"{""goal"": ""cmtyby6g4ojuvlc07bgavxrbn""}",e364af4b-8830-42d8-b49d-85af4c2b946b
-2026-09-27 10:00,football,Copa del Rey,Hortaleza vs Union Guimar,goal,,"{""goal"": ""cmtyby6g8ojuzlc07jbfiq3me""}",c0fe1698-facc-4fe5-b11b-7961ab66e44c
-2026-09-27 14:00,football,Copa del Rey,El Espinar Sant Rafel vs Prat,goal,,"{""goal"": ""cmtyby6g6ojuxlc07k63fzwai""}",40f32667-72e0-4248-ab13-9d44f0bde6f1
-2026-09-27 15:30,football,Copa del Rey,Talayuela vs Alcazar,goal,,"{""goal"": ""cmtyby71eojzclc0783b38ynp""}",d45e350e-09c1-4dc8-9e8f-98deebadf247
-2026-09-02 13:00,football,Coppa Italia,Pisa vs Fiorentina,bsd,unresolved,"{""bsd"": ""588045""}",e05c7b63-2e49-4d2b-8471-ee88f3648bd7
-2026-08-23 11:00,football,DFB-Pokal,Jeddeloh vs Heidenheim,goal,,"{""goal"": ""cmsp4mjgru3v8pn064o4l1vot""}",69f8963c-8624-4c6c-957a-21e768c15e00
-2026-08-23 11:00,football,DFB-Pokal,Greuther Furth vs Bochum,goal,,"{""goal"": ""cmsp4mjdlu3v4pn06phkwiugr""}",c9219e4a-cfb6-41a5-b247-4a3ab18ac972
-2026-08-23 13:30,football,DFB-Pokal,Jena vs Darmstadt,goal,,"{""goal"": ""cmsp4mmoju48lpn06gdot08n4""}",b7797b7b-1b99-4c30-b438-dccea6a02890
-2026-08-24 16:00,football,DFB-Pokal,Altglienicke vs Wolfsburg,goal,,"{""goal"": ""cmsp4mvq7u5h6pn0633rypczl""}",a86c313a-a33c-4211-aa02-bee6d5f95811
-2026-09-05 14:00,football,FA Cup,Stafford Rangers vs Northampton Town,bsd,unresolved,"{""bsd"": ""601436""}",1cc0ece7-a53c-412a-aa24-9d3c7fc0c005
-2026-09-23 18:45,football,FA Cup,Thame United vs Exmouth Town,bsd,,"{""bsd"": ""604543""}",2a460add-6206-4bf4-8731-64c2d46535d6
-2026-07-02 08:00,football,Milli Hazırlık Maçları,Estonia U17 vs Lithuania U17,goal,,"{""goal"": ""cmr7sjdw87nj7rx06midbje2l""}",656a8346-73a2-41ad-8562-31fe13e8abaa
-2026-07-02 12:00,football,Milli Hazırlık Maçları,Finland U17 vs Latvia U17,goal,,"{""goal"": ""cmr7sjdwc7nj9rx064q5pvbcy""}",3591bac3-dd92-456c-a4da-34d3046e354d
-2026-07-03 13:00,football,Milli Hazırlık Maçları,Lebanon U20 vs Syria U20,goal,,"{""goal"": ""cmr7sjjtq7q6xrx06m92e3zfx""}",c9c2c51b-5dcf-421d-b7dc-a88bdaf3b0fd
-2026-07-03 17:30,football,Milli Hazırlık Maçları,Los Angeles Galaxy vs El Salvador,goal,,"{""goal"": ""cmr7foeve2fz8rx06pzzhsuex""}",9d331d8c-91b2-4312-87f3-ce660d78c7bc
-2026-07-04 09:30,football,Milli Hazırlık Maçları,Myanmar U20 vs Hong Kong U20,goal,,"{""goal"": ""cmrjfyjexcs1ot507p1dk3n13""}",cb6a42f3-1662-4809-9601-2559ebbe138c
-2026-07-05 07:00,football,Milli Hazırlık Maçları,Siheung Citizen vs Vietnam,goal,,"{""goal"": ""cmrjfyn79cy0ft507373eku6z""}",9ea18204-46f7-4550-a663-65685caf9de2
-2026-07-05 08:00,football,Milli Hazırlık Maçları,Nigeria U17 vs Tanzania U17,goal,,"{""goal"": ""cmrjfyn7qcy0vt507dfsqus9m""}",cc92448a-5708-4511-8b25-bbe5d81a9bf9
-2026-07-05 11:35,football,Milli Hazırlık Maçları,China U17 vs Australia U17,goal,,"{""goal"": ""cmr7fonbt2juvrx064tzsq0lp""}",ff36ae9e-4550-4763-82bb-6ab6450a77dc
-2026-07-05 13:00,football,Milli Hazırlık Maçları,Lebanon U20 vs Syria U20,goal,,"{""goal"": ""cmr7sjwle7wr7rx063ia5tprn""}",12115f67-cc98-4821-a4c9-4b2799e5faa6
-2026-07-05 22:00,football,Milli Hazırlık Maçları,Los Angeles FC vs El Salvador,goal,,"{""goal"": ""cmr7fonpw2jyvrx062dc2c48r""}",ef518243-1249-464f-a756-d2ac4cc1f468
-2026-07-07 09:30,football,Milli Hazırlık Maçları,Myanmar U20 vs Hong Kong U20,goal,,"{""goal"": ""cmrjfypgyd24pt507jkfowldu""}",6bb44b33-4a9c-4938-9e13-5137588d9c6e
-2026-07-07 21:00,football,Milli Hazırlık Maçları,Panama U20 vs Cuba U20,goal,,"{""goal"": ""cmrjfyq2ud375t50714c8y3sf""}",7b4f41d0-17cb-4636-8a7a-ba4235e26781
-2026-07-08 08:00,football,Milli Hazırlık Maçları,Vietnam vs Yongin,goal,,"{""goal"": ""cmrbba2io03mvs307r34jiohz""}",7b53a5ee-6298-46ec-afd1-56fa641ec3f2
-2026-07-08 08:00,football,Milli Hazırlık Maçları,Australia U17 vs Nigeria U17,goal,,"{""goal"": ""cmrjfyqcsd3lxt507zya4gy5s""}",61c37fb9-22b0-4572-b26b-297923f880c0
-2026-07-08 11:35,football,Milli Hazırlık Maçları,China U17 vs Tanzania U17,goal,,"{""goal"": ""cmr7foouu2kemrx06xzidybkc""}",17b713f8-a329-44e1-82a3-57e86410f8aa
-2026-07-09 15:15,football,Milli Hazırlık Maçları,Oman U20 vs Tajikistan U20,goal,,"{""goal"": ""cmrjfyrx1d5t0t507ravwf418""}",6fd8b075-e6bb-4978-ab63-55c1585bd6c8
-2026-07-09 16:15,football,Milli Hazırlık Maçları,Bahrain U20 vs Palestine U20,goal,,"{""goal"": ""cmrd3kuh90506qj07uxkpdfs4""}",8835906a-eb63-4ffa-9c25-8ca51aff665b
-2026-07-10 15:00,football,Milli Hazırlık Maçları,Panama U20 vs Cuba U20,goal,,"{""goal"": ""cmri4p68vczkblb07tl50w0q0""}",10161379-3769-4c52-b21a-71450757fd93
-2026-07-10 18:00,football,Milli Hazırlık Maçları,Club Tijuana vs El Salvador,goal,,"{""goal"": ""cmrej0ozn04m6nu07rjc7462w""}",f8837e29-7124-42bb-a288-9b88a0c271d5
-2026-07-11 08:00,football,Milli Hazırlık Maçları,Tanzania U17 vs Australia U17,goal,,"{""goal"": ""cmr7fowbn2n5zrx064bbzseta""}",7f987df9-c9c5-4203-8ea6-7c43de329ceb
-2026-07-11 11:35,football,Milli Hazırlık Maçları,China U17 vs Nigeria U17,goal,,"{""goal"": ""cmritcaqh04k8s107ijrlhciq""}",1980a15e-d74d-490d-b034-aed2d53c3607
-2026-07-12 15:15,football,Milli Hazırlık Maçları,Oman U20 vs Tajikistan U20,goal,,"{""goal"": ""cmritceal0acds1077ba4d6tl""}",de41d7b4-4de4-43d4-be2a-37bbf83c74f9
-2026-07-12 16:15,football,Milli Hazırlık Maçları,Bahrain U20 vs Palestine U20,goal,,"{""goal"": ""cmrd3kxcm05yoqj07fiq4z4yx""}",bb57038f-4b68-4f80-b2f3-14350f9fbc18
-2026-07-13 07:00,football,Milli Hazırlık Maçları,Vietnam vs Gangwon,goal,,"{""goal"": ""cmrbba5h104pks307836ujndp""}",ef795a31-17d8-4a57-8764-4205ce844510
-2026-07-15 16:15,football,Milli Hazırlık Maçları,Bahrain U20 vs Palestine U20,goal,,"{""goal"": ""cmrd3ky3t068dqj07kgle96dr""}",89d304af-c565-462c-9e5a-081fd4010f2d
-2026-07-16 07:00,football,Milli Hazırlık Maçları,Albirex Niigata vs Singapore,bsd,unresolved,"{""bsd"": ""216533""}",19c39f6f-80b5-49cd-98d5-a2b2a3a06dee
-2026-07-17 14:00,football,Milli Hazırlık Maçları,Jordan U20 vs Uzbekistan U20,goal,,"{""goal"": ""cmsflvufnfoylny073d5m0zrg""}",59482195-1992-4151-a53a-e67cc85ab23c
-2026-07-19 15:30,football,Milli Hazırlık Maçları,Togo U20 vs Benin U20,goal,,"{""goal"": ""cmsflwljwgf7kny07evfoent3""}",98dc06b8-04e4-4116-812a-034dd906764c
-2026-07-20 14:00,football,Milli Hazırlık Maçları,Jordan U20 vs Uzbekistan U20,goal,,"{""goal"": ""cmrt6bakxjsj8qu07n14bb1m5""}",265f0b2f-2ed9-4103-9e33-e78dec85665e
-2026-07-22 15:15,football,Milli Hazırlık Maçları,Oman U20 vs Bahrain U20,goal,,"{""goal"": ""cmrw16jep4bqznu07ot3keypx""}",8f379d27-cb51-4db9-9feb-8e9c3dd24e83
-2026-07-22 16:00,football,Milli Hazırlık Maçları,Biala Podlaska vs Antigua and Barbuda,goal,,"{""goal"": ""cmrlbdjmz0qjgru07wn53f5wa""}",898034ae-2339-4db5-9ebb-73ae4937eb29
-2026-07-25 15:15,football,Milli Hazırlık Maçları,Oman U20 vs Bahrain U20,goal,,"{""goal"": ""cmrwqwxpjyp0anu07m1hfujji""}",d1b321a5-5fdb-4120-81f3-42e0e6484136
-2026-07-26 00:00,football,Milli Hazırlık Maçları,Louisville City vs Trinidad & Tobago,goal,,"{""goal"": ""cmrr14yp93xwtmn07s2air3zm""}",4fb4669a-09bb-49d2-a26d-78225b1a70aa
-2026-07-28 17:00,football,Milli Hazırlık Maçları,Egypt U20 vs Jordan U20,goal,,"{""goal"": ""cms4lukh55xkwkw06zmf8xs8h""}",1066debf-3525-42ea-bb5d-cd56202c9bdc
-2026-07-31 17:00,football,Milli Hazırlık Maçları,Egypt U20 vs Jordan U20,goal,,"{""goal"": ""cms4yr0s5j6o8kw06etd93zts""}",ab42e1b5-5b3e-4d5b-b561-c27d26f6ad28
-2026-08-03 13:30,football,Milli Hazırlık Maçları,India U20 vs Singapore U20,goal,,"{""goal"": ""cmsflpuj2bfrwny07u41ij6r2""}",5f846d9c-dfd7-4b60-8a2e-0513da5fa3c1
-2026-08-05 16:15,football,Milli Hazırlık Maçları,Bahrain U20 vs Syria U20,goal,,"{""goal"": ""cmse92ppb7jn5qk074hbkrp5r""}",559c13fe-7278-4136-a073-c451606585f5
-2026-08-06 13:30,football,Milli Hazırlık Maçları,India U20 vs Singapore U20,goal,,"{""goal"": ""cmsflq74dbpgfny07g2evigee""}",c7a611e2-f471-48c7-9dc4-0aa2644d8e44
-2026-08-08 16:30,football,Milli Hazırlık Maçları,Kuwait U20 vs Jordan U20,goal,,"{""goal"": ""cmtc5f5bz890soa08ema3rd2e""}",178c1081-34c9-4490-bfdb-d6c075ccfc6e
-2026-08-09 14:00,football,Milli Hazırlık Maçları,Brazil U20 vs Bolivia U20,goal,,"{""goal"": ""cmsq1fehfbwwapn060h3367r4""}",c63b6c73-570f-4cde-b790-87f3877f7a0b
-2026-08-09 16:15,football,Milli Hazırlık Maçları,Bahrain U20 vs Syria U20,goal,,"{""goal"": ""cmse93wle7q07qk071lrdwgze""}",d312aed5-b005-4d79-bd47-1e9e6775cc58
-2026-08-09 18:00,football,Milli Hazırlık Maçları,Nigeria U20 vs Burkina Faso U20,goal,,"{""goal"": ""cmtc5fgh88zbyoa08vdq6alyj""}",d22f380b-24e7-41c3-9d7e-5413265a5923
-2026-08-11 18:45,football,Milli Hazırlık Maçları,Kuwait U20 vs Jordan U20,goal,,"{""goal"": ""cmtc5flj19da8oa08xpgvp5jh""}",58772c73-8390-4fc2-931b-52ebc66d4114
-2026-08-12 13:00,football,Milli Hazırlık Maçları,Brazil U20 vs Bolivia U20,goal,,"{""goal"": ""cmsn6mq9dir5epn062kpoufik""}",3abd16d0-3781-4289-85e4-e517e95f69aa
-2026-08-13 15:15,football,Milli Hazırlık Maçları,Oman U20 vs Syria U20,goal,,"{""goal"": ""cmsr40lagykz2pn063ywed8ug""}",941c43a9-5f73-41dd-93db-3e857ec6daf3
-2026-08-16 14:00,football,Milli Hazırlık Maçları,Oman U20 vs Syria U20,goal,,"{""goal"": ""cmssjh9dsfkfto606k3jkippp""}",4eec5283-c096-4be9-b61d-5d8acf5d3d1a
-2026-08-17 16:00,football,Milli Hazırlık Maçları,Saudi Arabia U20 vs Palestine U20,goal,,"{""goal"": ""cmsy99dj9p0qen0063zxznzxu""}",076e3eb1-1777-4dc3-a2eb-c4607ca39eb4
-2026-08-19 10:00,football,Milli Hazırlık Maçları,Kuwait U20 vs Iraq U20,goal,,"{""goal"": ""cmt01jde0rm63nu07yh2mkidz""}",877d5552-dcac-4aed-9d67-b45b890808f5
-2026-08-20 11:00,football,Milli Hazırlık Maçları,India U20 vs Yemen U20,goal,,"{""goal"": ""cmswtu15e8utaqc083d3dhu4y""}",db664026-b9f9-41fb-9950-1b2fe0a306eb
-2026-08-20 14:00,football,Milli Hazırlık Maçları,Brazil U17 vs Venezuela U17,goal,,"{""goal"": ""cmstyy7dchamxpn07mg1sc169""}",92f4a591-086f-462c-9177-96feacbff5cc
-2026-08-20 16:00,football,Milli Hazırlık Maçları,Saudi Arabia U20 vs Jordan U20,goal,,"{""goal"": ""cmsy99u4sp6irn006gegftkxw""}",111b2311-a0a5-45ea-a443-4e99c147e893
-2026-08-21 11:00,football,Milli Hazırlık Maçları,Indonesia U20 vs United Arab Emirates U20,goal,,"{""goal"": ""cmt39a1nclcwpmg07aaosjqwv""}",385eb4d7-9b5f-4610-93a9-7b9dc8765f1b
-2026-08-21 13:30,football,Milli Hazırlık Maçları,Lebanon U20 vs Tajikistan U20,goal,,"{""goal"": ""cmt2jjmxzdzjtmg071hpv9okp""}",c69a4e23-d037-4906-b977-fafb25523612
-2026-08-21 16:00,football,Milli Hazırlık Maçları,Qatar U20 vs Palestine U20,goal,,"{""goal"": ""cmty237k27pdulc07zeulz2v5""}",d088fb7d-872f-4b0e-ac86-c94f047d00d6
-2026-08-22 10:00,football,Milli Hazırlık Maçları,Indonesia U20 vs Iraq U20,goal,,"{""goal"": ""cmty23jda8euulc07s6fxqfwe""}",1c71deee-8689-4ef6-9ca3-6f8e57acfdff
-2026-08-23 11:00,football,Milli Hazırlık Maçları,India U20 vs Yemen U20,goal,,"{""goal"": ""cmswtv7dc90t0qc0894m5eatt""}",72b76610-a310-4954-97ca-4e327cddffc5
-2026-08-23 13:00,football,Milli Hazırlık Maçları,Brazil U17 vs Venezuela U17,goal,,"{""goal"": ""cmsv1k49lxaf9pn07ajwwb7d7""}",ccb953b5-2664-448f-afaf-20122be83cef
-2026-08-24 09:00,football,Milli Hazırlık Maçları,Kuwait U20 vs United Arab Emirates U20,goal,,"{""goal"": ""cmt2jl9ahe71omg07yfc4j3ea""}",bed7d8f0-0a97-4fe4-aac9-61c3d8a5be92
-2026-08-24 14:00,football,Milli Hazırlık Maçları,Lebanon U20 vs Tajikistan U20,goal,,"{""goal"": ""cmt2jl9eue72mmg072ll57ddg""}",c8fde86b-fbd6-46b4-b4c1-16f3d5b354fd
-2026-08-24 16:00,football,Milli Hazırlık Maçları,Qatar U20 vs Bahrain U20,goal,,"{""goal"": ""cmt3z0ril0zdrmg07ur6uv7hp""}",1c8617ed-fb61-48af-aa57-e80c3eefd9d2
-2026-08-24 16:00,football,Milli Hazırlık Maçları,Saudi Arabia U20 vs Syria U20,goal,,"{""goal"": ""cmsy9bj6zpe2vn006d11tsnoo""}",e71618e4-de7d-47f7-bbdc-9759a15fc963
-2026-08-25 08:00,football,Milli Hazırlık Maçları,Iran U20 vs Iraq U20,goal,,"{""goal"": ""cmt89aowam98bt1075ng905ev""}",74da7d5b-46e1-457a-9376-a8a0f6ebfe45
-2026-08-25 18:00,football,Milli Hazırlık Maçları,Uruguay U20 vs Paraguay U20,goal,,"{""goal"": ""cmt5rb4gunrg9t107gkhtgj1b""}",bf229480-0a7b-4527-8f64-d07f5b7d3941
-2026-08-26 13:15,football,Milli Hazırlık Maçları,Italy U17 vs Turkey U17,goal,,"{""goal"": ""cmtd76fgyfj64p807zu3xqq57""}",a0b95e10-ef44-48d7-a200-6b11fd2cbbfb
-2026-08-27 18:00,football,Milli Hazırlık Maçları,Uruguay U20 vs Paraguay U20,goal,,"{""goal"": ""cmt5rbcwhnt56t107lp9cy9dd""}",56ed49b4-2e62-4f26-af1b-ced0d206084a
-2026-08-28 15:30,football,Milli Hazırlık Maçları,Turkey U17 vs Hungary U17,goal,,"{""goal"": ""cmtcwgy65zvl9sz07amibtb60""}",48a0775a-85fb-4e7a-9bdf-baa199eada2e
-2026-08-30 15:30,football,Milli Hazırlık Maçları,Hungary U17 vs Italy U17,goal,,"{""goal"": ""cmtd771evg3cgp807acncmzfd""}",f29392d6-5c79-4ba6-9546-e1915d28b9d4
-2026-08-30 15:30,football,Milli Hazırlık Maçları,Turkey U17 vs Saudi Arabia U17,goal,,"{""goal"": ""cmtd771f1g3ckp807idmq27ki""}",0e99ef5e-a7c9-4e96-8059-0cd87568079c
-2026-09-09 09:30,football,Milli Hazırlık Maçları,Hungary U18 vs Bosnia & Herzegovina U18,goal,,"{""goal"": ""cmtv4bpgzg9c4ms07aixca1b7""}",24d18aa0-c33c-45ad-8d9b-f3014af23c66
-2026-09-10 09:00,football,Milli Hazırlık Maçları,China U23 vs Uzbekistan U23,goal,,"{""goal"": ""cmu7gghyn9gp3qr06iik2uikm""}",22038fdc-2625-4a46-9c35-141ca239c4f0
-2026-09-18 02:00,football,Milli Hazırlık Maçları,Papua New Guinea vs Vanuatu,goal,,"{""goal"": ""cmu5f4p92nyyopg07edhv57gt""}",87d40960-05c6-4acc-b1cb-f5d53e5a052d
-2026-09-18 07:45,football,Milli Hazırlık Maçları,Fiji vs Solomon Islands,goal,,"{""goal"": ""cmu5f4p9cnyywpg076nsw2gwf""}",afde53e0-9179-4eff-8c6e-c875400ca900
-2026-09-18 16:30,football,Milli Hazırlık Maçları,Kuwait vs Yemen,goal,,"{""goal"": ""cmu74qlx0qps5qu07pz55smll""}",ca9698bf-8929-4689-af57-56675031d0e6
-2026-09-20 14:00,football,Milli Hazırlık Maçları,Botswana U23 vs Eswatini U23,goal,,"{""goal"": ""cmua8rocu8r7frw06hopk36fg""}",af68faae-cf25-4f34-a65b-64c012011f01
-2026-09-21 04:00,football,Milli Hazırlık Maçları,New Caledonia vs Solomon Islands,goal,,"{""goal"": ""cmu5f5gnoo6l4pg0736y52wcy""}",0e9223c4-20ef-4751-bae5-5d95f46c2e88
-2026-09-21 07:00,football,Milli Hazırlık Maçları,Fiji vs Vanuatu,goal,,"{""goal"": ""cmu5f5gnqo6l6pg07qzs3zylr""}",1ae04b31-34d0-4008-b0fb-dd031999248e
-2026-09-21 07:00,football,Milli Hazırlık Maçları,Botswana U23 vs Eswatini U23,goal,,"{""goal"": ""cmuan1afsbe9xrw06ubb5yssm""}",ef96bad7-a0b6-4ead-8a64-6425f9664181
-2026-09-23 13:00,football,Milli Hazırlık Maçları,Japan U18 vs Ukraine U18,goal,,"{""goal"": ""cmtvra83lirykms07nirehu6f""}",1ad4c5cd-792d-4ba7-a28c-f07ba8376f2d
-2026-09-23 14:00,football,Milli Hazırlık Maçları,Finland U17 vs France U17,goal,,"{""goal"": ""cmtx4epfsncboqs071gf4jbws""}",277e3674-d125-4050-817e-52159846e6f6
-2026-09-23 17:00,football,Milli Hazırlık Maçları,France U18 vs Austria U18,goal,,"{""goal"": ""cmu7zecia5yxtqr06n61qdanl""}",04941af8-0ad3-4095-bbee-cc95f89e4b12
-2026-09-23 17:30,football,Milli Hazırlık Maçları,England U17 vs Ireland U17,goal,,"{""goal"": ""cmtvra8khis3dms07jpvnxybh""}",97047f6b-6314-4757-98bd-003c3e876832
-2026-09-24 07:00,football,Milli Hazırlık Maçları,Papua New Guinea vs New Caledonia,goal,,"{""goal"": ""cmu5f5koeo7mypg07dtwyx6xu""}",dff88395-5ccf-4ec9-87dc-a3610ff8b161
-2026-09-24 09:00,football,Milli Hazırlık Maçları,Scotland U19 vs Finland U19,goal,,"{""goal"": ""cmuc9paqnhjq2ma07y5e2fit8""}",6c671ef2-0d50-4974-b6c2-9b1959f6baee
-2026-09-24 09:30,football,Milli Hazırlık Maçları,Egypt U18 vs South Korea U18,goal,,"{""goal"": ""cmu9fnmym6lpykm084smym2us""}",0826f656-c770-4b67-896b-9a3d478239d7
-2026-09-24 11:00,football,Milli Hazırlık Maçları,Netherlands U19 vs Belgium U19,goal,,"{""goal"": ""cmtwihhwb5eb6qs07d04h3iku""}",c8ccb5ae-4bd7-4dd3-9b9f-8fed92a1d95a
-2026-09-24 13:00,football,Milli Hazırlık Maçları,Sweden U19 vs Ukraine U19,goal,,"{""goal"": ""cmuc9pasrhju6ma079zpqptv5""}",c965dcd0-9e97-4ee6-9ccb-815b3070689c
-2026-09-24 14:00,football,Milli Hazırlık Maçları,Serbia U19 vs Bulgaria U19,goal,,"{""goal"": ""cmuc9paoehjnfma07p0zmlwsq""}",c8747b64-b914-4469-af2a-d50ca14c120e
-2026-09-24 14:00,football,Milli Hazırlık Maçları,Romania U19 vs Hungary U19,goal,,"{""goal"": ""cmu5f5l1ko7ptpg07lpvq8xmm""}",cc30e1c5-3aff-4d0a-a21b-9af7bdce905e
-2026-09-24 15:00,football,Milli Hazırlık Maçları,Belarus U19 vs Russia U19,goal,,"{""goal"": ""cmudp2rrg1jcfpo08a7swg1qk""}",eb332d4e-dd91-41ae-94cf-9f44c4a7c3f4
-2026-09-24 16:00,football,Milli Hazırlık Maçları,Togo U23 vs Benin U23,goal,,"{""goal"": ""cmufp8rqqhcipl607vgytlyjl""}",b53eef89-a3d3-4700-b278-55e73e5e6ece
-2026-09-24 16:00,football,Milli Hazırlık Maçları,England U18 vs Colombia U18,goal,,"{""goal"": ""cmtwihi755eeuqs078t1t9o17""}",fbc2a2c8-8cb6-4f2c-b2db-c75527d7de58
-2026-09-25 08:00,football,Milli Hazırlık Maçları,Finland U17 vs France U17,goal,,"{""goal"": ""cmtybxww1og52lc07tvgurwiy""}",6f22c50e-95bb-4a07-91e4-d6d68849e80e
-2026-09-25 09:00,football,Milli Hazırlık Maçları,Poland U17 vs Czech Republic U17,goal,,"{""goal"": ""cmtybxwxcog58lc07yx7k3f9u""}",dfbe396d-9ea7-496c-bc83-ea5616d9d109
-2026-09-25 09:30,football,Milli Hazırlık Maçları,Poland U19 vs Switzerland U19,goal,,"{""goal"": ""cmtybxwxjog5elc07t5ng2s6u""}",3bd106f5-fe75-4e00-acbf-0cbfb20bfd49
-2026-09-25 13:00,football,Milli Hazırlık Maçları,Georgia U17 vs Ireland U17,goal,,"{""goal"": ""cmuc9pfo3hqzima07fnjtmjt2""}",3d3c272a-99ad-473e-8a2c-794ad2768ffe
-2026-09-25 13:00,football,Milli Hazırlık Maçları,Austria U18 vs Japan U18,goal,,"{""goal"": ""cmu7zejnj60ktqr06az9clf5b""}",855b80e0-71c9-4e08-a23b-c709447ae172
-2026-09-25 13:30,football,Milli Hazırlık Maçları,France U19 vs Italy U19,goal,,"{""goal"": ""cmuc9pfqehr0ama07brpr64id""}",a0c47872-ca1d-4e12-81ba-aa4a6afa0363
-2026-09-25 14:00,football,Milli Hazırlık Maçları,Serbia U18 vs Russia U18,goal,,"{""goal"": ""cmu9fno6m6m2ekm08z9s37r8r""}",79001388-2887-49e4-a34a-b3c0015c3a48
-2026-09-25 15:00,football,Milli Hazırlık Maçları,Slovakia U19 vs Kazakhstan U19,goal,,"{""goal"": ""cmubqcsdk35erpb08ekiyk04i""}",7629e937-0645-4ed1-9669-a521507a6ba0
-2026-09-25 16:00,football,Milli Hazırlık Maçları,Serbia U21 vs Iraq U23,goal,,"{""goal"": ""cmugctuon464wl607wbsvo368""}",a2919e10-4cb3-4394-aeea-aa200b632bda
-2026-09-25 17:00,football,Milli Hazırlık Maçları,France U18 vs Ukraine U18,goal,,"{""goal"": ""cmtybxy7cogkvlc07nylskk38""}",38c0a098-9572-48b3-b3b0-57f70a9b0749
-2026-09-25 18:00,football,Milli Hazırlık Maçları,England U19 vs Ireland U19,goal,,"{""goal"": ""cmtybxybbogmdlc07q2azrepl""}",22f0a7e5-e836-4545-a130-70912ae58f56
-2026-09-26 10:30,football,Milli Hazırlık Maçları,Chile U17 vs Italy U18,goal,,"{""goal"": ""cmubqcw05366apb08n6x0d4of""}",996dc3d1-e6b6-4c07-9575-84caf6a5e1f7
-2026-09-26 12:30,football,Milli Hazırlık Maçları,Croatia U18 vs Qatar U18,goal,,"{""goal"": ""cmul0jd5a0294pv074wmwuybt""}",db91fe2f-3bf5-4766-95e7-9a8ed0b78ca1
-2026-09-26 13:30,football,Milli Hazırlık Maçları,Italy U17 vs Turkey U17,goal,,"{""goal"": ""cmuhsbupnyu5inq07j4wkml0p""}",441115be-8374-4e76-b7b8-30b3e7315799
-2026-09-26 14:00,football,Milli Hazırlık Maçları,Hungary U19 vs Bulgaria U19,goal,,"{""goal"": ""cmu5higdqs0o9pg07163rmifj""}",cd90143b-1c87-4e65-9166-137b855b264f
-2026-09-26 14:00,football,Milli Hazırlık Maçları,Serbia U19 vs Romania U19,goal,,"{""goal"": ""cmuc9qqstix48ma07o1w063p1""}",d35e1d8a-bbce-459f-9191-276355378359
-2026-09-26 16:00,football,Milli Hazırlık Maçları,Liechtenstein U19 vs Malta U19,goal,,"{""goal"": ""cmudp3ab21mehpo08lkz86y0y""}",d5f30f56-a698-48eb-92f2-2783a3947d9f
-2026-09-27 04:00,football,Milli Hazırlık Maçları,Vanuatu vs New Caledonia,goal,,"{""goal"": ""cmu5hijjls1mepg075rgdts33""}",bab1a1ff-9165-4deb-ac01-e577f4892867
-2026-09-27 07:00,football,Milli Hazırlık Maçları,Fiji vs Papua New Guinea,goal,,"{""goal"": ""cmu5hijjqs1mipg07g4l2l1qy""}",9dc89a36-a861-46e0-ba61-6501597bcd39
-2026-09-27 09:00,football,Milli Hazırlık Maçları,Poland U17 vs Ireland U17,goal,,"{""goal"": ""cmtyby9nuokpblc0741usul2v""}",85880c38-40db-4f67-a4d4-5696a3db3132
-2026-09-27 09:00,football,Milli Hazırlık Maçları,Colombia U18 vs South Korea U18,goal,,"{""goal"": ""cmubqd5g9391hpb08q5xn4mbu""}",35cd0b9f-cdda-49a5-81b2-79d9ede99e94
-2026-09-27 10:00,football,Milli Hazırlık Maçları,Belarus U19 vs Russia U19,goal,,"{""goal"": ""cmudp3j7e1oblpo088wyi7aj2""}",d887c803-60dd-4fb6-9fee-c683bbe3fe3f
-2026-09-27 12:00,football,Milli Hazırlık Maçları,Ukraine U18 vs Austria U18,goal,,"{""goal"": ""cmtybyaobokzxlc071pa0qiif""}",e9a7e6f6-111a-4f7d-8b1c-aecc9180e1e3
-2026-09-27 12:00,football,Milli Hazırlık Maçları,Moldova U19 vs Cyprus U19,goal,,"{""goal"": ""cmudp3mpj1p4wpo08q3eu25v9""}",90e9824d-be4f-4c49-a0de-e3096a56ca17
-2026-09-27 13:00,football,Milli Hazırlık Maçları,Scotland U19 vs Czech Republic U19,goal,,"{""goal"": ""cmuf4jmoff2psl607bv0f6dmd""}",b77d828a-2c30-4dac-b1df-2348ece1632f
-2026-09-27 13:00,football,Milli Hazırlık Maçları,Sweden U19 vs Finland U19,goal,,"{""goal"": ""cmuc9rv91jsx7ma07k3cn6ib3""}",401bc8c8-9e66-492c-820d-66a70b61ac48
-2026-09-27 13:00,football,Milli Hazırlık Maçları,Czech Republic U17 vs Georgia U17,goal,,"{""goal"": ""cmuc9rv8yjsx5ma071zq8ef04""}",3485f630-2c01-4be0-9035-aea910361ab6
-2026-09-27 13:00,football,Milli Hazırlık Maçları,Egypt U18 vs England U18,goal,,"{""goal"": ""cmtybycgvolh3lc07im9dvlv5""}",f95cddb9-098c-4934-87cf-b133ac2134f2
-2026-09-27 15:00,football,Milli Hazırlık Maçları,Germany U19 vs Ukraine U19,goal,,"{""goal"": ""cmugjzdg13kmdlg076axmm8ul""}",b6a79415-dc14-4f6c-aa30-8014b96bc502
-2026-09-27 16:00,football,Milli Hazırlık Maçları,France U18 vs Japan U18,goal,,"{""goal"": ""cmu7zgp7m6lwaqr066zn1axq4""}",3af8d8e1-b0ca-42bd-9b1a-449aa9c6cc48
-2026-09-28 09:00,football,Milli Hazırlık Maçları,Faroe Islands U19 vs Ireland U19,goal,,"{""goal"": ""cmukmy4x195evpv06f5hfmn3e""}",dbf008a1-7c0d-4ac1-b964-c02c6c82e2d3
-2026-09-28 09:30,football,Milli Hazırlık Maçları,Kazakhstan U19 vs Switzerland U19,goal,,"{""goal"": ""cmugp6yvwvoz7lg07ho7lvfdl""}",2b1ea71b-e4a4-4dc8-8695-a4b5257a2975
-2026-09-28 12:00,football,Milli Hazırlık Maçları,Kyrgyzstan vs Lebanon,bsd,unresolved,"{""bsd"": ""604984""}",561910ad-ac66-4ac2-9e26-cffbebd70ac0
-2026-09-28 13:30,football,Milli Hazırlık Maçları,Croatia U19 vs France U19,goal,,"{""goal"": ""cmuf4jt7uf4gol607posobipq""}",2eb941bf-a448-404a-b0aa-7601d7f0c049
-2026-09-28 13:30,football,Milli Hazırlık Maçları,Italy U19 vs Turkey U19,goal,,"{""goal"": ""cmukyuikv2yo8pv06yikinoft""}",0a2a5c89-64d2-438c-9da4-80e0e5909343
-2026-09-28 14:00,football,Milli Hazırlık Maçları,North Macedonia U21 vs Russia U21,goal,,"{""goal"": ""cmuf4jujsf4pal607wsmtv37c""}",8eec99c4-b01c-4cc8-ab12-c6ed96922c43
-2026-09-28 14:00,football,Milli Hazırlık Maçları,Liechtenstein U19 vs Malta U19,goal,,"{""goal"": ""cmudp42m41seapo08hhxv62tv""}",7177ad3b-58b5-4e10-a016-2d65842b0d34
-2026-09-28 14:00,football,Milli Hazırlık Maçları,Serbia U18 vs Russia U18,goal,,"{""goal"": ""cmu9fo7lz6rj7km08oryud0kf""}",32637e88-2dbe-4013-976e-6ca4f0eac185
-2026-09-28 14:00,football,Milli Hazırlık Maçları,England U17 vs Israel U17,goal,,"{""goal"": ""cmtybyiy8onaylc07l8ivxu2c""}",5b256983-34a4-443e-842c-bd08f54d0f4e
-2026-09-28 14:30,football,Milli Hazırlık Maçları,Slovenia U19 vs United Arab Emirates U19,goal,,"{""goal"": ""cmukmy5fj96hypv06olh8yanj""}",510482d4-4cb0-4d42-84ea-cb3d2d36c814
-2026-09-28 14:30,football,Milli Hazırlık Maçları,Qatar U19 vs Azerbaijan U19,goal,,"{""goal"": ""cmukmy5eb96hwpv067charz8n""}",105e5faf-b563-4d72-9c0e-e62b4055cbc9
-2026-09-28 15:00,football,Milli Hazırlık Maçları,Slovakia U19 vs Poland U19,goal,,"{""goal"": ""cmtybyiyeonb4lc07png5d9zu""}",0880ccd3-7c77-48cc-ae8a-ad40458d10ad
-2026-09-28 16:00,football,Milli Hazırlık Maçları,Serbia U21 vs Iraq U23,goal,,"{""goal"": ""cmugjzhf13lpslg07rx2zpd2f""}",1272b54f-991e-4ca8-a3f8-d361e989cc7c
-2026-09-28 16:00,football,Milli Hazırlık Maçları,Brazil U20 vs Denmark U20,goal,,"{""goal"": ""cmugp6z4cvp1hlg072qtizp3c""}",327d28fe-845a-4ad1-b21f-3bdd8bf3d832
-2026-09-29 10:00,football,Milli Hazırlık Maçları,USA U19 vs Wales U19,goal,,"{""goal"": ""cmu7zgu7i6ngnqr06oifrhk4x""}",e6642382-154d-4cc4-8492-41ccd6bd9d1f
-2026-09-29 10:00,football,Milli Hazırlık Maçları,Romania U18 vs Turkey U18,goal,,"{""goal"": ""cmuf4jvm5f52gl6075mqusd09""}",e312c489-5358-4c40-aaeb-e9d61b7c0d7a
-2026-09-29 10:30,football,Milli Hazırlık Maçları,Italy U18 vs Denmark U18,goal,,"{""goal"": ""cmuf4jvm8f52il607nfryn77p""}",bad4e9cb-f4aa-4e92-a5ae-d499e3313bce
-2026-09-29 10:30,football,Milli Hazırlık Maçları,Ukraine U17 vs Turkey U17,goal,,"{""goal"": ""cmujeqpvxc93ipv07okl8po6z""}",d997da39-1733-41ae-a5c9-0f63dc910e7d
-2026-09-29 11:00,football,Milli Hazırlık Maçları,Netherlands U17 vs USA U17,goal,,"{""goal"": ""cmt66ybk0zshdt107fkrjf2sl""}",8ecab34d-5a11-47da-a2f3-0b62e10d27de
-2026-09-29 12:00,football,Milli Hazırlık Maçları,Moldova U19 vs Cyprus U19,goal,,"{""goal"": ""cmudp45u91szypo08acjbx1zk""}",174277d3-8da3-46d7-af31-ee0417546b84
-2026-09-29 12:30,football,Milli Hazırlık Maçları,Bulgaria U19 vs Romania U19,goal,,"{""goal"": ""cmuf4jwbmf5djl607d03ib7tf""}",7e905592-ddd1-482c-856f-3cf7f0baf05e
-2026-09-29 13:00,football,Milli Hazırlık Maçları,Hungary U18 vs Qatar U18,goal,,"{""goal"": ""cmu7598wg05hakm08wvu8q71u""}",ca9d1d2b-46d1-44d9-ae60-954a6e7248d6
-2026-09-29 14:00,football,Milli Hazırlık Maçları,England U19 vs Norway U19,goal,,"{""goal"": ""cmtybykpyonsalc07xrb39uqm""}",1ff75dbc-2447-4246-b068-4b90f48dfe18
-2026-09-29 14:30,football,Milli Hazırlık Maçları,Serbia U19 vs Hungary U19,goal,,"{""goal"": ""cmu5hiqvws3qgpg07celfcigd""}",ec521ba0-1101-4b88-9ba0-16ec8e0137d1
-2026-09-29 17:15,football,Milli Hazırlık Maçları,Portugal U18 vs Uzbekistan U18,goal,,"{""goal"": ""cmuf4jwgvf5fhl607409d7vin""}",5319b666-8263-473d-baec-9099f526a787
-2026-09-30 04:00,football,Milli Hazırlık Maçları,Papua New Guinea vs Solomon Islands,goal,,"{""goal"": ""cmu5hirqcs3zwpg07f24nq8j5""}",4cb04a27-fff4-4ad1-aa1c-fe35399198d8
-2026-09-30 07:00,football,Milli Hazırlık Maçları,Fiji vs New Caledonia,goal,,"{""goal"": ""cmu5hirqhs3zypg07ndnv7bat""}",5b390a0e-e9f9-4785-bd67-776ca81db8c7
-2026-09-30 09:00,football,Milli Hazırlık Maçları,Colombia U18 vs Egypt U18,goal,,"{""goal"": ""cmuc9sjybk2awma07l879qdde""}",16f1bbab-2546-44f5-94d9-90b5643adb48
-2026-09-30 09:00,football,Milli Hazırlık Maçları,Ireland U17 vs Czech Republic U17,goal,,"{""goal"": ""cmuc9sjzqk2ayma07jutxlu9a""}",3d2872bd-4a84-4c8a-a7c0-71fd444a4727
-2026-09-30 09:00,football,Milli Hazırlık Maçları,Poland U17 vs Georgia U17,goal,,"{""goal"": ""cmtybyewuom35lc07zqlx71q8""}",0922e111-5408-4ca0-a8d7-3a3bed1d33b8
-2026-09-30 09:00,football,Milli Hazırlık Maçları,South Korea U18 vs England U18,goal,,"{""goal"": ""cmtybyewrom33lc07tzryebmx""}",a72c0789-39e8-404a-9050-d8e46fe125af
-2026-09-30 09:00,football,Milli Hazırlık Maçları,Scotland U19 vs Ukraine U19,goal,,"{""goal"": ""cmuf4jyh1f600l607ui1ka3wx""}",fcb4a43e-b4bf-43af-887d-c97b9d002c1a
-2026-09-30 09:00,football,Milli Hazırlık Maçları,Sweden U19 vs Czech Republic U19,goal,,"{""goal"": ""cmuc9sjzsk2b0ma0712thmi41""}",4f51fcd5-8ed4-4566-be2d-ff05a68ddc09
-2026-09-30 09:15,football,Milli Hazırlık Maçları,Finland U19 vs Germany U19,goal,,"{""goal"": ""cmugjzmkx3n54lg077gdn0to0""}",20a1534a-96ef-4026-9285-e87dfad8b294
-2026-09-30 10:00,football,Milli Hazırlık Maçları,USA U18 vs Ireland U18,goal,,"{""goal"": ""cmunhtwka6x1nqq07b4xghloc""}",ac301731-49c9-4a24-a5b5-6a910f06beeb
-2026-07-21 13:00,football,UEFA Champions League,Sabah FK vs FK Vardar Skopje,bsd,unresolved,"{""bsd"": ""216504""}",3e3254e4-6f97-4dc8-9f28-717af1681a8e
-2026-07-28 13:00,football,UEFA Champions League,FK Vardar Skopje vs Sabah FK,bsd,unresolved,"{""bsd"": ""216509""}",133eee0d-f3af-4660-849a-3e0ec7fdd30c
-2026-08-04 18:00,football,UEFA Champions League,AC Sparta Praha vs SK Sturm Graz,bsd,unresolved,"{""bsd"": ""223225""}",226c68ea-28d5-4323-aa1c-d989fb472b4c
-2026-09-08 19:00,football,UEFA Champions League,Manchester United vs Bayern Munich,thesportsdb,,"{""thesportsdb"": ""2594535""}",0cc75e8e-f8f7-4f34-8086-199b44d22004
-2026-09-08 19:00,football,UEFA Champions League,Manchester United vs Roma,thesportsdb,,"{""thesportsdb"": ""2594537""}",ba192f7a-8af4-4d46-b111-54c3ff5092e0
-2026-09-08 19:00,football,UEFA Champions League,Manchester United vs RB Leipzig,thesportsdb,,"{""thesportsdb"": ""2594536""}",de836cb7-5c91-4e5a-bec9-46668034b15f
-2026-07-08 17:30,football,UEFA Conference League,Connahs Q. vs FC Ballkani,goal,,"{""goal"": ""cmrjfyr8jd4vjt507kkao89hd""}",94bc16c8-3759-43ee-94b6-fcc07c36431c
-2026-07-09 17:30,football,UEFA Conference League,Caernarfon vs Levadia,goal,,"{""goal"": ""cmri4p4wucya6lb07i20vsclz""}",8ce7fa3e-3415-4ec7-ba3d-ed4289d4e177
-2026-07-16 16:30,football,UEFA Conference League,Levadia vs Caernarfon,goal,,"{""goal"": ""cmri4r5uxduublb07li8ut86h""}",944659e6-460b-47bf-bb87-1a230a2b7631
-2026-07-16 18:00,football,UEFA Conference League,FC Ballkani vs Connahs Q.,goal,,"{""goal"": ""cmri4r5xqduw1lb07eiozpum9""}",5774efe5-d2a5-49b1-b67e-5b4f09db1d9d
-2026-07-21 17:00,football,UEFA Conference League,Goteborg vs Levadia,goal,,"{""goal"": ""cmro693529spit007goaooaz3""}",8c9b8ef9-66dc-410f-b498-1299b653e176
-2026-07-23 17:00,football,UEFA Conference League,Varazdin vs Hradec Kralove,goal,,"{""goal"": ""cmrmqt9nq3988t007xzu412bv""}",7ed3e8b9-a983-412b-98d7-dd1da3ec2baa
-2026-07-30 16:30,football,UEFA Conference League,Levadia vs Goteborg,goal,,"{""goal"": ""cmrwqxnnyyt0fnu07y6rxuc7c""}",2a299e3e-96c0-4561-bbf3-8fd8fd8d4777
-2026-07-30 17:00,football,UEFA Conference League,Hradec Kralove vs Varazdin,goal,,"{""goal"": ""cmrwqxnomyt0jnu07ou4ygxh1""}",2eafa588-826a-4f02-82d8-984a9752430d
-2026-07-23 13:00,football,UEFA Europa League,Tromsø IL vs FC Viktoria Plzeň,bsd,unresolved,"{""bsd"": ""210794""}",5029f41b-e536-41c6-b60d-b74c44e11e9a
-2026-07-23 17:00,football,UEFA Europa League,Tromso vs Plzen,goal,,"{""goal"": ""cmrmqt9pz399ft007uqq7okd4""}",7a4d468d-2af0-452d-9787-ebddf6363389
-2026-07-23 17:00,football,UEFA Europa League,Tromso vs Hradec Kralove,goal,,"{""goal"": ""cmrmqt9q4399ht007bravj0o6""}",83f3f7ef-be10-4961-ac0b-ae1a34983eec
-2026-07-30 13:00,football,UEFA Europa League,FC Viktoria Plzeň vs Tromsø IL,bsd,unresolved,"{""bsd"": ""210798""}",655caf5f-40cd-438d-b5e1-f140ac26eaca
-2026-07-30 17:00,football,UEFA Europa League,Hradec Kralove vs Tromso,goal,,"{""goal"": ""cmrwqxnq1yt0rnu07t3ppbdks""}",bed457bd-fd28-4161-aa59-163d29e2459a
-2026-07-30 17:00,football,UEFA Europa League,Plzen vs Tromso,goal,,"{""goal"": ""cmrwqxnpsyt0pnu07cbl822hw""}",c2be8f00-7686-472e-a526-ff304ce2c18d
-2026-07-22 08:00,volleyball,FIVB Kadınlar Milletler Ligi,Italy Volleyball Women vs Netherlands Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2529323""}",1ff7ce98-4c47-427a-b945-e9253d2c9e84
-2026-07-22 11:30,volleyball,FIVB Kadınlar Milletler Ligi,Brazil Volleyball Women vs Japan Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2529322""}",5f659232-959e-43ec-b8ce-cbfddbe0aa2f
-2026-07-23 08:00,volleyball,FIVB Kadınlar Milletler Ligi,Turkey Volleyball Women vs Canada Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2529324""}",6862bcad-8c40-428d-87bd-c3d0707bbfc3
-2026-07-23 11:30,volleyball,FIVB Kadınlar Milletler Ligi,USA Volleyball Women vs China Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2529325""}",837306f0-2dbd-43b7-9977-fed7d0c61746
-2026-07-25 08:00,volleyball,FIVB Kadınlar Milletler Ligi,Brazil Volleyball Women vs Italy Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2546059""}",c946dd32-13e3-49f5-a755-8b34a6a386e4
-2026-07-25 11:30,volleyball,FIVB Kadınlar Milletler Ligi,China Volleyball Women vs Turkey Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2546535""}",250af7b6-df0a-4c71-ba99-d0d4db555999
-2026-07-26 01:30,volleyball,FIVB Kadınlar Milletler Ligi,China Volleyball Women vs Italy Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2548077""}",b140cb81-a586-4be0-9c5c-f2471fadfe37
-2026-07-26 05:30,volleyball,FIVB Kadınlar Milletler Ligi,Turkey Volleyball Women vs Brazil Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2548078""}",94455a60-7f44-4b20-a38c-ce40b60390c9
-2026-08-21 15:00,volleyball,Kadınlar Avrupa Şampiyonası,Bulgaria Volleyball Women vs Ukraine Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2368416""}",56cbdba4-a915-46bb-95a7-3e240dbeef12
-2026-08-21 16:00,volleyball,Kadınlar Avrupa Şampiyonası,Turkey Volleyball Women vs Latvia Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2368411""}",7a37ad98-eac3-411b-bfd4-838b99849ac1
-2026-08-21 17:00,volleyball,Kadınlar Avrupa Şampiyonası,Sweden Volleyball Women vs Montenegro Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2368402""}",6b7d311f-6786-4b9e-9bf8-83a4bd32405b
-2026-08-22 14:30,volleyball,Kadınlar Avrupa Şampiyonası,Romania Volleyball Women vs Netherlands Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2368399""}",d7cce5c1-ba6a-4ba9-a3c8-f61d332d81c2
-2026-08-22 16:00,volleyball,Kadınlar Avrupa Şampiyonası,Hungary Volleyball Women vs Poland Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2368395""}",2b78e2fb-11cc-4c8a-a875-a3eb97e4d3df
-2026-08-22 16:00,volleyball,Kadınlar Avrupa Şampiyonası,Slovakia Volleyball Women vs Sweden Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2368409""}",5019ad8b-2fce-423f-9dda-498972d8ebd5
-2026-08-23 11:30,volleyball,Kadınlar Avrupa Şampiyonası,Portugal Volleyball Women vs Belgium Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2368393""}",31007308-1044-47b8-adf6-af3c585755bd
-2026-08-23 16:00,volleyball,Kadınlar Avrupa Şampiyonası,Sweden Volleyball Women vs Italy Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2368406""}",41fa4b64-4403-47c7-8959-24b06bfb2b8c
-2026-08-23 16:00,volleyball,Kadınlar Avrupa Şampiyonası,Slovenia Volleyball Women vs Turkey Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2368414""}",523a29c9-0639-438b-9d3c-d819cba9c515
-2026-08-24 11:30,volleyball,Kadınlar Avrupa Şampiyonası,Netherlands Volleyball Women vs Portugal Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2368389""}",d57fb272-e183-464b-b06a-baf05f5beb0c
-2026-08-24 14:00,volleyball,Kadınlar Avrupa Şampiyonası,Croatia Volleyball Women vs Slovakia Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2368404""}",5562a2b7-4587-44c8-a4fc-a6897800d044
-2026-08-24 17:00,volleyball,Kadınlar Avrupa Şampiyonası,Serbia Volleyball Women vs Bulgaria Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2368397""}",cd1eafc0-15e9-4c05-bb1b-b86721ba2d7a
-2026-08-25 14:30,volleyball,Kadınlar Avrupa Şampiyonası,Netherlands Volleyball Women vs Spain Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2368398""}",95363799-1fe3-434d-9b0b-f0485f8f691e
-2026-08-25 16:00,volleyball,Kadınlar Avrupa Şampiyonası,Poland Volleyball Women vs Slovenia Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2368396""}",b052ec64-3341-4fa6-bb4f-0da2c73ac781
-2026-08-25 17:00,volleyball,Kadınlar Avrupa Şampiyonası,Sweden Volleyball Women vs Croatia Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2368410""}",8e4f3a74-a580-4098-a6ae-fb5bdcfead91
-2026-08-26 11:30,volleyball,Kadınlar Avrupa Şampiyonası,Spain Volleyball Women vs Portugal Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2368391""}",423b5473-b251-448b-a8cf-566e0c642903
-2026-08-26 17:00,volleyball,Kadınlar Avrupa Şampiyonası,Slovakia Volleyball Women vs Montenegro Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2368407""}",5c6e9cc1-b41c-4e90-8d92-8ca816b88583
-2026-08-26 17:00,volleyball,Kadınlar Avrupa Şampiyonası,Serbia Volleyball Women vs Greece Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2368403""}",0fc2154e-b0f8-4cc7-8db0-01761f2463cc
-2026-08-27 11:30,volleyball,Kadınlar Avrupa Şampiyonası,Netherlands Volleyball Women vs Belgium Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2368400""}",3f45eea7-9ac4-4d4b-8181-9b95bc81c965
-2026-08-27 13:00,volleyball,Kadınlar Avrupa Şampiyonası,Poland Volleyball Women vs Germany Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2368394""}",4e8291ad-4b14-4dc8-bf62-96bf0ba1d843
-2026-08-27 14:30,volleyball,Kadınlar Avrupa Şampiyonası,Portugal Volleyball Women vs Romania Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2368392""}",d2057b68-b9b1-4043-a0f0-3b89d64ec257
-2026-08-28 11:30,volleyball,Kadınlar Avrupa Şampiyonası,Spain Volleyball Women vs Romania Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2368390""}",1ac40c79-c504-48c5-a6ec-511bcf7093c2
-2026-08-28 13:00,volleyball,Kadınlar Avrupa Şampiyonası,Slovenia Volleyball Women vs Hungary Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2368405""}",49e8feca-6879-49a9-9ed3-412b7430971f
-2026-08-28 16:00,volleyball,Kadınlar Avrupa Şampiyonası,Turkey Volleyball Women vs Poland Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2368412""}",f82acfbb-c532-420b-a30e-007951e87b80
-2026-08-30 14:00,volleyball,Kadınlar Avrupa Şampiyonası,France Volleyball Women vs Greece Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2594679""}",64d0afcd-caea-403e-aaa9-66a7dd49f434
-2026-08-30 17:00,volleyball,Kadınlar Avrupa Şampiyonası,Serbia Volleyball Women vs Croatia Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2594680""}",27678ac7-d9fb-4965-830b-1b82a520a422
-2026-08-31 13:00,volleyball,Kadınlar Avrupa Şampiyonası,Netherlands Volleyball Women vs Slovenia Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2595567""}",23556b37-83a0-416e-aabd-23b397283c70
-2026-08-31 14:00,volleyball,Kadınlar Avrupa Şampiyonası,Italy Volleyball Women vs Bulgaria Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2594681""}",ea76b116-9e43-4b09-be8f-11edda3a03ad
-2026-08-31 17:00,volleyball,Kadınlar Avrupa Şampiyonası,Czech Republic Volleyball Women vs Sweden Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2594682""}",608d306c-8191-4826-bd2a-dfbb88c3befb
-2026-09-01 13:00,volleyball,Kadınlar Avrupa Şampiyonası,Belgium Volleyball Women vs Germany Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2595569""}",23f3f33e-933b-4978-8a2c-0c504b0ec01e
-2026-09-01 16:00,volleyball,Kadınlar Avrupa Şampiyonası,Turkey Volleyball Women vs Azerbaijan Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2595570""}",6a5254ce-45d8-4d51-b018-bd884e98687b
-2026-09-02 14:00,volleyball,Kadınlar Avrupa Şampiyonası,Serbia Volleyball Women vs Greece Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2598430""}",0643feeb-97c0-4401-b5b8-b95ac7bb7e81
-2026-09-02 17:00,volleyball,Kadınlar Avrupa Şampiyonası,Italy Volleyball Women vs Sweden Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2598431""}",3a1175c7-6db7-43da-a4c2-0dc973b9fbe5
-2026-09-03 13:00,volleyball,Kadınlar Avrupa Şampiyonası,Poland Volleyball Women vs Netherlands Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2598432""}",67420ae2-a45d-4a01-a888-9f3918442bae
-2026-09-03 16:00,volleyball,Kadınlar Avrupa Şampiyonası,Germany Volleyball Women vs Turkey Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2599073""}",034766ef-73e3-426f-8253-abcfe08e9b52
-2026-09-05 13:00,volleyball,Kadınlar Avrupa Şampiyonası,Turkey Volleyball Women vs Serbia Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2599688""}",8cb3da40-bf88-4974-b819-80aa917d1938
-2026-09-05 16:00,volleyball,Kadınlar Avrupa Şampiyonası,Poland Volleyball Women vs Italy Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2599689""}",97c13e1e-348a-4327-b9d4-3a842fa72e7c
-2026-09-06 13:00,volleyball,Kadınlar Avrupa Şampiyonası,Poland Volleyball Women vs Serbia Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2600026""}",b7fb692c-c32f-4e74-8a77-41b78e71a1f6
-2026-09-06 16:00,volleyball,Kadınlar Avrupa Şampiyonası,Italy Volleyball Women vs Turkey Volleyball Women,thesportsdb,,"{""thesportsdb"": ""2600027""}",802d4f66-3360-448e-ba06-0f3241e80c11
+"2026-09-29 17:00","basketball","EuroLeague","Anadolu Efes SK vs Real Madrid Baloncesto","thesportsdb",,"{""thesportsdb"": ""2565457""}","54575ef8-9b07-435c-a381-0d912cbca9a2"
+"2026-09-29 17:00","basketball","EuroLeague","BC Žalgiris vs Olympiacos BC","thesportsdb",,"{""thesportsdb"": ""2565458""}","8b4fc34a-533c-4a1b-9d65-9247b2eefbb1"
+"2026-09-29 16:00","basketball","EuroLeague","Dubai Basketball vs FC Barcelona Basquet","thesportsdb",,"{""thesportsdb"": ""2565456""}","3ca6e5cd-3151-4851-9360-c32cd83a9ecd"
+"2026-09-28 14:30","football","Milli Hazırlık Maçları","Qatar U19 vs Azerbaijan U19","goal",,"{""goal"": ""cmukmy5eb96hwpv067charz8n""}","105e5faf-b563-4d72-9c0e-e62b4055cbc9"
+"2026-09-28 12:00","football","Milli Hazırlık Maçları","Kyrgyzstan vs Lebanon","bsd",,"{""bsd"": ""604984""}","561910ad-ac66-4ac2-9e26-cffbebd70ac0"
+"2026-09-27 17:30","basketball","Basketbol Süper Ligi","Anadolu Efes SK vs Besiktas Basketbol","thesportsdb",,"{""thesportsdb"": ""2571201""}","a359b4dd-11c3-40b5-ae88-c136ef7a0cca"
+"2026-09-27 15:00","basketball","Basketbol Süper Ligi","Bahçeşehir Koleji SK vs Fenerbahçe Basketbol","thesportsdb",,"{""thesportsdb"": ""2571208""}","1a8eba36-3230-4427-8b6c-47533e6a0032"
+"2026-09-27 12:30","basketball","Basketbol Süper Ligi","Trabzonspor BK vs Bursaspor Basketbol","thesportsdb",,"{""thesportsdb"": ""2571206""}","65c7e288-ebdd-461b-8d4e-26e359093a74"
+"2026-09-26 15:00","basketball","Basketbol Süper Ligi","Galatasaray SK vs Çayirova","thesportsdb",,"{""thesportsdb"": ""2571202""}","5c034389-0adf-4c35-a65e-d95a6942f164"
+"2026-09-26 10:00","basketball","Basketbol Süper Ligi","Türk Telekom BK vs Karşıyaka Basket","thesportsdb",,"{""thesportsdb"": ""2571207""}","494446ab-5765-42f9-9b56-17e8238938a0"
+"2026-09-25 18:45","basketball","EuroLeague","KK Partizan vs Olimpia Milano","thesportsdb",,"{""thesportsdb"": ""2565455""}","148b9549-eaa7-42ef-b422-e51e19e17b23"
+"2026-09-25 17:45","basketball","EuroLeague","Fenerbahçe Basketbol vs Virtus Pallacanestro Bologna","thesportsdb",,"{""thesportsdb"": ""2565454""}","93d425d2-fc4a-4f86-9ecb-dba57eb5757b"
+"2026-09-25 17:00","basketball","EuroLeague","Besiktas Basketbol vs Valencia Basket","thesportsdb",,"{""thesportsdb"": ""2565453""}","03964f6c-d0d1-48d0-aec9-a908b1868dd1"
+"2026-09-25 15:00","basketball","Basketbol Süper Ligi","Manisa BB vs Esenler Erokspor Basketball","thesportsdb",,"{""thesportsdb"": ""2571203""}","6e70d183-749f-4866-9756-3b5f8c803429"
+"2026-09-25 15:00","basketball","Basketbol Süper Ligi","Petkim Spor vs Merkezefendi Belediyesi Denizli Basket","thesportsdb",,"{""thesportsdb"": ""2571204""}","e1052b0e-b3b1-4f47-bab5-acad67decdd5"
+"2026-09-25 15:00","basketball","Basketbol Süper Ligi","Tofaş SK vs Bordo Sportif","thesportsdb",,"{""thesportsdb"": ""2571205""}","c22d6585-e48f-421a-b368-2c750bcf1694"
+"2026-09-24 18:00","basketball","EuroLeague","KK Crvena zvezda vs BC Žalgiris","thesportsdb",,"{""thesportsdb"": ""2565448""}","22a3ac3f-e700-4736-8305-a9b792a75ecc"
+"2026-09-24 16:00","basketball","EuroLeague","Dubai Basketball vs Real Madrid Baloncesto","thesportsdb",,"{""thesportsdb"": ""2565446""}","e2dca44b-dc6c-4ed1-a933-0829bebea803"
+"2026-09-24 16:00","basketball","EuroLeague","Hapoel Tel Aviv BC vs Bayern München Basketball","thesportsdb",,"{""thesportsdb"": ""2565447""}","d967aef0-acc4-4c15-98a8-518a591a0149"
+"2026-09-23 18:45","football","FA Cup","Thame United vs Exmouth Town","bsd",,"{""bsd"": ""604543""}","2a460add-6206-4bf4-8731-64c2d46535d6"
+"2026-09-08 19:00","football","UEFA Champions League","Manchester United vs Bayern Munich","thesportsdb",,"{""thesportsdb"": ""2594535""}","0cc75e8e-f8f7-4f34-8086-199b44d22004"
+"2026-09-08 19:00","football","UEFA Champions League","Manchester United vs RB Leipzig","thesportsdb",,"{""thesportsdb"": ""2594536""}","de836cb7-5c91-4e5a-bec9-46668034b15f"
+"2026-09-08 19:00","football","UEFA Champions League","Manchester United vs Roma","thesportsdb",,"{""thesportsdb"": ""2594537""}","ba192f7a-8af4-4d46-b111-54c3ff5092e0"
+"2026-09-06 16:00","volleyball","Kadınlar Avrupa Şampiyonası","Italy Volleyball Women vs Turkey Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2600027""}","802d4f66-3360-448e-ba06-0f3241e80c11"
+"2026-09-06 13:00","volleyball","Kadınlar Avrupa Şampiyonası","Poland Volleyball Women vs Serbia Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2600026""}","b7fb692c-c32f-4e74-8a77-41b78e71a1f6"
+"2026-09-05 16:00","volleyball","Kadınlar Avrupa Şampiyonası","Poland Volleyball Women vs Italy Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2599689""}","97c13e1e-348a-4327-b9d4-3a842fa72e7c"
+"2026-09-05 14:00","football","FA Cup","Stafford Rangers vs Northampton Town","bsd",,"{""bsd"": ""601436""}","1cc0ece7-a53c-412a-aa24-9d3c7fc0c005"
+"2026-09-05 13:00","volleyball","Kadınlar Avrupa Şampiyonası","Turkey Volleyball Women vs Serbia Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2599688""}","8cb3da40-bf88-4974-b819-80aa917d1938"
+"2026-09-03 16:00","volleyball","Kadınlar Avrupa Şampiyonası","Germany Volleyball Women vs Turkey Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2599073""}","034766ef-73e3-426f-8253-abcfe08e9b52"
+"2026-09-03 13:00","volleyball","Kadınlar Avrupa Şampiyonası","Poland Volleyball Women vs Netherlands Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2598432""}","67420ae2-a45d-4a01-a888-9f3918442bae"
+"2026-09-02 17:00","volleyball","Kadınlar Avrupa Şampiyonası","Italy Volleyball Women vs Sweden Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2598431""}","3a1175c7-6db7-43da-a4c2-0dc973b9fbe5"
+"2026-09-02 14:00","volleyball","Kadınlar Avrupa Şampiyonası","Serbia Volleyball Women vs Greece Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2598430""}","0643feeb-97c0-4401-b5b8-b95ac7bb7e81"
+"2026-09-02 13:00","football","Coppa Italia","Pisa vs Fiorentina","bsd",,"{""bsd"": ""588045""}","e05c7b63-2e49-4d2b-8471-ee88f3648bd7"
+"2026-09-01 16:00","volleyball","Kadınlar Avrupa Şampiyonası","Turkey Volleyball Women vs Azerbaijan Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2595570""}","6a5254ce-45d8-4d51-b018-bd884e98687b"
+"2026-09-01 13:00","volleyball","Kadınlar Avrupa Şampiyonası","Belgium Volleyball Women vs Germany Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2595569""}","23f3f33e-933b-4978-8a2c-0c504b0ec01e"
+"2026-08-31 17:00","volleyball","Kadınlar Avrupa Şampiyonası","Czech Republic Volleyball Women vs Sweden Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2594682""}","608d306c-8191-4826-bd2a-dfbb88c3befb"
+"2026-08-31 14:00","volleyball","Kadınlar Avrupa Şampiyonası","Italy Volleyball Women vs Bulgaria Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2594681""}","ea76b116-9e43-4b09-be8f-11edda3a03ad"
+"2026-08-31 13:00","volleyball","Kadınlar Avrupa Şampiyonası","Netherlands Volleyball Women vs Slovenia Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2595567""}","23556b37-83a0-416e-aabd-23b397283c70"
+"2026-08-30 17:00","volleyball","Kadınlar Avrupa Şampiyonası","Serbia Volleyball Women vs Croatia Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2594680""}","27678ac7-d9fb-4965-830b-1b82a520a422"
+"2026-08-30 14:00","volleyball","Kadınlar Avrupa Şampiyonası","France Volleyball Women vs Greece Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2594679""}","64d0afcd-caea-403e-aaa9-66a7dd49f434"
+"2026-08-28 16:00","volleyball","Kadınlar Avrupa Şampiyonası","Turkey Volleyball Women vs Poland Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2368412""}","f82acfbb-c532-420b-a30e-007951e87b80"
+"2026-08-28 13:00","volleyball","Kadınlar Avrupa Şampiyonası","Slovenia Volleyball Women vs Hungary Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2368405""}","49e8feca-6879-49a9-9ed3-412b7430971f"
+"2026-08-28 11:30","volleyball","Kadınlar Avrupa Şampiyonası","Spain Volleyball Women vs Romania Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2368390""}","1ac40c79-c504-48c5-a6ec-511bcf7093c2"
+"2026-08-27 14:30","volleyball","Kadınlar Avrupa Şampiyonası","Portugal Volleyball Women vs Romania Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2368392""}","d2057b68-b9b1-4043-a0f0-3b89d64ec257"
+"2026-08-27 13:00","volleyball","Kadınlar Avrupa Şampiyonası","Poland Volleyball Women vs Germany Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2368394""}","4e8291ad-4b14-4dc8-bf62-96bf0ba1d843"
+"2026-08-27 11:30","volleyball","Kadınlar Avrupa Şampiyonası","Netherlands Volleyball Women vs Belgium Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2368400""}","3f45eea7-9ac4-4d4b-8181-9b95bc81c965"
+"2026-08-26 17:00","volleyball","Kadınlar Avrupa Şampiyonası","Serbia Volleyball Women vs Greece Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2368403""}","0fc2154e-b0f8-4cc7-8db0-01761f2463cc"
+"2026-08-26 17:00","volleyball","Kadınlar Avrupa Şampiyonası","Slovakia Volleyball Women vs Montenegro Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2368407""}","5c6e9cc1-b41c-4e90-8d92-8ca816b88583"
+"2026-08-26 11:30","volleyball","Kadınlar Avrupa Şampiyonası","Spain Volleyball Women vs Portugal Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2368391""}","423b5473-b251-448b-a8cf-566e0c642903"
+"2026-08-25 17:00","volleyball","Kadınlar Avrupa Şampiyonası","Sweden Volleyball Women vs Croatia Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2368410""}","8e4f3a74-a580-4098-a6ae-fb5bdcfead91"
+"2026-08-25 16:00","volleyball","Kadınlar Avrupa Şampiyonası","Poland Volleyball Women vs Slovenia Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2368396""}","b052ec64-3341-4fa6-bb4f-0da2c73ac781"
+"2026-08-25 14:30","volleyball","Kadınlar Avrupa Şampiyonası","Netherlands Volleyball Women vs Spain Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2368398""}","95363799-1fe3-434d-9b0b-f0485f8f691e"
+"2026-08-24 17:00","volleyball","Kadınlar Avrupa Şampiyonası","Serbia Volleyball Women vs Bulgaria Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2368397""}","cd1eafc0-15e9-4c05-bb1b-b86721ba2d7a"
+"2026-08-24 14:00","volleyball","Kadınlar Avrupa Şampiyonası","Croatia Volleyball Women vs Slovakia Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2368404""}","5562a2b7-4587-44c8-a4fc-a6897800d044"
+"2026-08-24 11:30","volleyball","Kadınlar Avrupa Şampiyonası","Netherlands Volleyball Women vs Portugal Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2368389""}","d57fb272-e183-464b-b06a-baf05f5beb0c"
+"2026-08-23 16:00","volleyball","Kadınlar Avrupa Şampiyonası","Slovenia Volleyball Women vs Turkey Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2368414""}","523a29c9-0639-438b-9d3c-d819cba9c515"
+"2026-08-23 16:00","volleyball","Kadınlar Avrupa Şampiyonası","Sweden Volleyball Women vs Italy Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2368406""}","41fa4b64-4403-47c7-8959-24b06bfb2b8c"
+"2026-08-23 11:30","volleyball","Kadınlar Avrupa Şampiyonası","Portugal Volleyball Women vs Belgium Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2368393""}","31007308-1044-47b8-adf6-af3c585755bd"
+"2026-08-22 16:00","volleyball","Kadınlar Avrupa Şampiyonası","Hungary Volleyball Women vs Poland Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2368395""}","2b78e2fb-11cc-4c8a-a875-a3eb97e4d3df"
+"2026-08-22 16:00","volleyball","Kadınlar Avrupa Şampiyonası","Slovakia Volleyball Women vs Sweden Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2368409""}","5019ad8b-2fce-423f-9dda-498972d8ebd5"
+"2026-08-22 14:30","volleyball","Kadınlar Avrupa Şampiyonası","Romania Volleyball Women vs Netherlands Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2368399""}","d7cce5c1-ba6a-4ba9-a3c8-f61d332d81c2"
+"2026-08-21 17:00","volleyball","Kadınlar Avrupa Şampiyonası","Sweden Volleyball Women vs Montenegro Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2368402""}","6b7d311f-6786-4b9e-9bf8-83a4bd32405b"
+"2026-08-21 16:00","volleyball","Kadınlar Avrupa Şampiyonası","Turkey Volleyball Women vs Latvia Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2368411""}","7a37ad98-eac3-411b-bfd4-838b99849ac1"
+"2026-08-21 15:00","volleyball","Kadınlar Avrupa Şampiyonası","Bulgaria Volleyball Women vs Ukraine Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2368416""}","56cbdba4-a915-46bb-95a7-3e240dbeef12"
+"2026-08-04 18:00","football","UEFA Champions League","AC Sparta Praha vs SK Sturm Graz","bsd",,"{""bsd"": ""223225""}","226c68ea-28d5-4323-aa1c-d989fb472b4c"
+"2026-07-30 17:00","football","UEFA Conference League","Hradec Kralove vs Varazdin","goal",,"{""goal"": ""cmrwqxnomyt0jnu07ou4ygxh1""}","2eafa588-826a-4f02-82d8-984a9752430d"
+"2026-07-30 17:00","football","UEFA Europa League","Plzen vs Tromso","goal",,"{""goal"": ""cmrwqxnpsyt0pnu07cbl822hw""}","c2be8f00-7686-472e-a526-ff304ce2c18d"
+"2026-07-30 13:00","football","UEFA Europa League","FC Viktoria Plzeň vs Tromsø IL","bsd",,"{""bsd"": ""210798""}","655caf5f-40cd-438d-b5e1-f140ac26eaca"
+"2026-07-28 13:00","football","UEFA Champions League","FK Vardar Skopje vs Sabah FK","bsd",,"{""bsd"": ""216509""}","133eee0d-f3af-4660-849a-3e0ec7fdd30c"
+"2026-07-26 05:30","volleyball","FIVB Kadınlar Milletler Ligi","Turkey Volleyball Women vs Brazil Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2548078""}","94455a60-7f44-4b20-a38c-ce40b60390c9"
+"2026-07-26 01:30","volleyball","FIVB Kadınlar Milletler Ligi","China Volleyball Women vs Italy Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2548077""}","b140cb81-a586-4be0-9c5c-f2471fadfe37"
+"2026-07-25 11:30","volleyball","FIVB Kadınlar Milletler Ligi","China Volleyball Women vs Turkey Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2546535""}","250af7b6-df0a-4c71-ba99-d0d4db555999"
+"2026-07-25 08:00","volleyball","FIVB Kadınlar Milletler Ligi","Brazil Volleyball Women vs Italy Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2546059""}","c946dd32-13e3-49f5-a755-8b34a6a386e4"
+"2026-07-23 17:00","football","UEFA Europa League","Tromso vs Plzen","goal",,"{""goal"": ""cmrmqt9pz399ft007uqq7okd4""}","7a4d468d-2af0-452d-9787-ebddf6363389"
+"2026-07-23 17:00","football","UEFA Conference League","Varazdin vs Hradec Kralove","goal",,"{""goal"": ""cmrmqt9nq3988t007xzu412bv""}","7ed3e8b9-a983-412b-98d7-dd1da3ec2baa"
+"2026-07-23 13:00","football","UEFA Europa League","Tromsø IL vs FC Viktoria Plzeň","bsd",,"{""bsd"": ""210794""}","5029f41b-e536-41c6-b60d-b74c44e11e9a"
+"2026-07-23 11:30","volleyball","FIVB Kadınlar Milletler Ligi","USA Volleyball Women vs China Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2529325""}","837306f0-2dbd-43b7-9977-fed7d0c61746"
+"2026-07-23 08:00","volleyball","FIVB Kadınlar Milletler Ligi","Turkey Volleyball Women vs Canada Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2529324""}","6862bcad-8c40-428d-87bd-c3d0707bbfc3"
+"2026-07-22 16:00","football","Milli Hazırlık Maçları","Biala Podlaska vs Antigua and Barbuda","goal",,"{""goal"": ""cmrlbdjmz0qjgru07wn53f5wa""}","898034ae-2339-4db5-9ebb-73ae4937eb29"
+"2026-07-22 11:30","volleyball","FIVB Kadınlar Milletler Ligi","Brazil Volleyball Women vs Japan Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2529322""}","5f659232-959e-43ec-b8ce-cbfddbe0aa2f"
+"2026-07-22 08:00","volleyball","FIVB Kadınlar Milletler Ligi","Italy Volleyball Women vs Netherlands Volleyball Women","thesportsdb",,"{""thesportsdb"": ""2529323""}","1ff7ce98-4c47-427a-b945-e9253d2c9e84"
+"2026-07-21 13:00","football","UEFA Champions League","Sabah FK vs FK Vardar Skopje","bsd",,"{""bsd"": ""216504""}","3e3254e4-6f97-4dc8-9f28-717af1681a8e"
+"2026-07-16 07:00","football","Milli Hazırlık Maçları","Albirex Niigata vs Singapore","bsd",,"{""bsd"": ""216533""}","19c39f6f-80b5-49cd-98d5-a2b2a3a06dee"
