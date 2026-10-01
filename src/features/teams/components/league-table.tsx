@@ -47,11 +47,6 @@ export function LeagueTableCard({
   highlightTeam: string | null;
   index?: number;
 }) {
-  const { t } = useI18n();
-  const colors = useThemeColors();
-  const columns = columnsFor(table.sportId, t);
-  const needle = fold(highlightTeam);
-
   return (
     <Card className="mb-4" index={index}>
       <View className="mb-3 flex-row items-center gap-2">
@@ -68,6 +63,25 @@ export function LeagueTableCard({
         <Text className="text-xs text-ink-secondary">{table.season}</Text>
       </View>
 
+      <LeagueTableBody table={table} highlightTeams={[highlightTeam]} />
+    </Card>
+  );
+}
+
+/** The table rows alone; every club named in `highlightTeams` is tinted. */
+export function LeagueTableBody({
+  table,
+  highlightTeams,
+}: {
+  table: LeagueTable;
+  highlightTeams: (string | null)[];
+}) {
+  const { t } = useI18n();
+  const colors = useThemeColors();
+  const columns = columnsFor(table.sportId, t);
+  const needles = highlightTeams.map(fold).filter((n): n is string => n !== null);
+
+  return (
       <View className="gap-4">
         {table.groups.map((group, gi) => (
           <Fragment key={group.name || gi}>
@@ -93,7 +107,8 @@ export function LeagueTableCard({
 
               <View className="gap-1">
                 {group.rows.map((row) => {
-                  const mine = needle !== null && fold(row.team) === needle;
+                  const folded = fold(row.team);
+                  const mine = folded !== null && needles.includes(folded);
                   return (
                     <View
                       key={`${row.team}-${row.rank}`}
@@ -140,7 +155,6 @@ export function LeagueTableCard({
           </Fragment>
         ))}
       </View>
-    </Card>
   );
 }
 
