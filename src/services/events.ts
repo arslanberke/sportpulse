@@ -167,6 +167,8 @@ export async function fetchEvents(params: {
       'id, sport_id, league_id, home_team_id, away_team_id, parent_event_id, home_player_id, away_player_id, title, starts_at, ends_at, status, home_score, away_score, result_status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url), home_player:players!home_player_id (name, country_flag_url), away_player:players!away_player_id (name, country_flag_url)',
     )
     .or(bracketClauses.join(','))
+    // Birlestirilmis kopyalar (migration 0069) listelenmez.
+    .is('merged_into_event_id', null)
     .lt('starts_at', to.toISOString())
     .or(clauses.join(','))
     // Devam edenler de listede kalir. Yalnizca baslangica bakildiginda cok
@@ -199,6 +201,8 @@ export async function fetchTeamEvents(params: {
     .gte('starts_at', from.toISOString())
     .lt('starts_at', to.toISOString())
     .or(`home_team_id.eq.${params.teamId},away_team_id.eq.${params.teamId}`)
+    // Birlestirilmis kopyalar (migration 0069) listelenmez.
+    .is('merged_into_event_id', null)
     .order('starts_at');
   if (error) throw error;
   return dedupeEvents((data as unknown as EventRow[]).map(mapRow));
@@ -219,6 +223,8 @@ export async function fetchLeagueNextEvent(leagueId: string): Promise<SportEvent
     )
     .eq('league_id', leagueId)
     .eq('status', 'scheduled')
+    // Birlestirilmis kopyalar (migration 0069) listelenmez.
+    .is('merged_into_event_id', null)
     .gte('starts_at', new Date().toISOString())
     .order('starts_at')
     .limit(1)
@@ -227,15 +233,19 @@ export async function fetchLeagueNextEvent(leagueId: string): Promise<SportEvent
   return data ? mapRow(data as unknown as EventRow) : null;
 }
 
-export async function fetchEvent(id: string): Promise<SportEvent | null> {
+export async function fetchEvent(id: string, depth = 0): Promise<SportEvent | null> {
   const { data, error } = await supabase
     .from('events')
     .select(
-      'id, sport_id, league_id, home_team_id, away_team_id, parent_event_id, home_player_id, away_player_id, title, starts_at, ends_at, status, home_score, away_score, result_status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url)',
+      'id, sport_id, league_id, home_team_id, away_team_id, parent_event_id, home_player_id, away_player_id, title, starts_at, ends_at, status, home_score, away_score, result_status, image_url, venue, venue_image_url, importance, external_ids, merged_into_event_id, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url)',
     )
     .eq('id', id)
     .maybeSingle();
   if (error) throw error;
+  // Eski bir bildirim ya da baglanti birlestirilmis kopyayi acabilir; asil
+  // kayit gosterilir (migration 0069).
+  const mergedInto = (data as { merged_into_event_id?: string | null } | null)?.merged_into_event_id;
+  if (mergedInto && depth < 3) return fetchEvent(mergedInto, depth + 1);
   return data ? mapRow(data as unknown as EventRow) : null;
 }
 
@@ -502,6 +512,8 @@ export async function fetchTournamentBracket(tournamentId: string): Promise<Spor
       'id, sport_id, league_id, home_team_id, away_team_id, parent_event_id, home_player_id, away_player_id, title, starts_at, ends_at, status, home_score, away_score, result_status, image_url, venue, venue_image_url, importance, external_ids, round, bracket, home_player:players!home_player_id (name, country_flag_url, rank), away_player:players!away_player_id (name, country_flag_url, rank), leagues (name, artwork_url, logo_url)',
     )
     .eq('parent_event_id', tournamentId)
+    // Birlestirilmis kopyalar (migration 0069) listelenmez.
+    .is('merged_into_event_id', null)
     .not('bracket', 'ilike', '%Doubles%')
     .order('starts_at');
   if (error) throw error;
@@ -538,6 +550,8 @@ export async function fetchPlayerEvents(playerId: string): Promise<SportEvent[]>
       'id, sport_id, league_id, home_team_id, away_team_id, parent_event_id, home_player_id, away_player_id, title, starts_at, ends_at, status, home_score, away_score, result_status, image_url, venue, venue_image_url, importance, external_ids, round, bracket, home_player:players!home_player_id (name, country_flag_url, rank), away_player:players!away_player_id (name, country_flag_url, rank), leagues (name, artwork_url, logo_url)',
     )
     .or(`home_player_id.eq.${playerId},away_player_id.eq.${playerId}`)
+    // Birlestirilmis kopyalar (migration 0069) listelenmez.
+    .is('merged_into_event_id', null)
     .gte('starts_at', new Date(Date.now() - 3 * 3_600_000).toISOString())
     .order('starts_at')
     .limit(20);
