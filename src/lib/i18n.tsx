@@ -134,6 +134,7 @@ const en = {
   'explore.following': 'Following',
   'explore.follow': 'Follow',
   'explore.noTeams': 'No teams yet — they appear once the squad list is synced.',
+  'explore.noTeamMatches': 'No team matches your search.',
 
   // Home / week list
   'home.title': 'Your game plan.',
@@ -502,6 +503,7 @@ const tr: Record<TranslationKey, string> = {
   'explore.following': 'Takiptesin',
   'explore.follow': 'Takip et',
   'explore.noTeams': 'Henüz takım yok — kadro listesi senkronlanınca görünecekler.',
+  'explore.noTeamMatches': 'Aramana uyan takım yok.',
 
   'home.title': 'Maçın var.',
   'home.week': 'Bu hafta',

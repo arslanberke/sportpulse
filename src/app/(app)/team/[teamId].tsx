@@ -133,27 +133,27 @@ export default function TeamScreen() {
                 color={favorite ? FAVORITE_COLOR : colors.inkTertiary}
               />
             </Pressable>
-            <Pressable
-              onPress={() => toggleFollow('team', teamId)}
-              hitSlop={8}
-              className="flex-row items-center gap-1.5 rounded-button px-3 py-2 active:opacity-70"
-              style={{
-                backgroundColor: following ? `${colors.primary}1F` : colors.primary,
-              }}
-            >
-              <Ionicons
-                name={following ? 'checkmark' : 'add'}
-                size={16}
-                color={following ? colors.primary : colors.onPrimary}
-              />
-              <Text
-                className="text-sm font-semibold"
-                style={{ color: following ? colors.primaryDark : colors.onPrimary }}
-              >
-                {following ? t('team.following') : t('team.follow')}
-              </Text>
-            </Pressable>
           </View>
+          <Pressable
+            onPress={() => toggleFollow('team', teamId)}
+            hitSlop={8}
+            className="mt-3 flex-row items-center justify-center gap-1.5 rounded-button px-3 py-2 active:opacity-70"
+            style={{
+              backgroundColor: following ? `${colors.primary}1F` : colors.primary,
+            }}
+          >
+            <Ionicons
+              name={following ? 'checkmark' : 'add'}
+              size={16}
+              color={following ? colors.primary : colors.onPrimary}
+            />
+            <Text
+              className="text-sm font-semibold"
+              style={{ color: following ? colors.primaryDark : colors.onPrimary }}
+            >
+              {following ? t('team.following') : t('team.follow')}
+            </Text>
+          </Pressable>
         </Card>
 
         <TabBar tab={activeTab} onChange={setTab} hasSquad={hasSquad} />
