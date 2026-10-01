@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import { Text, View } from 'react-native';
 
 import { Card } from '@/components/ui/card';
-import { useSports } from '@/features/catalog/hooks/use-catalog';
+import { useSportLogos, useSports } from '@/features/catalog/hooks/use-catalog';
 import { FollowRow } from '@/features/follows/components/follow-row';
 import { useFollowActions } from '@/features/follows/hooks/use-follow-actions';
 import { useI18n } from '@/lib/i18n';
@@ -17,6 +17,7 @@ export function FollowPicker() {
   const { t, language } = useI18n();
   const router = useRouter();
   const { data: sports } = useSports();
+  const sportLogos = useSportLogos();
   const { isFollowing, toggleFollow } = useFollowActions();
 
   return (
@@ -30,6 +31,7 @@ export function FollowPicker() {
             index={i}
             label={language === 'tr' ? sport.nameTr : sport.nameEn}
             icon={sport.icon}
+            imageUrl={sportLogos.get(sport.id)}
             following={isFollowing('sport', sport.id)}
             onToggleFollow={() => toggleFollow('sport', sport.id)}
             onPress={() => router.push(`/follow/sport/${sport.id}`)}

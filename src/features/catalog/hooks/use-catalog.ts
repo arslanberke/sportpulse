@@ -1,4 +1,5 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
 import { useDebounced } from '@/lib/use-debounced';
 import {
@@ -98,4 +99,23 @@ export function useLeagueChannels(countryCode: string | undefined) {
     enabled: Boolean(countryCode),
     staleTime: CATALOG_STALE_MS,
   });
+}
+
+/**
+ * Sporun kendi logosu: sporla ayni adi tasiyan ligin rozeti (Formula 1,
+ * MotoGP). Boyle bir lig yoksa spor Ionicons simgesiyle kalir.
+ */
+export function useSportLogos(): Map<string, string> {
+  const { data: sports } = useSports();
+  const { data: leagues } = useLeagues();
+  return useMemo(() => {
+    const logos = new Map<string, string>();
+    for (const sport of sports ?? []) {
+      const own = (leagues ?? []).find(
+        (league) => league.sportId === sport.id && league.name.toLowerCase() === sport.nameEn.toLowerCase(),
+      );
+      if (own?.logoUrl) logos.set(sport.id, own.logoUrl);
+    }
+    return logos;
+  }, [sports, leagues]);
 }

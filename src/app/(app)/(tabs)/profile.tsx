@@ -13,7 +13,7 @@ import { Screen } from '@/components/ui/screen';
 import { TextField } from '@/components/ui/text-field';
 import { useLogoTint } from '@/constants/logo-tint';
 import { FAVORITE_COLOR, useThemeColors } from '@/constants/theme';
-import { useLeagues, useSports, useTeam } from '@/features/catalog/hooks/use-catalog';
+import { useLeagues, useSportLogos, useSports, useTeam } from '@/features/catalog/hooks/use-catalog';
 import { useFollowActions } from '@/features/follows/hooks/use-follow-actions';
 import {
   useFavorites,
@@ -235,6 +235,7 @@ export default function ProfileScreen() {
   const toggleFavoritePlayer = useToggleFavoritePlayer();
   const { data: sports } = useSports();
   const { data: leagues } = useLeagues();
+  const sportLogos = useSportLogos();
 
   const [filter, setFilter] = useState<Filter>('all');
   const [editing, setEditing] = useState<SectionKey | null>(null);
@@ -496,6 +497,7 @@ export default function ProfileScreen() {
                       label={sportLabel(sport)}
                       sub={t('profile.allLeagues')}
                       icon={sport.icon}
+                      imageUrl={sportLogos.get(sport.id)}
                       href={`/follow/sport/${sport.id}`}
                       first={i === 0}
                       editing={editing === 'sports'}

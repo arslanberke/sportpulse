@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { Pressable, Text, View } from 'react-native';
 
+import { useLogoTint } from '@/constants/logo-tint';
 import { FAVORITE_COLOR, useThemeColors } from '@/constants/theme';
 
 interface FollowRowProps {
@@ -59,6 +60,7 @@ export function FollowRow({
   favoriteLabel,
 }: FollowRowProps) {
   const colors = useThemeColors();
+  const logoTint = useLogoTint(imageUrl);
   const ticked = coveredByParent || following;
 
   return (
@@ -104,6 +106,7 @@ export function FollowRow({
               // boyutta cozup olceklemeyi GPU'ya birakmak tutarli ve keskin
               // sonuc verir; rozetler ~500 piksel oldugu icin bedeli dusuk.
               allowDownscaling={false}
+              tintColor={logoTint}
             />
           </View>
         ) : (
