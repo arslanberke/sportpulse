@@ -33,6 +33,13 @@ export interface ProviderEvent {
   venue: string | null;
   venueImageUrl: string | null;
   postponed: boolean;
+  /**
+   * Sonuc, kaynak veriyorsa (ESPN scoreboard). Baslamamis macta null.
+   * resultStatus: 'notstarted' | 'inprogress' | 'finished' | 'postponed'.
+   */
+  homeScore?: number | null;
+  awayScore?: number | null;
+  resultStatus?: string | null;
 }
 
 /** A club/constructor taking part in a league, independent of any fixture. */
@@ -198,8 +205,12 @@ export interface FixtureProvider {
   readonly name: string;
   /** Whether this provider can serve the given league. */
   supports(league: LeagueRef): boolean;
-  /** Upcoming events for a league within the next `days` days. */
-  fetchUpcomingEvents(league: LeagueRef, days: number): Promise<ProviderEvent[]>;
+  /**
+   * Events for a league within the next `days` days. `lookbackDays` also
+   * returns the last few days so finished matches get their result; providers
+   * without results may ignore it.
+   */
+  fetchUpcomingEvents(league: LeagueRef, days: number, lookbackDays?: number): Promise<ProviderEvent[]>;
   /**
    * Confirmed lineups for one event, or null when not published yet.
    * Official lineups usually appear ~1h before kickoff, so callers should

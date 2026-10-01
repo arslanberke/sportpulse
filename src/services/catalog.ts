@@ -77,8 +77,10 @@ export async function fetchTeams(leagueId?: string): Promise<Team[]> {
   if (leagueId) {
     const { data, error } = await supabase
       .from('league_teams')
-      .select('teams (id, sport_id, league_id, name, logo_url, external_ids)')
-      .eq('league_id', leagueId);
+      .select('teams!inner (id, sport_id, league_id, name, logo_url, external_ids)')
+      .eq('league_id', leagueId)
+      // Birlestirilmis kopya takimlar (migration 0068) listelenmez.
+      .is('teams.merged_into_team_id', null);
     if (error) throw error;
     return (data as unknown as { teams: TeamRow | null }[])
       .map((row) => row.teams)
@@ -97,6 +99,7 @@ export async function fetchTeams(leagueId?: string): Promise<Team[]> {
   const { data, error } = await supabase
     .from('teams')
     .select('id, sport_id, league_id, name, logo_url, external_ids')
+    .is('merged_into_team_id', null)
     .order('name');
   if (error) throw error;
   return (data as TeamRow[]).map((row) => ({
@@ -109,14 +112,18 @@ export async function fetchTeams(leagueId?: string): Promise<Team[]> {
   }));
 }
 
-export async function fetchTeam(teamId: string): Promise<Team | null> {
+export async function fetchTeam(teamId: string, depth = 0): Promise<Team | null> {
   const { data, error } = await supabase
     .from('teams')
-    .select('id, sport_id, league_id, name, logo_url, external_ids')
+    .select('id, sport_id, league_id, name, logo_url, external_ids, merged_into_team_id')
     .eq('id', teamId)
     .maybeSingle();
   if (error) throw error;
   if (!data) return null;
+  // Eski bir takip ya da baglanti birlestirilmis kopyayi acabilir; asil kayit
+  // gosterilir (migration 0068).
+  const mergedInto = (data as { merged_into_team_id?: string | null }).merged_into_team_id;
+  if (mergedInto && depth < 3) return fetchTeam(mergedInto, depth + 1);
   const row = data as TeamRow;
   return {
     id: row.id,
@@ -205,6 +212,7 @@ export async function searchCatalog(
         supabase
           .from('teams')
           .select('id, sport_id, league_id, name, logo_url, external_ids')
+          .is('merged_into_team_id', null)
           .ilike('name', pattern)
           .order('name')
           .limit(SEARCH_LIMIT),

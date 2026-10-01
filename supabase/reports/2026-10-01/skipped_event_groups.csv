@@ -1,0 +1,21 @@
+grp,starts_at_utc,title,league,external_ids,event_id
+1,2026-09-08 19:00,Manchester United vs RB Leipzig,UEFA Champions League,"{""thesportsdb"": ""2594536""}",de836cb7-5c91-4e5a-bec9-46668034b15f
+1,2026-09-08 19:00,Manchester United vs Bayern Munich,UEFA Champions League,"{""thesportsdb"": ""2594535""}",0cc75e8e-f8f7-4f34-8086-199b44d22004
+1,2026-09-08 19:00,Manchester United vs Roma,UEFA Champions League,"{""thesportsdb"": ""2594537""}",ba192f7a-8af4-4d46-b111-54c3ff5092e0
+2,2026-09-05 14:00,Stafford Rangers FC vs Northampton ON Chenecks,FA Cup,"{""bsd"": ""602292""}",c41d5742-d608-4556-b4b8-4db00c3084c6
+2,2026-09-05 14:00,Stafford Rangers vs Northampton Town,FA Cup,"{""bsd"": ""601436""}",1cc0ece7-a53c-412a-aa24-9d3c7fc0c005
+3,2026-08-04 18:00,AC Sparta Praha vs Olympique Lyonnais,UEFA Champions League,"{""bsd"": ""220444""}",4bb68262-8c8e-43bc-be4c-05a502b00d71
+3,2026-08-04 18:00,Sparta Prague vs Lyon,UEFA Champions League,"{""espn"": ""401898023"", ""goal"": ""cms3w622cj407kw062fatbb0v"", ""thesportsdb"": ""2544172""}",7d3928b0-f8b8-4e47-8f71-4acd6dd17959
+3,2026-08-04 18:00,AC Sparta Praha vs SK Sturm Graz,UEFA Champions League,"{""bsd"": ""223225""}",226c68ea-28d5-4323-aa1c-d989fb472b4c
+4,2026-07-30 13:00,FC Viktoria Plzeň vs Tromsø IL,UEFA Europa League,"{""bsd"": ""210798""}",655caf5f-40cd-438d-b5e1-f140ac26eaca
+4,2026-07-30 17:00,FC Hradec Králové vs Tromsø IL,UEFA Europa League,"{""bsd"": ""213417""}",eac7c423-8789-478d-b81f-42090ed14156
+4,2026-07-30 17:00,Plzen vs Tromso,UEFA Europa League,"{""goal"": ""cmrwqxnpsyt0pnu07cbl822hw""}",c2be8f00-7686-472e-a526-ff304ce2c18d
+4,2026-07-30 17:00,Hradec Kralove vs Tromso,UEFA Europa League,"{""goal"": ""cmrwqxnq1yt0rnu07t3ppbdks""}",bed457bd-fd28-4161-aa59-163d29e2459a
+4,2026-07-30 17:00,Hradec Kralove vs Varazdin,UEFA Conference League,"{""goal"": ""cmrwqxnomyt0jnu07ou4ygxh1""}",2eafa588-826a-4f02-82d8-984a9752430d
+5,2026-07-23 13:00,Tromsø IL vs FC Viktoria Plzeň,UEFA Europa League,"{""bsd"": ""210794""}",5029f41b-e536-41c6-b60d-b74c44e11e9a
+5,2026-07-23 17:00,Varazdin vs Hradec Kralove,UEFA Conference League,"{""goal"": ""cmrmqt9nq3988t007xzu412bv""}",7ed3e8b9-a983-412b-98d7-dd1da3ec2baa
+5,2026-07-23 17:00,Tromsø IL vs FC Hradec Králové,UEFA Europa League,"{""bsd"": ""213036""}",f1afab5f-1159-4dec-919c-a6ac50bbc725
+5,2026-07-23 17:00,Tromso vs Hradec Kralove,UEFA Europa League,"{""goal"": ""cmrmqt9q4399ht007bravj0o6""}",83f3f7ef-be10-4961-ac0b-ae1a34983eec
+5,2026-07-23 17:00,Tromso vs Plzen,UEFA Europa League,"{""goal"": ""cmrmqt9pz399ft007uqq7okd4""}",7a4d468d-2af0-452d-9787-ebddf6363389
+6,2026-10-02 11:35,China vs Palestine,Milli Hazırlık Maçları,"{""bsd"": ""605062"", ""goal"": ""cmtwihhw95eb4qs07srof6auk""}",b6f0d436-6347-40c1-83a4-39612a4eada3
+6,2026-10-02 11:35,China vs Turkmenistan,Milli Hazırlık Maçları,"{""goal"": ""cmtybyiscon7ulc079jjsbnqt""}",aef625a6-f313-4e3b-9f3f-dd48a0573ebd

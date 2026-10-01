@@ -293,6 +293,61 @@ Baska bir isi ayni sirla tetiklemek icin adres degistirilir:
 Yanit `net._http_response` icinde birikir:
 `select status_code, content from net._http_response order by created desc limit 1;`
 
+`net.http_post` varsayilan olarak 5 sn bekler; senkron yanitini gormek icin
+zaman asimi artirilir. Sir yazdirilmadan DO blogunda `[^']+` ile alinir
+(hex kalibi kullanilmaz, yukaridaki not):
+
+```sql
+do $$ declare tok text; begin
+  select substring(command from 'Bearer ([^'']+)') into tok from cron.job where jobid = 6;
+  perform net.http_post(url := 'https://vyqkpnhhjjbvcprdncnx.supabase.co/functions/v1/sync-bsd-football',
+    headers := jsonb_build_object('Authorization', 'Bearer ' || tok), timeout_milliseconds := 170000);
+end $$;
+```
+
+Uzak veritabaninda SQL calistirmak icin MCP gerekmez:
+`npx supabase db query --linked -f dosya.sql` (`--output-format json` ile
+makine okunur). `supabase_migrations.schema_migrations` yereldeki numaralarla
+senkron degil; 0066-0067 dogrudan SQL ile uygulandi, 0068-0070 elle
+`20261001120068..70` surumleriyle kaydedildi.
+
+### Kopya takim ve mac birlestirme (0068-0070, 1 Ekim 2026)
+
+- **Kopyalar silinmez, isaretlenir.** `teams.merged_into_team_id` ve
+  `events.merged_into_event_id` asil kaydi gosterir; kopyanin saglayici
+  kimlikleri bosaltilir (unique index'ler yuzunden once kopya birakir, sonra
+  asil alir). Denetim: `team_merges`, `event_merges`. Yedek:
+  `backup_2026_10_01_*`. Geri donus: `supabase/rollback/0068_0070_rollback.sql`.
+- **Uygulama sorgulari** `merged_into_event_id is null` /
+  `merged_into_team_id is null` filtresi kullanir; `fetchEvent`/`fetchTeam`
+  birlesmis kimlige gelirse asil kayda yonlenir (eski bildirim/baglanti).
+- **Kopya takim kaniti isimle degil:** ayni lig + ayni saat + ayni rakip + ayni
+  taraf, ya da ortak saglayici kimligi. Ayni saglayicida farkli kimlik tasiyan
+  cift ayni kulup DEGILDIR (yanlis takima baglanmis tekil maclar: AS Roma /
+  RB Leipzig). Kopyanin adi asil kaydin alias'i olur.
+- **Takim cozumleme tek yerde:** `resolve_team()` -- saglayici kimligi > ad >
+  `team_name_aliases`, birlesmis satirlar haric, birden cok aday varsa bsd ve
+  kimlik sayisi belirler. `upsert_event` ve `upsert_team` bunu kullanir.
+- **Mac eslestirme** `same_match()` = `dedupe-events.ts` kurali. `upsert_event`
+  aday mac ayni kaynaktan baska kimlik tasiyorsa baglamaz; **bsd kimligi olan
+  macta baska kaynak saati/basligi/durumu/takimlari ezmez** (iki kaynak saati
+  birbirinin ustune yaziyor ve her seferinde "saat degisti" bildirimi
+  uretiyordu).
+- **Sonuclar** `set_event_results(jsonb)` ile yazilir: mevcut satiri id ile
+  gunceller, `finished`i geri almaz, null skor mevcudu silmez.
+  `events.upsert([{id, home_score, ...}])` KULLANILMAZ: INSERT ... ON CONFLICT
+  eksik NOT NULL kolonlarda (`sport_id`) 23502 ile duser; 20-30 Eylul arasi
+  hicbir skor bu yuzden yazilmadi. `events.status` hala yalnizca
+  scheduled/postponed/cancelled; sonuc `home_score/away_score/result_status`.
+- `sync-bsd-football` ligleri en uzun suredir denenmeyenden baslar ve 110 sn
+  sonra yeni lige baslamaz; eskiden sabit sira sondaki ligleri (Trendyol 1.
+  Lig) hic islemiyordu.
+- **ESPN**: Supabase IP'lerine 403 (hala). Ayrica 1 Ekim 2026'da futbol ve
+  basketbol scoreboard'lari tarih ARALIGINI 400 ile reddediyor, tek gun
+  calisiyor; saglayici 400'de gun gun sorar. Gecmis ESPN sonuclari icin
+  yerelden: `node scripts/backfill-espn-results.mjs [--dry-run]`.
+- Sonucu eksik maclar: `select * from events_missing_result(1000);`.
+
 ## Saglayici sagligi ve canli skor denemesi
 
 `sync-events` ve `sync-rankings`, ESPN/TheSportsDB HTTP ve ag hatalarini

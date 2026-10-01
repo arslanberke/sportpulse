@@ -34,6 +34,8 @@ const SPORT_PATHS: Record<string, string> = {
 
 interface EspnCompetitor {
   homeAway: 'home' | 'away';
+  /** Scoreboard'da dizgi ("2"); baslamamis macta "0" ya da hic yok. */
+  score?: string | number;
   team?: {
     id?: string;
     displayName?: string;
@@ -42,14 +44,43 @@ interface EspnCompetitor {
   };
 }
 
-interface EspnEvent {
+export interface EspnEvent {
   id: string;
   name: string;
   date: string; // ISO with zone, e.g. '2026-07-17T11:30Z'
   /** Turnuvalarda son gun; tek maclik etkinliklerde gelmez. */
   endDate?: string;
-  status?: { type?: { name?: string } };
+  status?: { type?: { name?: string; state?: string; completed?: boolean } };
   competitions?: { competitors?: EspnCompetitor[] }[];
+}
+
+/**
+ * ESPN durumunu bizim result_status sozlugune cevirir (BSD ile ayni:
+ * notstarted / inprogress / finished / postponed). Skor yalnizca mac
+ * basladiysa okunur: baslamamis macta ESPN "0" gonderir ve bu 0-0 sanilirdi.
+ */
+export function espnResult(event: EspnEvent): Pick<ProviderEvent, 'homeScore' | 'awayScore' | 'resultStatus'> {
+  const type = event.status?.type;
+  const resultStatus = type?.name === 'STATUS_POSTPONED' ? 'postponed'
+    : type?.completed || type?.state === 'post' ? 'finished'
+    : type?.state === 'in' ? 'inprogress'
+    : type?.state === 'pre' ? 'notstarted'
+    : null;
+  if (resultStatus !== 'finished' && resultStatus !== 'inprogress') {
+    return { homeScore: null, awayScore: null, resultStatus };
+  }
+  const competitors = event.competitions?.[0]?.competitors ?? [];
+  const score = (side: 'home' | 'away') => {
+    const raw = competitors.find((c) => c.homeAway === side)?.score;
+    const value = typeof raw === 'number' ? raw : typeof raw === 'string' && raw.trim() !== '' ? Number(raw) : NaN;
+    return Number.isInteger(value) && value >= 0 ? value : null;
+  };
+  const homeScore = score('home');
+  const awayScore = score('away');
+  // Tek taraf okunamiyorsa ikisi de yazilmaz; yarim skor yanlis sonuctur.
+  return homeScore === null || awayScore === null
+    ? { homeScore: null, awayScore: null, resultStatus }
+    : { homeScore, awayScore, resultStatus };
 }
 
 interface EspnTeamEntry {
@@ -174,6 +205,7 @@ function normalize(event: EspnEvent): ProviderEvent {
     venue: null,
     venueImageUrl: null,
     postponed: event.status?.type?.name === 'STATUS_POSTPONED',
+    ...espnResult(event),
   };
 }
 
@@ -184,21 +216,40 @@ export const espnProvider: FixtureProvider = {
     return scoreboardUrl(league, '') !== null;
   },
 
-  async fetchUpcomingEvents(league: LeagueRef, days: number): Promise<ProviderEvent[]> {
-    const from = new Date();
-    const to = new Date(from.getTime() + days * 86_400_000);
+  async fetchUpcomingEvents(league: LeagueRef, days: number, lookbackDays = 0): Promise<ProviderEvent[]> {
+    const now = Date.now();
+    const from = new Date(now - lookbackDays * 86_400_000);
+    const to = new Date(now + days * 86_400_000);
     const fmt = (d: Date) => d.toISOString().slice(0, 10).replace(/-/g, '');
     const dates = `${fmt(from)}-${fmt(to)}`;
+
+    const board = async (url: string) => {
+      const response = await fetchProvider('espn.scoreboard', url, league.onIssue);
+      if (!response.ok) return { status: response.status, response, events: null };
+      const data = (await response.json()) as { events?: EspnEvent[] };
+      if (!Array.isArray(data.events)) throw new Error('espn.scoreboard: invalid response');
+      return { status: 200, response, events: data.events };
+    };
 
     const pages = await Promise.all(
       scoreboardSlugs(league).map(async (slug) => {
         const url = scoreboardUrlFor(league, slug, dates);
         if (!url) return [];
-        const response = await fetchProvider('espn.scoreboard', url, league.onIssue);
-        if (!response.ok) return warnHttp('espn.scoreboard', response, [], league.onIssue);
-        const data = (await response.json()) as { events?: EspnEvent[] };
-        if (!Array.isArray(data.events)) throw new Error('espn.scoreboard: invalid response');
-        return data.events.map(normalize);
+        const page = await board(url);
+        if (page.events) return page.events.map(normalize);
+        // Ekim 2026'dan beri ESPN futbol/basketbol panolari tarih ARALIGINI 400
+        // ile reddediyor, tek gun calisiyor. O durumda gun gun sorulur.
+        if (page.status !== 400) return warnHttp('espn.scoreboard', page.response, [], league.onIssue);
+        const daily: EspnEvent[] = [];
+        for (let t = from.getTime(); t <= to.getTime(); t += 86_400_000) {
+          const dayUrl = scoreboardUrlFor(league, slug, fmt(new Date(t)));
+          if (!dayUrl) break;
+          const day = await board(dayUrl);
+          if (!day.events) return warnHttp('espn.scoreboard', day.response, [], league.onIssue);
+          daily.push(...day.events);
+        }
+        const seen = new Set<string>();
+        return daily.filter((event) => !seen.has(event.id) && seen.add(event.id)).map(normalize);
       }),
     );
 

@@ -12,12 +12,16 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 import { fixtureSyncState } from '../../../src/features/events/lib/fixture-health.ts';
-import { fetchTournamentMatches } from '../../../src/services/providers/espn.ts';
+import { espnProvider, fetchTournamentMatches } from '../../../src/services/providers/espn.ts';
 import { fetchFixtureSnapshot, fetchSeason } from '../../../src/services/providers/index.ts';
 import type { LeagueRef } from '../../../src/services/providers/types.ts';
 import { createProviderDiagnostics } from '../_shared/provider-diagnostics.ts';
 
 const SYNC_DAYS = 14;
+// Bitmis maclarin sonucu icin ESPN'e geriye donuk da bakilir. Varsayilan kisa
+// (cron her 30 dk); ?lookback=N ile bir kerelik geriye donuk doldurma yapilir.
+const RESULT_LOOKBACK_DAYS = 3;
+const MAX_RESULT_LOOKBACK_DAYS = 120;
 // TheSportsDB's free tier allows 30 requests/min and the function has a ~150s
 // wall clock budget, so a full catalog scan doesn't fit in one invocation.
 // Leagues are split into chunks; each run (cron every 30 min) processes one
@@ -53,6 +57,34 @@ function needsSeason(league: LeagueRow): boolean {
 interface UpsertResult {
   event_id: string;
   change_type: 'time' | 'status' | null;
+}
+
+interface ResultRow {
+  id: string;
+  home_score: number | null;
+  away_score: number | null;
+  result_status: string;
+}
+
+/**
+ * Sonuclari mevcut satirlara id ile yazar (set_event_results, migration
+ * 0070). events.upsert() kullanilmaz: INSERT ... ON CONFLICT eksik NOT NULL
+ * kolonlar yuzunden duser. Hata sessizce yutulmaz.
+ */
+async function writeResults(
+  supabase: ReturnType<typeof createClient>,
+  rows: ResultRow[],
+  failures: string[],
+  label: string,
+): Promise<number> {
+  if (rows.length === 0) return 0;
+  const { data, error } = await supabase.rpc('set_event_results', { p_rows: rows });
+  if (error) {
+    console.error(`sync-events: set_event_results failed (${label}): ${error.code} ${error.message}`);
+    failures.push(`${label}: set_event_results ${error.code ?? error.message}`);
+    return 0;
+  }
+  return typeof data === 'number' ? data : 0;
 }
 
 interface ChangedEvent {
@@ -145,6 +177,11 @@ Deno.serve(async (request) => {
   if (!Number.isInteger(chunk) || chunk < 0 || chunk >= LEAGUE_CHUNKS) {
     return Response.json({ error: 'invalid chunk' }, { status: 400 });
   }
+  const lookbackParam = params.get('lookback');
+  const lookbackDays = lookbackParam === null ? RESULT_LOOKBACK_DAYS : Number(lookbackParam);
+  if (!Number.isInteger(lookbackDays) || lookbackDays < 0 || lookbackDays > MAX_RESULT_LOOKBACK_DAYS) {
+    return Response.json({ error: 'invalid lookback' }, { status: 400 });
+  }
   const requestedLeague = params.get('leagueId');
   const selected = (leagues ?? []).filter((league, index) => requestedLeague
     ? league.id === requestedLeague : index % LEAGUE_CHUNKS === chunk);
@@ -159,6 +196,7 @@ Deno.serve(async (request) => {
 
   let upserted = 0;
   let matchesUpserted = 0;
+  let resultsWritten = 0;
   // Kaynaktan kac kura maci geldigi ayrica sayiliyor: yazilan sayi sifir
   // oldugunda sorunun cekmede mi yazmada mi oldugu yanittan anlasilsin.
   let bracketFetched = 0;
@@ -213,6 +251,7 @@ Deno.serve(async (request) => {
       received = events.length;
       fixtureIssues = snapshot.issues.length;
       fixtureSources[league.id] = source ? [source] : [];
+      const results: ResultRow[] = [];
       for (const event of events) {
         const { data: result, error: upsertError } = await supabase.rpc('upsert_event', {
           p_provider: event.provider,
@@ -240,7 +279,11 @@ Deno.serve(async (request) => {
         upserted += 1;
         writtenForLeague += 1;
         const row = (result as UpsertResult[] | null)?.[0];
-        if (row?.change_type) {
+        if (row?.event_id && event.resultStatus && event.resultStatus !== 'notstarted') {
+          results.push({ id: row.event_id, home_score: event.homeScore ?? null, away_score: event.awayScore ?? null, result_status: event.resultStatus });
+        }
+        // Gecmis bir macin saati/durumu icin bildirim gonderilmez.
+        if (row?.change_type && new Date(event.startsAtUtc).getTime() > Date.now()) {
           changed.push({
             eventId: row.event_id,
             title: event.title,
@@ -249,6 +292,7 @@ Deno.serve(async (request) => {
           });
         }
       }
+      resultsWritten += await writeResults(supabase, results, failures, `league ${league.id}`);
     } catch (fetchError) {
       fixtureIssues += 1;
       failures.push(`league ${league.id}: ${fetchError instanceof Error ? fetchError.name : 'UnknownError'}`);
@@ -322,6 +366,37 @@ Deno.serve(async (request) => {
       }
     }
 
+    // Fikstur penceresi bugunden baslar; biten maclarin sonucu ESPN'in
+    // gecmis gunlerinden ayrica okunur. Yalnizca sonuc yazilir (upsert yok):
+    // gecmis mac icin baslik/saat/takim ezilmez, bildirim uretilmez.
+    if (lookbackDays > 0 && espnProvider.supports(ref) && Date.now() - startedAt <= 110_000) {
+      try {
+        const past = (await espnProvider.fetchUpcomingEvents(ref, 0, lookbackDays))
+          .filter((event) => event.resultStatus === 'finished' && event.homeScore != null && event.awayScore != null);
+        // Kimlik listesi URL'ye yazildigi icin parca parca sorulur.
+        for (let offset = 0; offset < past.length; offset += 150) {
+          const slice = past.slice(offset, offset + 150);
+          const { data: rows, error: lookupError } = await supabase.from('events')
+            .select('id, external_ids')
+            .in('external_ids->>espn', slice.map((event) => event.externalId))
+            .is('merged_into_event_id', null);
+          if (lookupError) {
+            failures.push(`results lookup ${league.id}: ${lookupError.message}`);
+            break;
+          }
+          const byEspn = new Map((rows ?? []).map((row) => [String((row.external_ids as Record<string, unknown>).espn), row.id as string]));
+          const results = slice.flatMap((event) => {
+            const id = byEspn.get(event.externalId);
+            return id ? [{ id, home_score: event.homeScore ?? null, away_score: event.awayScore ?? null, result_status: 'finished' }] : [];
+          });
+          resultsWritten += await writeResults(supabase, results, failures, `results ${league.id}`);
+        }
+      } catch (resultError) {
+        ref.onIssue?.({ source: 'espn.results', kind: 'request', status: null });
+        failures.push(`results ${league.id}: ${resultError instanceof Error ? resultError.name : 'UnknownError'}`);
+      }
+    }
+
     if (needsSeason(league)) {
       try {
         let seasonFailed = false;
@@ -369,6 +444,7 @@ Deno.serve(async (request) => {
     upserted,
     bracketFetched,
     matches: matchesUpserted,
+    resultsWritten,
     changed: changed.length,
     failures,
   });

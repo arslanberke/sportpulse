@@ -169,7 +169,10 @@ Deno.serve(async request => {
         await supabase.from('provider_issues').insert({ run_id: runId, job: 'sync-bsd-football', league_id: league.id, source: issue.source, kind: issue.kind, http_status: issue.status, observed_at: new Date().toISOString() });
       }
     }
-    // Skorlar tek toplu yazimla guncellenir; mac basina ikinci cagriyi kaldir.
+    // Skorlar tek toplu yazimla guncellenir. events.upsert() kullanilmaz: o bir
+    // INSERT ... ON CONFLICT'tir ve eksik sport_id yuzunden her cagri NOT NULL
+    // hatasiyla dusuyordu (migration 0070). set_event_results mevcut satiri id
+    // ile gunceller ve kac satir yazdigini doner.
     const scoreUpdates: { id: string; home_score: number | null; away_score: number | null; result_status: string }[] = [];
 
     let written = 0;
@@ -187,8 +190,16 @@ Deno.serve(async request => {
         if (eventId) scoreUpdates.push({ id: eventId, home_score: event.homeScore, away_score: event.awayScore, result_status: event.resultStatus });
       }
     }
+    let scoresWritten = 0;
     if (scoreUpdates.length) {
-      await supabase.from('events').upsert(scoreUpdates, { onConflict: 'id' });
+      const { data: count, error: scoreError } = await supabase.rpc('set_event_results', { p_rows: scoreUpdates });
+      if (scoreError) {
+        console.error(`sync-bsd-football: set_event_results failed for ${league.name}: ${scoreError.code} ${scoreError.message}`);
+        issues.push({ source: 'db.set_event_results', kind: 'write', status: null });
+        await supabase.from('provider_issues').insert({ run_id: runId, job: 'sync-bsd-football', league_id: league.id, source: 'db.set_event_results', kind: 'write', http_status: null, observed_at: new Date().toISOString() });
+      } else {
+        scoresWritten = typeof count === 'number' ? count : 0;
+      }
     }
     const status = !source || (events.length > 0 && written === 0) ? 'failed'
       : issues.length || written < events.length ? 'degraded' : events.length ? 'ok' : 'empty';
@@ -199,13 +210,24 @@ Deno.serve(async request => {
       window_start: seasonStart().toISOString(), window_end: new Date(Date.now() + DAYS * 86_400_000).toISOString(),
       received_count: events.length, written_count: written, issue_count: issues.length + Math.max(0, events.length - written),
     }).eq('league_id', league.id).eq('run_id', runId);
-    results.push({ league: league.name, status, source, received: events.length, written, issues: issues.length });
+    results.push({ league: league.name, status, source, received: events.length, written, scoresWritten, issues: issues.length });
   };
 
-  const queue = [...(leagues ?? [])];
+  // Ligler her calismada ayni sirayla islenince ~150 sn'lik duvar saati
+  // sondakileri hic gormuyordu (Trendyol 1. Lig'e GOAL'dan skor gelmemesinin
+  // nedeni). En uzun suredir denenmeyen once; 110 sn'den sonra yeni lige
+  // baslanmaz, kalanlar sonraki calismaya kalir.
+  const startedAt = Date.now();
+  const { data: health } = await supabase.from('fixture_sync_health').select('league_id, last_attempt_at');
+  const lastAttempt = new Map((health ?? []).map((row) => [row.league_id, String(row.last_attempt_at ?? '')]));
+  const queue = [...(leagues ?? [])].sort((a, b) => (lastAttempt.get(a.id) ?? '').localeCompare(lastAttempt.get(b.id) ?? ''));
   await Promise.all(Array.from({ length: 4 }, async () => {
     let league = queue.shift();
-    while (league) { await processLeague(league); league = queue.shift(); }
+    while (league) {
+      if (Date.now() - startedAt > 110_000) { results.push({ league: league.name, status: 'deferred' }); }
+      else await processLeague(league);
+      league = queue.shift();
+    }
   }));
   return json({ runId, results });
 });

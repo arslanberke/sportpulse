@@ -1,0 +1,8 @@
+team_a,team_b,shared_matches,conflicting_ids
+AS Roma,RB Leipzig,1,bsd:65≠80; espn:104≠11420; goal:cmr7m6brt5t37rx06ixsgl3rc≠cmr79jabm03zmrx06phgewkx5; thesportsdb:133682≠134695
+AS Roma,Bayern Munich,1,espn:104≠132; goal:cmr7m6brt5t37rx06ixsgl3rc≠cmr79jab703zerx06eqilba4s; thesportsdb:133682≠133664
+Bayern Munich,RB Leipzig,1,espn:132≠11420; goal:cmr79jab703zerx06eqilba4s≠cmr79jabm03zmrx06phgewkx5; thesportsdb:133664≠134695
+FC Hradec Králové,Plzen,2,goal:cmr7fq61131nvrx06s2o3c4u2≠cmri0gk76br4ylb07lvabg3a0
+Northampton Town,Northampton ON Chenecks,1,bsd:1442≠8656
+Olympique Lyonnais,SK Sturm Graz,1,bsd:100≠128
+Palestine,Turkmenistan,1,goal:cmr7bf3zo13rkrx06d0d0d1wd≠cmr7bf40713rprx06w3ld1gnp
