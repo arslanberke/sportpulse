@@ -5,6 +5,14 @@
  * the UI falls back to initials + team color when an image 404s.
  */
 
+/**
+ * MotoGP serves rider photos only as ~4 MB 1920px PNGs; a list of 22 took
+ * seconds to appear. They go through the wsrv.nl resizing CDN instead.
+ */
+export function motoGpRiderPhoto(url: string): string {
+  return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=288&output=webp`;
+}
+
 function ascii(s: string): string {
   return s.normalize('NFKD').replace(/[\u0300-\u036f]/g, '');
 }
@@ -65,7 +73,7 @@ export function f1DriverPhoto(fullName: string): string | null {
   const folder = `${code}_${given}_${family}`;
   const path = `${given[0].toUpperCase()}/${folder}/${code.toLowerCase()}.png`;
   return (
-    'https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_640/content/dam/fom-website/drivers/' +
+    'https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_160/content/dam/fom-website/drivers/' +
     encodeURI(path)
   );
 }

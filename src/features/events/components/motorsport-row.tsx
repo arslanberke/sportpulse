@@ -1,5 +1,6 @@
+import { Image } from "expo-image";
 import { useState } from "react";
-import { Image, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
 import { useThemeColors } from "@/constants/theme";
 import { teamAccentColor } from "@/features/events/lib/motorsport-teams";
@@ -43,7 +44,11 @@ function Avatar({
           source={{ uri: photoUrl }}
           onError={() => setFailed(true)}
           style={imgStyle}
-          resizeMode="cover"
+          contentFit="cover"
+          contentPosition="top"
+          cachePolicy="memory-disk"
+          recyclingKey={photoUrl}
+          transition={120}
         />
       ) : (
         <Text className="text-xs font-bold" style={{ color: tint }}>
@@ -62,7 +67,8 @@ function TeamLogo({ url }: { url?: string | null }) {
       source={{ uri: url }}
       onError={() => setFailed(true)}
       style={{ width: 26, height: 26 }}
-      resizeMode="contain"
+      contentFit="contain"
+      cachePolicy="memory-disk"
     />
   );
 }

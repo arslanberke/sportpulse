@@ -1,5 +1,5 @@
 import { warnHttp } from './log.ts';
-import { f1DriverPhoto, f1TeamLogo } from './motorsport-brands.ts';
+import { f1DriverPhoto, f1TeamLogo, motoGpRiderPhoto } from './motorsport-brands.ts';
 import type { StandingEntry, Standings } from './types.ts';
 
 /**
@@ -91,8 +91,9 @@ export async function fetchMotoGpRiderPhotos(year: number): Promise<{
   const byName = new Map<string, string>();
   const riders = await getJson<MotoGpRider[]>(`https://api.motogp.pulselive.com/motogp/v1/riders?seasonYear=${year}`);
   for (const r of riders ?? []) {
-    const photo = r.current_career_step?.pictures?.profile?.main;
-    if (!photo) continue;
+    const original = r.current_career_step?.pictures?.profile?.main;
+    if (!original) continue;
+    const photo = motoGpRiderPhoto(original);
     if (r.legacy_id != null) byLegacyId.set(r.legacy_id, photo);
     const full = `${r.name ?? ''} ${r.surname ?? ''}`.trim().toLowerCase();
     if (full) byName.set(full, photo);
