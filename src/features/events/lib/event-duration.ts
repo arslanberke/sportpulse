@@ -23,3 +23,20 @@ export function eventEndsAt(startsAt: string | Date, sportId: string): Date {
   const minutes = SPORT_DURATION_MINUTES[sportId] ?? DEFAULT_DURATION_MINUTES;
   return new Date(start.getTime() + minutes * 60_000);
 }
+
+/** Whether the event is over: a final result arrived or its expected end passed. */
+export function isEventOver(
+  event: {
+    startsAt: string;
+    endsAt?: string | null;
+    sportId: string;
+    resultStatus?: string | null;
+  },
+  now: Date = new Date(),
+): boolean {
+  if (event.resultStatus === 'finished') return true;
+  const end = event.endsAt
+    ? new Date(event.endsAt)
+    : eventEndsAt(event.startsAt, event.sportId);
+  return now.getTime() > end.getTime();
+}
