@@ -15,7 +15,11 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { PROVIDER_USER_AGENT } from '../../../src/services/providers/log.ts';
 
-const CACHE_TTL_MS = 45_000;
+const CACHE_TTL_MS = 20_000;
+// API-Sports free plan: 100 requests/day. One attempt per 15 min stays under
+// it; BSD/ESPN carry the fresh scores in between.
+const APISPORTS_INTERVAL_MS = 15 * 60_000;
+const APISPORTS_MAX_AGE_MS = 20 * 60_000;
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -356,6 +360,24 @@ async function fetchLiveScores(apiKey: string): Promise<FootballLiveScore[]> {
   return data.response.map(normalize);
 }
 
+interface CachePayload {
+  scores: FootballLiveScore[];
+  espn: EspnLiveEntry[];
+  apisportsAt: number;
+  apisportsTriedAt: number;
+}
+
+function readCache(raw: unknown): CachePayload {
+  const payload = espnObj(raw);
+  const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
+  return {
+    scores: Array.isArray(payload.scores) ? payload.scores as FootballLiveScore[] : [],
+    espn: Array.isArray(payload.espn) ? payload.espn as EspnLiveEntry[] : [],
+    apisportsAt: num(payload.apisportsAt),
+    apisportsTriedAt: num(payload.apisportsTriedAt),
+  };
+}
+
 Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') return new Response('ok', { headers: CORS_HEADERS });
 
@@ -370,56 +392,50 @@ Deno.serve(async (request) => {
     .select('payload, cached_at')
     .eq('id', true)
     .maybeSingle();
-  const age = cached ? Date.now() - new Date(cached.cached_at).getTime() : Infinity;
-  // Eski satirlar futbol listesi tasiyordu; yeni bicim { scores, espn }.
-  const cachedFootball: FootballLiveScore[] | null = Array.isArray(cached?.payload)
-    ? cached.payload
-    : (Array.isArray(espnObj(cached?.payload).scores) ? espnObj(cached.payload).scores as FootballLiveScore[] : null);
-  const cachedEspn: EspnLiveEntry[] = Array.isArray(espnObj(cached?.payload).espn)
-    ? espnObj(cached.payload).espn as EspnLiveEntry[]
-    : [];
-  // Old cache rows (before migration 0057) don't carry team ids/logos and
-  // cannot rescue a missing event, so force one refresh after deployment.
-  const cacheCanSync = cachedFootball !== null && cachedFootball.every((score) =>
-    typeof score.homeTeamId === 'number' && typeof score.awayTeamId === 'number');
-  if (cached && cacheCanSync && age < CACHE_TTL_MS) {
-    return json({ available: true, scores: cachedFootball, espn: cachedEspn, cached: true });
+  const now = Date.now();
+  const age = cached ? now - new Date(cached.cached_at).getTime() : Infinity;
+  const previous = readCache(cached?.payload);
+  const freshScores = (p: CachePayload) => (now - p.apisportsAt < APISPORTS_MAX_AGE_MS ? p.scores : []);
+  if (cached && age < CACHE_TTL_MS && Array.isArray(espnObj(cached.payload).espn)) {
+    const scores = freshScores(previous);
+    return json({ available: scores.length + previous.espn.length > 0, scores, espn: previous.espn, cached: true });
   }
 
   const apiKey = Deno.env.get('API_SPORTS_FOOTBALL_KEY');
   const bsdKey = Deno.env.get('API_BSD_FOOTBALL_KEY');
-  // ESPN/BSD akislari API-Sports anahtarindan bagimsiz: anahtar yoksa da
-  // diger kaynaklar toplanir.
+  const callApiSports = Boolean(apiKey) && now - previous.apisportsTriedAt >= APISPORTS_INTERVAL_MS;
   const [bsdLive, espnBoards, footballResult] = await Promise.all([
     bsdKey ? fetchBsdLive(bsdKey).catch(() => [] as EspnLiveEntry[]) : Promise.resolve([] as EspnLiveEntry[]),
     fetchEspnLive().catch(() => [] as EspnLiveEntry[]),
-    apiKey
-      ? fetchLiveScores(apiKey).then((scores) => {
+    callApiSports
+      ? fetchLiveScores(apiKey!).then((scores) => {
           // Canli-kurtarma yazimi (dizide 40+ sirali RPC) yaniti bloklamasin:
           // arka planda yazilir, kullanici skoru hemen gorur.
           const persist = syncKnownLiveEvents(supabase, scores).catch(() => {});
           const runtime = (globalThis as { EdgeRuntime?: { waitUntil?: (p: Promise<unknown>) => void } }).EdgeRuntime;
           if (runtime?.waitUntil) runtime.waitUntil(persist);
           return scores;
-        }).catch((error: unknown) => error)
-      : Promise.resolve<null | Error>(null),
+        }).catch((error: unknown) => (error instanceof Error ? error : new Error('API-Sports: unknown_error')))
+      : Promise.resolve(null),
   ]);
 
-  const espnLive = [...bsdLive, ...espnBoards];
-
-  if (footballResult !== null && !(footballResult instanceof Error)) {
-    await supabase.from('live_scores_cache').upsert({
-      id: true,
-      payload: { scores: footballResult, espn: espnLive },
-      cached_at: new Date().toISOString(),
-    });
-    return json({ available: true, scores: footballResult, espn: espnLive });
-  }
-  if (footballResult === null) {
-    // Anahtar yok: futbol icin eski onbellege dus, diger akis yine de taze.
-    if (cachedFootball) return json({ available: true, scores: cachedFootball, espn: espnLive, cached: true, stale: true });
-    return json({ available: espnLive.length > 0, scores: [], espn: espnLive, reason: 'not_configured' });
-  }
-  if (cachedFootball) return json({ available: true, scores: cachedFootball, espn: espnLive, cached: true, stale: true });
-  return json({ available: espnLive.length > 0, scores: [], espn: espnLive, reason: footballResult instanceof Error ? footballResult.message : 'unknown_error' });
+  const apiOk = Array.isArray(footballResult);
+  const next: CachePayload = {
+    scores: apiOk ? footballResult : previous.scores,
+    espn: [...bsdLive, ...espnBoards],
+    apisportsAt: apiOk ? now : previous.apisportsAt,
+    apisportsTriedAt: callApiSports ? now : previous.apisportsTriedAt,
+  };
+  await supabase.from('live_scores_cache').upsert({
+    id: true,
+    payload: next,
+    cached_at: new Date(now).toISOString(),
+  });
+  const scores = freshScores(next);
+  return json({
+    available: scores.length + next.espn.length > 0,
+    scores,
+    espn: next.espn,
+    ...(footballResult instanceof Error ? { apisportsError: footballResult.message } : {}),
+  });
 });

@@ -137,7 +137,7 @@ export default function HomeScreen() {
   const [liveOnly, setLiveOnly] = useState(false);
 
   // Canli akis yalnizca su an oynaniyor olabilecek bir mac varken sorgulanir;
-  // sunucu tarafi 45 sn'lik ortak onbellek yuzunden ek kota harcamaz.
+  // sunucu tarafi 20 sn'lik ortak onbellek yuzunden ek kota harcamaz.
   const hasLiveCandidates = useMemo(
     () => events.some((e) => {
       const starts = new Date(e.startsAt).getTime();
@@ -163,11 +163,12 @@ export default function HomeScreen() {
   );
   const liveFor = useCallback(
     (event: SportEvent): TimelineLive | undefined => {
+      // BSD/ESPN are refreshed every request; API-Sports only every 15 min.
+      const generic = espnMatches.get(event.id);
+      if (generic && generic !== 'window') return liveFromText(espnLiveScoreText(generic), generic.statusDetail);
       const score = liveMatches.get(event.id);
       if (score) return liveFromScore(score, t('event.halfTime'));
-      const generic = espnMatches.get(event.id);
       if (generic === 'window') return { home: null, away: null, detail: null };
-      if (generic) return liveFromText(espnLiveScoreText(generic), generic.statusDetail);
       return undefined;
     },
     [liveMatches, espnMatches, t],
