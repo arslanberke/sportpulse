@@ -26,6 +26,7 @@ import { showAlert } from '@/lib/alert';
 import { useI18n, type Translate } from '@/lib/i18n';
 import { useAuthStore } from '@/store/auth-store';
 import type { League, Sport } from '@/types';
+import { logoThumb } from '@/lib/logo-thumb';
 
 function makeProfileSchema(t: Translate) {
   return z.object({ fullName: z.string().trim().min(2, t('profile.nameMin')) });
@@ -106,7 +107,7 @@ function ItemRow({
         <Pressable className="flex-1 flex-row items-center active:opacity-60" style={{ gap: 9 }}>
           <View className="items-center justify-center" style={{ width: 26, height: 26 }}>
             {imageUrl ? (
-              <Image source={{ uri: imageUrl }} style={{ width: 24, height: 24 }} contentFit="contain" allowDownscaling={false} tintColor={logoTint} />
+              <Image source={{ uri: logoThumb(imageUrl) }} style={{ width: 24, height: 24 }} contentFit="contain" allowDownscaling={false} tintColor={logoTint} />
             ) : (
               <Ionicons name={(icon ?? 'shield-outline') as keyof typeof Ionicons.glyphMap} size={18} color={colors.inkSecondary} />
             )}

@@ -9,6 +9,7 @@ import { useCatalogSearch, useSports } from '@/features/catalog/hooks/use-catalo
 import { hasTeams } from '@/features/catalog/lib/team-sports';
 import { useI18n } from '@/lib/i18n';
 import { searchNeedles } from '@/lib/search';
+import { logoThumb } from '@/lib/logo-thumb';
 
 interface WeekHeaderProps {
   /** Buyuk baslik ("Bugun", "Bu hafta", gun adi). */
@@ -51,7 +52,7 @@ function SuggestionTile({
     >
       {imageUrl ? (
         <Image
-          source={{ uri: imageUrl }}
+          source={{ uri: logoThumb(imageUrl) }}
           style={{ width: 22, height: 22 }}
           contentFit="contain"
           allowDownscaling={false}

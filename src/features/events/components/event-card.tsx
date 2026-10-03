@@ -23,6 +23,7 @@ import { splitUfcTitle } from "@/features/events/lib/ufc-title";
 import { isFavoriteEvent, useFavorites } from "@/features/follows/hooks/use-favorites";
 import { formatDateShort, formatDayTime, formatTime } from "@/lib/dates";
 import { useI18n, type Translate } from "@/lib/i18n";
+import { logoThumb } from "@/lib/logo-thumb";
 import { useNow } from "@/lib/now";
 import type { FootballLiveScore } from "@/services/providers/api-sports-live";
 import type { SportEvent } from "@/types";
@@ -403,7 +404,7 @@ export function EventCard({
       >
         {effects && <LinearGradient pointerEvents="none" colors={[favorite ? `${FAVORITE_COLOR}0F` : `${colors.primary}0B`, 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ position: 'absolute', inset: 0 }} />}
         <View className="flex-row items-center gap-2 px-4 pt-3">
-          {event.leagueBadgeUrl ? <Image source={{ uri: event.leagueBadgeUrl }} style={{ width: 16, height: 16 }} contentFit="contain" allowDownscaling={false} tintColor={badgeTint} /> : <Ionicons name="trophy-outline" size={14} color={colors.inkTertiary} />}
+          {event.leagueBadgeUrl ? <Image source={{ uri: logoThumb(event.leagueBadgeUrl) }} style={{ width: 16, height: 16 }} contentFit="contain" allowDownscaling={false} tintColor={badgeTint} /> : <Ionicons name="trophy-outline" size={14} color={colors.inkTertiary} />}
           <Text className="flex-1 text-[10px] font-semibold uppercase tracking-wider text-ink-secondary" numberOfLines={1}>{[event.leagueName, event.round].filter(Boolean).join(' · ')}</Text>
           {favorite && <Ionicons name="star" size={13} color={FAVORITE_COLOR} />}
         </View>
@@ -452,9 +453,9 @@ export function EventCard({
             ) : (
               <Text className="text-xl font-semibold text-ink">{formatTime(event.startsAt)}</Text>
             )}
-            {event.homeTeamLogoUrl && <Image source={{ uri: event.homeTeamLogoUrl }} style={{ width: 24, height: 24 }} contentFit="contain" allowDownscaling={false} />}
+            {event.homeTeamLogoUrl && <Image source={{ uri: logoThumb(event.homeTeamLogoUrl) }} style={{ width: 24, height: 24 }} contentFit="contain" allowDownscaling={false} />}
             <Text className="flex-1 text-base font-semibold text-ink" numberOfLines={2}>{event.title}</Text>
-            {event.awayTeamLogoUrl && <Image source={{ uri: event.awayTeamLogoUrl }} style={{ width: 24, height: 24 }} contentFit="contain" allowDownscaling={false} />}
+            {event.awayTeamLogoUrl && <Image source={{ uri: logoThumb(event.awayTeamLogoUrl) }} style={{ width: 24, height: 24 }} contentFit="contain" allowDownscaling={false} />}
           </View>
         )}
         <View className="mx-4 flex-row items-center gap-2 border-t border-line py-3">

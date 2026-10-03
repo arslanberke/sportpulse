@@ -4,6 +4,7 @@ import { Pressable, Text, View } from 'react-native';
 
 import { useLogoTint } from '@/constants/logo-tint';
 import { FAVORITE_COLOR, useThemeColors } from '@/constants/theme';
+import { logoThumb } from '@/lib/logo-thumb';
 
 interface FollowRowProps {
   label: string;
@@ -97,7 +98,7 @@ export function FollowRow({
           // baked in: it then reads as a tile rather than a raw white square.
           <View className="h-7 w-7 items-center justify-center overflow-hidden rounded-md">
             <Image
-              source={{ uri: imageUrl }}
+              source={{ uri: logoThumb(imageUrl) }}
               style={{ width: 26, height: 26 }}
               contentFit="contain"
               // Kod cozucunun gorunum boyutuna indirgedigi bitmap URL ile
