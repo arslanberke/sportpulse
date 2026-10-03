@@ -42,6 +42,9 @@ export function useFollowActions() {
   const toggle = useToggleFollow();
   const apply = useApplyFollowChanges();
   const followList = follows ?? [];
+  // Bekleyen istek bitmeden ikinci dokunus, henuz kimligi olmayan satiri
+  // silemez; sunucuda takip acik kalirken kutu bos gorunurdu.
+  const busy = toggle.isPending || apply.isPending;
 
   const isFollowing = (kind: FollowKind, targetId: string) =>
     Boolean(followFor(followList, kind, targetId));
@@ -57,12 +60,14 @@ export function useFollowActions() {
 
     /** Plain add/remove, for rows that have no children. */
     toggleFollow: (kind: FollowKind, targetId: string) => {
+      if (busy) return;
       const existing = followFor(followList, kind, targetId);
       toggle.mutate({ kind, targetId, followId: existing?.id });
     },
 
     /** The "follow all of it" row. */
     toggleAll: (group: FollowGroup) => {
+      if (busy) return;
       const parent = followFor(followList, group.parentKind, group.parentId);
       if (parent) {
         apply.mutate({ removeIds: [parent.id] });
@@ -77,6 +82,7 @@ export function useFollowActions() {
 
     /** A child row, aware of a wildcard parent sitting above it. */
     toggleWithin: (group: FollowGroup, childId: string) => {
+      if (busy) return;
       const parent = followFor(followList, group.parentKind, group.parentId);
 
       if (parent) {
