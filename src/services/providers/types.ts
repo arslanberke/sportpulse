@@ -98,6 +98,8 @@ export interface SessionResults {
   /** Normalized session label, e.g. "Qualifying" | "Race" | "Practice". */
   session: string;
   entries: SessionEntry[];
+  /** True while the session is running; entries are the live order. */
+  live?: boolean;
 }
 
 /** One row of a motorsport championship standing. */

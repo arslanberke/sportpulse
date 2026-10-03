@@ -192,6 +192,8 @@ export interface SessionEntry {
 export interface SessionResults {
   session: string;
   entries: SessionEntry[];
+  /** True while the session is running; entries are the live order. */
+  live?: boolean;
 }
 
 /** One row of a motorsport championship standing. */

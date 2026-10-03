@@ -307,10 +307,14 @@ export function useEventResults(event: SportEvent | null) {
 
   return useQuery({
     queryKey: ['event-results', event?.id],
-    queryFn: () => fetchEventResults(event!.id),
+    queryFn: () => fetchEventResults(event!),
     enabled: Boolean(event) && started,
-    staleTime: 5 * 60_000,
-    refetchInterval: (query) => (query.state.data == null ? 5 * 60_000 : false),
+    staleTime: 30_000,
+    refetchInterval: (query) => {
+      const data = query.state.data;
+      if (data?.live) return 30_000;
+      return data == null ? 5 * 60_000 : false;
+    },
   });
 }
 
