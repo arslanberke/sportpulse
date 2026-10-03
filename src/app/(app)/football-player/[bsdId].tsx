@@ -14,6 +14,7 @@ import { useFootballPlayer, useFootballPlayerMatches } from '@/features/players/
 import { formatDate, formatDateShort } from '@/lib/dates';
 import { useI18n } from '@/lib/i18n';
 import type { FootballPlayerMatch, FootballSeasonStat } from '@/types';
+import { logoThumb } from '@/lib/logo-thumb';
 import { LinearGradient } from 'expo-linear-gradient';
 
 function age(dateOfBirth: string | null): number | null {
@@ -110,7 +111,7 @@ function SeasonRow({ stat, playerId }: { stat: FootballSeasonStat; playerId: str
   const row = (
     <View className="flex-row items-center gap-2 py-2.5">
       {stat.teamLogoUrl ? (
-        <Image source={{ uri: stat.teamLogoUrl }} style={{ width: 20, height: 20 }} contentFit="contain" allowDownscaling={false} />
+        <Image source={{ uri: logoThumb(stat.teamLogoUrl) }} style={{ width: 20, height: 20 }} contentFit="contain" allowDownscaling={false} />
       ) : (
         <View className="h-5 w-5" />
       )}
@@ -283,7 +284,7 @@ export default function FootballPlayerScreen() {
               </Text>
               <View className="mt-1.5 flex-row items-center gap-1.5">
                 {player.teamLogoUrl && (
-                  <Image source={{ uri: player.teamLogoUrl }} style={{ width: 18, height: 18 }} contentFit="contain" allowDownscaling={false} />
+                  <Image source={{ uri: logoThumb(player.teamLogoUrl) }} style={{ width: 18, height: 18 }} contentFit="contain" allowDownscaling={false} />
                 )}
                 <Text className="text-sm text-ink-secondary" numberOfLines={1}>
                   {[player.jerseyNumber != null ? `#${player.jerseyNumber}` : null, player.teamName, positionLabel].filter(Boolean).join(' · ')}

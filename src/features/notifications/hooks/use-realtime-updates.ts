@@ -7,6 +7,8 @@ import { ensureNotificationPermission } from '@/features/notifications/local-not
 import { supabase } from '@/services/supabase';
 import { useAuthStore } from '@/store/auth-store';
 
+const EVENTS_REFRESH_DELAY_MS = 2_000;
+
 interface NotificationRow {
   type: string;
   title: string;
@@ -30,6 +32,7 @@ export function useRealtimeUpdates() {
 
   useEffect(() => {
     if (!userId) return;
+    let eventsTimer: ReturnType<typeof setTimeout> | undefined;
 
     const channel = supabase
       .channel(`live-updates-${userId}`)
@@ -61,12 +64,18 @@ export function useRealtimeUpdates() {
         },
       )
       .on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, () => {
-        void queryClient.invalidateQueries({ queryKey: ['events'] });
-        void queryClient.invalidateQueries({ queryKey: ['event'] });
+        // A sync run writes many rows at once; refetch once per burst.
+        if (eventsTimer) return;
+        eventsTimer = setTimeout(() => {
+          eventsTimer = undefined;
+          void queryClient.invalidateQueries({ queryKey: ['events'] });
+          void queryClient.invalidateQueries({ queryKey: ['event'] });
+        }, EVENTS_REFRESH_DELAY_MS);
       })
       .subscribe();
 
     return () => {
+      if (eventsTimer) clearTimeout(eventsTimer);
       void supabase.removeChannel(channel);
     };
   }, [userId, queryClient]);

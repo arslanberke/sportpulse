@@ -7,12 +7,13 @@ import { useThemeColors } from '@/constants/theme';
 import { teamEventScore } from '@/features/teams/lib/team-season';
 import { formatDateShort, formatTime } from '@/lib/dates';
 import { useI18n } from '@/lib/i18n';
+import { logoThumb } from '@/lib/logo-thumb';
 import type { SportEvent } from '@/types';
 
 function Crest({ uri }: { uri?: string | null }) {
   const colors = useThemeColors();
   return uri ? (
-    <Image source={{ uri }} style={{ width: 22, height: 22 }} contentFit="contain" allowDownscaling={false} />
+    <Image source={{ uri: logoThumb(uri) }} style={{ width: 22, height: 22 }} contentFit="contain" allowDownscaling={false} />
   ) : (
     <View className="h-[22px] w-[22px] items-center justify-center rounded-full bg-surface-raised">
       <Ionicons name="shield-outline" size={14} color={colors.inkTertiary} />
