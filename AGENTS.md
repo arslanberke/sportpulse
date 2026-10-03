@@ -202,8 +202,10 @@ guncelleme almaz; guncellemeler gunluk kullanilan "sportpulse" surumuna gider.
 npx eas update --channel production --environment production --message "<ozet>"
 ```
 
-Uygulama guncellemeyi acilista indirir ve **bir sonraki acilista** calistirir
-(`fallbackToCacheTimeout: 0`). `runtimeVersion` sabit bir dizedir (`"1.0.0"`);
+Uygulama acilista beklemez (`fallbackToCacheTimeout: 0`); `useOtaUpdate`
+(src/lib/use-ota-update.ts) acilista ve on plana her donuste guncellemeyi
+indirir ve `reloadAsync` ile hemen uygular. Bu hook'u iceren ilk paket hala
+eski usulle (bir sonraki soguk acilista) gelir. `runtimeVersion` sabit bir dizedir (`"1.0.0"`);
 guncelleme yalnizca ayni runtime ile derlenmis uygulamaya gider. Native
 bagimlilik eklenince, kaldirilinca veya app config'in native tarafi
 degisince bu dize **elle** yukseltilmeli (`1.0.0` -> `1.1.0`) ve telefonda

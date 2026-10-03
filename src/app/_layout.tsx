@@ -9,11 +9,13 @@ import { useAuthDeepLink } from '@/features/auth/hooks/use-auth-deep-link';
 import { useAuthListener } from '@/features/auth/hooks/use-auth-listener';
 import { NowProvider } from '@/lib/now';
 import { queryClient } from '@/lib/query-client';
+import { useOtaUpdate } from '@/lib/use-ota-update';
 import { useAuthStore } from '@/store/auth-store';
 
 export default function RootLayout() {
   useAuthListener();
   useAuthDeepLink();
+  useOtaUpdate();
 
   const isLoading = useAuthStore((s) => s.isLoading);
   const session = useAuthStore((s) => s.session);
