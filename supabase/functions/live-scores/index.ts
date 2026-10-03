@@ -13,6 +13,7 @@
 // logic lives at `src/services/providers/api-sports-live.ts`.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { PROVIDER_USER_AGENT } from '../../../src/services/providers/log.ts';
 
 const CACHE_TTL_MS = 45_000;
 
@@ -298,6 +299,7 @@ function espnLiveEntry(
 
 async function fetchEspnBoard(board: (typeof ESPN_BOARDS)[number]): Promise<EspnLiveEntry[]> {
   const response = await fetch(`${ESPN_BASE}/${board.path}/scoreboard`, {
+    headers: { 'User-Agent': PROVIDER_USER_AGENT },
     signal: AbortSignal.timeout(10_000),
   });
   if (!response.ok) throw new Error(`espn_${board.series}: http_${response.status}`);

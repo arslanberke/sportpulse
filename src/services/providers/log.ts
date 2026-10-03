@@ -18,6 +18,9 @@ export interface ProviderIssue {
 
 export type ReportProviderIssue = (issue: ProviderIssue) => void;
 
+/** ESPN answers 403 to Deno's default `Deno/x` user agent (Edge Functions). */
+export const PROVIDER_USER_AGENT = 'SportPulse/1.0';
+
 export async function fetchProvider(
   source: string,
   url: string,
@@ -28,7 +31,10 @@ export async function fetchProvider(
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), policy.timeoutMs ?? 10_000);
     try {
-      const response = await fetch(url, { signal: controller.signal, headers: policy.headers });
+      const response = await fetch(url, {
+        signal: controller.signal,
+        headers: { 'User-Agent': PROVIDER_USER_AGENT, ...policy.headers },
+      });
       if (attempt === 0 && [502, 503, 504].includes(response.status)) {
         await response.body?.cancel();
       } else {

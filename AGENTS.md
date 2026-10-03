@@ -342,7 +342,9 @@ senkron degil; 0066-0067 dogrudan SQL ile uygulandi, 0068-0070 elle
 - `sync-bsd-football` ligleri en uzun suredir denenmeyenden baslar ve 110 sn
   sonra yeni lige baslamaz; eskiden sabit sira sondaki ligleri (Trendyol 1.
   Lig) hic islemiyordu.
-- **ESPN**: Supabase IP'lerine 403 (hala). Ayrica 1 Ekim 2026'da futbol ve
+- **ESPN**: Edge Function 403'unun sebebi IP degil, Deno'nun varsayilan
+  `Deno/x` User-Agent'i; `fetchProvider` `PROVIDER_USER_AGENT` gonderir (3 Ekim 2026).
+  ESPN'e dogrudan `fetch` yazilirsa bu baslik eklenmeli. Ayrica 1 Ekim 2026'da futbol ve
   basketbol scoreboard'lari tarih ARALIGINI 400 ile reddediyor, tek gun
   calisiyor; saglayici 400'de gun gun sorar. Gecmis ESPN sonuclari icin
   yerelden: `node scripts/backfill-espn-results.mjs [--dry-run]`.

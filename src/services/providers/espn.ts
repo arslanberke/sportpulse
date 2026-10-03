@@ -407,6 +407,8 @@ export interface PlayerMatch {
  *
  * Oyuncu kimligi olarak `guid` kullaniliyor: bu uc sayisal `id` vermiyor.
  */
+const TOUR_DRAW_PREFIX: Record<string, string> = { atp: 'mens-', wta: 'womens-' };
+
 export async function fetchTournamentMatches(league: LeagueRef): Promise<PlayerMatch[]> {
   const url = scoreboardUrl(league, '');
   if (!url) return [];
@@ -433,10 +435,14 @@ export async function fetchTournamentMatches(league: LeagueRef): Promise<PlayerM
     }[];
   };
 
+  // Ortak turnuvalar (China Open) iki tur panosunda da tum gruplarla doner.
+  const draw = TOUR_DRAW_PREFIX[league.externalIds.espn ?? ''];
   const matches: PlayerMatch[] = [];
   for (const tournament of data.events ?? []) {
     if (!tournament.id) continue;
     for (const grouping of tournament.groupings ?? []) {
+      const slug = grouping.grouping?.slug;
+      if (draw && slug && !slug.startsWith(draw)) continue;
       for (const competition of grouping.competitions ?? []) {
         if (!competition.id || !competition.date) continue;
 
