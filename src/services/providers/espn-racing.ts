@@ -1,4 +1,4 @@
-import { warnHttp } from './log.ts';
+import { PROVIDER_USER_AGENT, warnHttp } from './log.ts';
 import { f1DriverPhoto, f1TeamLogo } from './motorsport-brands.ts';
 import type { SessionEntry, SessionResults } from './types.ts';
 
@@ -58,7 +58,7 @@ interface CoreCompetition {
 
 async function getJson<T>(url: string): Promise<T | null> {
   try {
-    const res = await fetch(url);
+    const res = await fetch(url, { headers: { 'User-Agent': PROVIDER_USER_AGENT } });
     if (!res.ok) return warnHttp('espn-racing', res, null);
     return (await res.json()) as T;
   } catch {
