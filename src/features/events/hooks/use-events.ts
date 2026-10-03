@@ -202,9 +202,9 @@ export function useEventLineup(event: SportEvent | null) {
  * `{ scores }` API-Sports football fixtures, `{ espn }` ESPN scoreboard
  * entries for basketball/tennis/F1/UFC (one aggregated Edge Function call).
  *
- * Polls every 45s while enabled — the shared server-side cache (migration
- * 0056, same TTL) absorbs these requests, so the user's list refreshes without
- * spending extra upstream quota. Still gated on `enabled`: nothing polls in
+ * Polls every 20s while enabled and the app is in the foreground — the shared
+ * server-side cache (20s TTL) absorbs these requests, so upstream calls don't
+ * grow with the number of users. Still gated on `enabled`: nothing polls in
  * the background when the live filter/detail isn't on screen.
  */
 export function useLiveScores(enabled: boolean) {
@@ -212,8 +212,8 @@ export function useLiveScores(enabled: boolean) {
     queryKey: ['live-scores'],
     queryFn: fetchLiveScores,
     enabled,
-    staleTime: 30_000,
-    refetchInterval: 45_000,
+    staleTime: 15_000,
+    refetchInterval: 20_000,
   });
 }
 
