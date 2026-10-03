@@ -34,6 +34,7 @@ interface EventRow {
   sport_id: string;
   title: string;
   starts_at: string;
+  leagues: { name: string } | null;
   results_cache: SessionResults | null;
   results_cached_at: string | null;
 }
@@ -61,7 +62,7 @@ Deno.serve(async (request) => {
 
   const { data, error } = await supabase
     .from('events')
-    .select('sport_id, title, starts_at, results_cache, results_cached_at')
+    .select('sport_id, title, starts_at, results_cache, results_cached_at, leagues(name)')
     .eq('id', eventId)
     .maybeSingle<EventRow>();
 
@@ -80,7 +81,11 @@ Deno.serve(async (request) => {
 
   const results =
     data.sport_id === 'motogp'
-      ? await fetchMotoGpResults({ title: data.title, startsAtUtc: data.starts_at })
+      ? await fetchMotoGpResults({
+          title: data.title,
+          startsAtUtc: data.starts_at,
+          category: data.leagues?.name ?? 'MotoGP',
+        })
       : await fetchRacingResults({
           sportId: data.sport_id,
           title: data.title,

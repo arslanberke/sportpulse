@@ -33,10 +33,14 @@ export function ResultsCard({
           className="h-9 w-9 items-center justify-center rounded-xl"
           style={{ backgroundColor: `${colors.primary}1F` }}
         >
-          <Ionicons name="flag" size={18} color={colors.primaryDark} />
+          <Ionicons
+            name={results.live ? "radio" : "flag"}
+            size={18}
+            color={results.live ? colors.live : colors.primaryDark}
+          />
         </View>
         <Text className="text-base font-semibold text-ink">
-          {t("event.results")}
+          {t(results.live ? "event.liveOrder" : "event.results")}
         </Text>
       </View>
       <View className="gap-2">

@@ -79,6 +79,8 @@ function withinWeekend(ev: PulseEvent, target: Date): boolean {
 export async function fetchMotoGpResults(params: {
   title: string;
   startsAtUtc: string;
+  /** Class name as in our leagues: 'MotoGP' | 'Moto2' | 'Moto3'. */
+  category: string;
 }): Promise<SessionResults | null> {
   const target = new Date(params.startsAtUtc);
 
@@ -95,7 +97,8 @@ export async function fetchMotoGpResults(params: {
   const categories = await getJson<Category[]>(
     `${BASE}/categories?eventUuid=${event.id}`,
   );
-  const category = categories?.find((c) => /motogp/i.test(c.name));
+  const wanted = params.category.toLowerCase();
+  const category = categories?.find((c) => c.name.toLowerCase().startsWith(wanted));
   if (!category) return null;
 
   const sessions = await getJson<Session[]>(
