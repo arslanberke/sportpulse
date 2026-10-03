@@ -125,6 +125,7 @@ export default function HomeScreen() {
   const [leagueFilter, setLeagueFilter] = useState<string | null>(null);
   const [channelFilter, setChannelFilter] = useState<string | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [doneOpen, setDoneOpen] = useState(false);
   const colors = useThemeColors();
   // Arama secili gunle sinirli kalmaz: aranan mac cumartesiyse "Bugun"
   // seciliyken de bulunmali. Terim varken tum hafta taranir, sonuclar gun gun
@@ -269,8 +270,12 @@ export default function HomeScreen() {
   const weekGroups = groupCalendarEvents(visibleEvents, now);
   const slots = timelineSlots(visibleEvents, now, t('home.now'), undefined, {
     isOngoing: (e) => isLive(e) || Boolean(e.endsAt && new Date(e.endsAt) > now),
-    label: t('home.finished'),
   });
+  const activeSlots = slots.filter((s) => !s.finished);
+  const doneSlots = slots.filter((s) => s.finished);
+  const doneCount = doneSlots.reduce((n, s) => n + s.events.length, 0);
+  // Bekleyen etkinlik yoksa (or. Dun) bitenler katlanmadan listelenir.
+  const showDone = doneOpen || activeSlots.length === 0;
   const showEmpty = !isLoading && !error && visibleEvents.length === 0;
   // Arama sonuclarinda bos gunler listelenmez; hicbiri yoksa asagidaki bos
   // durum karti gosterilir.
@@ -416,7 +421,24 @@ export default function HomeScreen() {
             })}
           </View>
         ) : (
-          slots.length > 0 && <Timeline slots={slots} liveFor={liveFor} />
+          <>
+            {activeSlots.length > 0 && <Timeline slots={activeSlots} liveFor={liveFor} />}
+            {doneSlots.length > 0 && activeSlots.length > 0 && (
+              <Pressable
+                onPress={() => setDoneOpen((value) => !value)}
+                accessibilityRole="button"
+                accessibilityState={{ expanded: doneOpen }}
+                className="mt-2 min-h-11 flex-row items-center border-t border-line pt-2"
+                style={{ gap: 6 }}
+              >
+                <Text className="flex-1 text-xs font-bold text-ink-secondary">
+                  {t('home.finishedSection', { count: doneCount })}
+                </Text>
+                <Ionicons name={doneOpen ? 'chevron-up' : 'chevron-down'} size={14} color={colors.inkSecondary} />
+              </Pressable>
+            )}
+            {doneSlots.length > 0 && showDone && <Timeline slots={doneSlots} liveFor={liveFor} />}
+          </>
         )}
 
         {hasFilters && <Pressable accessibilityRole="button" onPress={resetFilters} className="mb-4 mt-2 min-h-11 items-center justify-center"><Text className="text-sm font-semibold text-primary">{t('home.resetFilters')}</Text></Pressable>}

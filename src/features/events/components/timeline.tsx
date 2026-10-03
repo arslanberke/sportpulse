@@ -11,6 +11,8 @@ export interface TimelineSlot {
   events: SportEvent[];
   /** "Simdi" dilimi: kirmizi nokta ve etiket. */
   now?: boolean;
+  /** Baslamis ve bitmis etkinliklerin dilimi. */
+  finished?: boolean;
 }
 
 const RAIL = 18;
@@ -22,14 +24,14 @@ const LABEL_HEIGHT = 14;
  * Gunun etkinliklerini saat dilimlerine boler. Suren etkinlikler (canli
  * eslesen ya da devam eden cok gunluk) tek bir "Simdi" diliminde, kalanlar
  * baslangic saatine gore sirali dilimlerde. Baslamis ama surmeyen (biten)
- * etkinlikler en altta, saatleriyle "Bitti" dilimlerinde kalir.
+ * etkinlikler en altta, `finished` isaretli dilimlerde kalir.
  */
 export function timelineSlots(
   events: SportEvent[],
   now: Date,
   nowLabel: string,
   labelFor: (event: SportEvent) => string = (event) => formatTime(event.startsAt),
-  finished?: { isOngoing: (event: SportEvent) => boolean; label: string },
+  finished?: { isOngoing: (event: SportEvent) => boolean },
 ): TimelineSlot[] {
   const sorted = [...events].sort(
     (a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime(),
@@ -42,13 +44,13 @@ export function timelineSlots(
   if (started.length) {
     slots.push({ key: 'now', label: `${nowLabel} · ${formatTime(now.toISOString())}`, events: started, now: true });
   }
-  const push = (event: SportEvent, label: string) => {
+  const push = (event: SportEvent, label: string, isDone: boolean) => {
     const last = slots[slots.length - 1];
-    if (last && !last.now && last.label === label) last.events.push(event);
-    else slots.push({ key: `${label}-${event.startsAt}`, label, events: [event] });
+    if (last && !last.now && Boolean(last.finished) === isDone && last.label === label) last.events.push(event);
+    else slots.push({ key: `${isDone ? 'done-' : ''}${label}-${event.startsAt}`, label, events: [event], finished: isDone });
   };
-  for (const event of upcoming) push(event, labelFor(event));
-  for (const event of done) push(event, `${finished!.label} · ${labelFor(event)}`);
+  for (const event of upcoming) push(event, labelFor(event), false);
+  for (const event of done) push(event, labelFor(event), true);
   return slots;
 }
 
