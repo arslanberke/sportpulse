@@ -4,11 +4,11 @@ import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { Platform, Share, Text, View } from "react-native";
 import Animated, {
-    FadeIn,
-    FadeOut,
-    useAnimatedScrollHandler,
-    useAnimatedStyle,
-    useSharedValue,
+  FadeIn,
+  FadeOut,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
 } from "react-native-reanimated";
 
 import { LinearGradient } from "expo-linear-gradient";
@@ -23,8 +23,8 @@ import { useThemeColors } from "@/constants/theme";
 import { BracketCard } from "@/features/events/components/bracket-card";
 import { BriefingCard } from "@/features/events/components/briefing-card";
 import {
-    CircuitOutline,
-    findCircuitPath,
+  CircuitOutline,
+  findCircuitPath,
 } from "@/features/events/components/circuit-outline";
 import { formatCountdown } from "@/features/events/components/event-card";
 import { EventEffect } from "@/features/events/components/event-effects";
@@ -34,14 +34,13 @@ import { LineupCard } from "@/features/events/components/lineup-card";
 import { LiveMatchCard } from "@/features/events/components/live-match-card";
 import { MatchStatsCard } from "@/features/events/components/match-stats-card";
 import { MatchupArt } from "@/features/events/components/matchup-art";
-import { ResultsCard } from "@/features/events/components/results-card";
-import { StandingsCard } from "@/features/events/components/standings-card";
+import { MotorsportDetail } from "@/features/events/components/motorsport-detail";
 import { useEvent } from "@/features/events/hooks/use-events";
 import { channelLogo } from "@/features/events/lib/channel-logo";
 import {
-    artworkStyle,
-    eventTheme,
-    overlayColors,
+  artworkStyle,
+  eventTheme,
+  overlayColors,
 } from "@/features/events/lib/event-theme";
 import { leagueBanner } from "@/features/events/lib/league-banner";
 import { reminderTimes } from "@/features/events/lib/reminder-times";
@@ -53,12 +52,11 @@ import { useI18n } from "@/lib/i18n";
 import { shareEventIcs } from "@/lib/ics";
 import { useNow } from "@/lib/now";
 import {
-    areLiveActivitiesEnabled,
-    startEventActivity,
+  areLiveActivitiesEnabled,
+  startEventActivity,
 } from "../../../../modules/live-activity";
 
 const successAnimation = require("../../../../assets/lottie/success.json");
-
 
 /** Event detail: when, where to watch, calendar export, reminder times. */
 export default function EventDetailScreen() {
@@ -184,372 +182,388 @@ export default function EventDetailScreen() {
   // Tek armanin eksikligi tum kartin lig afisine dusmesine yol aciyordu ve afis
   // kartin oranina oturmadigi icin bozuk gorunuyordu.
   const hasMatchup = Boolean(event.homeTeamName && event.awayTeamName);
-  const banner = leagueBanner(event.leagueName, event.leagueArtworkUrl, event.leagueBadgeUrl, event.sportId);
+  const banner = leagueBanner(
+    event.leagueName,
+    event.leagueArtworkUrl,
+    event.leagueBadgeUrl,
+    event.sportId,
+  );
 
-  return (
+  const actions = (
     <>
-    <Screen onScroll={onScroll}>
-      <View className="pt-4">
-        <Animated.View
-          className="mb-4 overflow-hidden rounded-card bg-surface shadow-md"
-          style={heroStyle}
-        >
-          <View style={{ height: 220 }}>
-            <LinearGradient
-              colors={theme.gradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={{ width: "100%", height: "100%" }}
-            />
-            {circuit ? (
-              <>
-                {event.leagueArtworkUrl && (
-                  <Image
-                    source={{ uri: event.leagueArtworkUrl }}
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      opacity: 0.55,
-                    }}
-                    contentFit="cover"
-                    transition={200}
-                  />
-                )}
-                <View
-                  style={{
-                    position: "absolute",
-                    top: 8,
-                    left: 12,
-                    right: 12,
-                    bottom: 64,
-                  }}
-                >
-                  <CircuitOutline path={circuit} />
-                </View>
-              </>
-            ) : hasMatchup ? (
-              <MatchupArt
-                banner={banner}
-                homeLogoUrl={event.homeTeamLogoUrl ?? null}
-                awayLogoUrl={event.awayTeamLogoUrl ?? null}
-                badgeSize={116}
-              />
-            ) : (
-              artwork && (
-                <>
-                  {art.fit === "contain" && event.imageUrl && (
-                    <Image
-                      source={{ uri: artwork }}
-                      style={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        opacity: 0.6,
-                      }}
-                      contentFit="cover"
-                      blurRadius={24}
-                      transition={200}
-                    />
-                  )}
-                  <Image
-                    source={{ uri: artwork }}
-                    style={{
-                      position: "absolute",
-                      top: art.fit === "contain" ? 22 : 0,
-                      left: art.fit === "contain" ? 16 : 0,
-                      right: art.fit === "contain" ? 16 : 0,
-                      bottom: art.fit === "contain" ? 22 : 0,
-                    }}
-                    contentFit={art.fit}
-                    contentPosition={art.position}
-                    transition={200}
-                  />
-                </>
-              )
-            )}
-            {!circuit && (
-              <EventEffect
-                sportId={event.sportId}
-                leagueName={event.leagueName}
-                theme={theme}
-              />
-            )}
-            {!hasMatchup && (
-              <LinearGradient
-                colors={overlayColors(theme)}
-                style={{
-                  position: "absolute",
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  height: 160,
-                }}
-              />
-            )}
-            <View className="absolute inset-x-0 bottom-0 px-5 pb-3 pt-5">
-              <View className="mb-1 flex-row items-center gap-1.5">
-                {event.leagueBadgeUrl && (
-                  <Image
-                    source={{ uri: event.leagueBadgeUrl }}
-                    style={{ width: 18, height: 18 }}
-                    contentFit="contain"
-                  />
-                )}
-                {event.leagueName && (
-                  <Text className="text-xs font-bold uppercase tracking-wider text-white/70">
-                    {event.leagueName}
-                  </Text>
-                )}
-              </View>
-              {ufc && (
-                <Text
-                  className="text-base font-black uppercase tracking-widest"
-                  style={{ color: theme.accent }}
-                >
-                  {ufc.card}
-                </Text>
-              )}
-              <Text className="text-lg font-bold text-white">
-                {ufc ? ufc.bout : event.title}
-              </Text>
-            </View>
-          </View>
-        </Animated.View>
-
-        <Card className="mb-4" index={0}>
-          <SectionHeader
-            icon="calendar"
-            label={t("event.details")}
-            tint={colors.primaryDark}
-          />
-          <View className="gap-2.5">
-            <View className="flex-row items-center gap-3">
-              <View className="h-9 w-9 items-center justify-center rounded-xl bg-surface-raised">
-                <Ionicons
-                  name={
-                    event.status === "scheduled"
-                      ? "hourglass-outline"
-                      : "alert-circle-outline"
-                  }
-                  size={16}
-                  color={
-                    event.status === "scheduled"
-                      ? colors.primaryDark
-                      : colors.danger
-                  }
-                />
-              </View>
-              <Text
-                className="text-base font-semibold"
-                style={{
-                  color:
-                    event.status === "scheduled"
-                      ? colors.ink
-                      : colors.danger,
-                }}
-              >
-                {event.status === "scheduled"
-                  ? formatCountdown(event.startsAt, t, now, event.endsAt)
-                  : t(
-                      event.status === "postponed"
-                        ? "home.postponed"
-                        : "home.cancelled",
-                    )}
-              </Text>
-            </View>
-            <View className="flex-row items-center gap-3">
-              <View className="h-9 w-9 items-center justify-center rounded-xl bg-surface-raised">
-                <Ionicons
-                  name="time-outline"
-                  size={16}
-                  color={colors.inkSecondary}
-                />
-              </View>
-              <Text className="text-base font-medium text-ink">
-                {formatDateTime(event.startsAt)}
-              </Text>
-            </View>
-            {event.venue && (
-              <View className="flex-row items-center gap-3">
-                <View className="h-9 w-9 items-center justify-center rounded-xl bg-surface-raised">
-                  <Ionicons
-                    name="location-outline"
-                    size={16}
-                    color={colors.inkSecondary}
-                  />
-                </View>
-                <Text className="flex-1 text-base font-medium text-ink">
-                  {event.venue}
-                </Text>
-              </View>
-            )}
-          </View>
-          {event.venueImageUrl && (
-            <View className="mt-3 overflow-hidden rounded-2xl">
-              <Image
-                source={{ uri: event.venueImageUrl }}
-                style={{ width: "100%", height: 150 }}
-                contentFit="cover"
-                transition={200}
-              />
-            </View>
-          )}
-        </Card>
-
-        {/* Her karta kendi sirasi verilir. Ayni index'i paylasan iki kardes,
-            ayni gecikmeyle ayni karede acildiginda giris animasyonunda opaklik
-            0'da takilip bos alan olarak goruntuleniyor. Motorsporda sonuclar ve
-            puan durumu, basketbolda ozet ve puan durumu birlikte cikar. */}
-        <LiveMatchCard event={event} index={1} />
-
-        <LineupCard event={event} index={2} />
-
-        <MatchStatsCard event={event} index={6} />
-
-        <PreMatchCard event={event} index={3} />
-
-        <BriefingCard event={event} index={3} />
-
-        <ResultsCard event={event} index={2} />
-
-        <StandingsCard event={event} index={3} />
-
-        <LeagueStandingsCard event={event} index={4} />
-
-        <BracketCard event={event} index={4} />
-
-        <Card className="mb-4" index={5}>
-          <SectionHeader
-            icon="tv"
-            label={t("event.channel")}
-            tint={colors.primaryDark}
-          />
-          {channels.length === 0 && (
-            <Text className="text-sm text-ink-secondary">
-              {t("event.noChannel")}
-            </Text>
-          )}
-          <View className="gap-2">
-            {channels.map((channel) => (
-              <View
-                key={channel.id}
-                className="flex-row items-center gap-3 rounded-2xl bg-surface-raised px-3 py-2.5"
-              >
-                <View
-                  className="h-10 w-16 items-center justify-center overflow-hidden rounded-xl border border-line bg-white"
-                  style={{
-                    shadowColor: "#0F1A14",
-                    shadowOpacity: 0.1,
-                    shadowRadius: 4,
-                    shadowOffset: { width: 0, height: 1 },
-                    elevation: 1,
-                  }}
-                >
-                  {channel.logoUrl || channelLogo(channel.name) ? (
-                    <Image
-                      source={
-                        channel.logoUrl
-                          ? { uri: channel.logoUrl }
-                          : channelLogo(channel.name)!
-                      }
-                      style={{ width: 56, height: 32 }}
-                      contentFit="contain"
-                    />
-                  ) : (
-                    <Ionicons
-                      name="tv-outline"
-                      size={18}
-                      color={colors.inkSecondary}
-                    />
-                  )}
-                </View>
-                <Text className="text-base font-medium text-ink">
-                  {channel.name}
-                </Text>
-              </View>
-            ))}
-          </View>
-        </Card>
-
-        <Card className="mb-4" index={7}>
-          <SectionHeader
-            icon="notifications"
-            label={t("event.reminders")}
-            tint={colors.primaryDark}
-          />
-          <Text className="mb-3 text-sm text-ink-secondary">
-            {t("event.remindersBody")}
-          </Text>
-          {triggers.length === 0 ? (
-            <Text className="text-sm text-ink-secondary">
-              {t("event.noReminders")}
-            </Text>
-          ) : (
-            <View className="flex-row flex-wrap gap-2">
-              {triggers.map((trigger) => (
-                <View
-                  key={trigger.toISOString()}
-                  className="flex-row items-center gap-1.5 rounded-pill bg-surface-raised px-3 py-2"
-                >
-                  <Ionicons
-                    name="notifications-outline"
-                    size={14}
-                    color={colors.primaryDark}
-                  />
-                  <Text className="text-sm font-medium text-ink">
-                    {formatDateTime(trigger.toISOString())}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          )}
-        </Card>
-
-        <Button title={t("event.addToCalendar")} onPress={handleShareIcs} />
+      <Button title={t("event.addToCalendar")} onPress={handleShareIcs} />
+      <View className="mt-3">
+        <Button
+          title={t("event.share")}
+          onPress={handleShare}
+          variant="secondary"
+        />
+      </View>
+      {showLiveActivity && (
         <View className="mt-3">
           <Button
-            title={t("event.share")}
-            onPress={handleShare}
+            title={t("event.startLiveActivity")}
+            onPress={handleLiveActivity}
             variant="secondary"
           />
         </View>
-        {showLiveActivity && (
-          <View className="mt-3">
-            <Button
-              title={t("event.startLiveActivity")}
-              onPress={handleLiveActivity}
-              variant="secondary"
-            />
+      )}
+    </>
+  );
+  const isMotorsport = event.sportId === "f1" || event.sportId === "motogp";
+
+  return (
+    <>
+      <Screen onScroll={isMotorsport ? undefined : onScroll}>
+        {isMotorsport ? (
+          <MotorsportDetail
+            event={event}
+            reminders={triggers}
+            actions={actions}
+          />
+        ) : (
+          <View className="pt-4">
+            <Animated.View
+              className="mb-4 overflow-hidden rounded-card bg-surface shadow-md"
+              style={heroStyle}
+            >
+              <View style={{ height: 220 }}>
+                <LinearGradient
+                  colors={theme.gradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={{ width: "100%", height: "100%" }}
+                />
+                {circuit ? (
+                  <>
+                    {event.leagueArtworkUrl && (
+                      <Image
+                        source={{ uri: event.leagueArtworkUrl }}
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          opacity: 0.55,
+                        }}
+                        contentFit="cover"
+                        transition={200}
+                      />
+                    )}
+                    <View
+                      style={{
+                        position: "absolute",
+                        top: 8,
+                        left: 12,
+                        right: 12,
+                        bottom: 64,
+                      }}
+                    >
+                      <CircuitOutline path={circuit} />
+                    </View>
+                  </>
+                ) : hasMatchup ? (
+                  <MatchupArt
+                    banner={banner}
+                    homeLogoUrl={event.homeTeamLogoUrl ?? null}
+                    awayLogoUrl={event.awayTeamLogoUrl ?? null}
+                    badgeSize={116}
+                  />
+                ) : (
+                  artwork && (
+                    <>
+                      {art.fit === "contain" && event.imageUrl && (
+                        <Image
+                          source={{ uri: artwork }}
+                          style={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            opacity: 0.6,
+                          }}
+                          contentFit="cover"
+                          blurRadius={24}
+                          transition={200}
+                        />
+                      )}
+                      <Image
+                        source={{ uri: artwork }}
+                        style={{
+                          position: "absolute",
+                          top: art.fit === "contain" ? 22 : 0,
+                          left: art.fit === "contain" ? 16 : 0,
+                          right: art.fit === "contain" ? 16 : 0,
+                          bottom: art.fit === "contain" ? 22 : 0,
+                        }}
+                        contentFit={art.fit}
+                        contentPosition={art.position}
+                        transition={200}
+                      />
+                    </>
+                  )
+                )}
+                {!circuit && (
+                  <EventEffect
+                    sportId={event.sportId}
+                    leagueName={event.leagueName}
+                    theme={theme}
+                  />
+                )}
+                {!hasMatchup && (
+                  <LinearGradient
+                    colors={overlayColors(theme)}
+                    style={{
+                      position: "absolute",
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      height: 160,
+                    }}
+                  />
+                )}
+                <View className="absolute inset-x-0 bottom-0 px-5 pb-3 pt-5">
+                  <View className="mb-1 flex-row items-center gap-1.5">
+                    {event.leagueBadgeUrl && (
+                      <Image
+                        source={{ uri: event.leagueBadgeUrl }}
+                        style={{ width: 18, height: 18 }}
+                        contentFit="contain"
+                      />
+                    )}
+                    {event.leagueName && (
+                      <Text className="text-xs font-bold uppercase tracking-wider text-white/70">
+                        {event.leagueName}
+                      </Text>
+                    )}
+                  </View>
+                  {ufc && (
+                    <Text
+                      className="text-base font-black uppercase tracking-widest"
+                      style={{ color: theme.accent }}
+                    >
+                      {ufc.card}
+                    </Text>
+                  )}
+                  <Text className="text-lg font-bold text-white">
+                    {ufc ? ufc.bout : event.title}
+                  </Text>
+                </View>
+              </View>
+            </Animated.View>
+
+            <Card className="mb-4" index={0}>
+              <SectionHeader
+                icon="calendar"
+                label={t("event.details")}
+                tint={colors.primaryDark}
+              />
+              <View className="gap-2.5">
+                <View className="flex-row items-center gap-3">
+                  <View className="h-9 w-9 items-center justify-center rounded-xl bg-surface-raised">
+                    <Ionicons
+                      name={
+                        event.status === "scheduled"
+                          ? "hourglass-outline"
+                          : "alert-circle-outline"
+                      }
+                      size={16}
+                      color={
+                        event.status === "scheduled"
+                          ? colors.primaryDark
+                          : colors.danger
+                      }
+                    />
+                  </View>
+                  <Text
+                    className="text-base font-semibold"
+                    style={{
+                      color:
+                        event.status === "scheduled"
+                          ? colors.ink
+                          : colors.danger,
+                    }}
+                  >
+                    {event.status === "scheduled"
+                      ? formatCountdown(event.startsAt, t, now, event.endsAt)
+                      : t(
+                          event.status === "postponed"
+                            ? "home.postponed"
+                            : "home.cancelled",
+                        )}
+                  </Text>
+                </View>
+                <View className="flex-row items-center gap-3">
+                  <View className="h-9 w-9 items-center justify-center rounded-xl bg-surface-raised">
+                    <Ionicons
+                      name="time-outline"
+                      size={16}
+                      color={colors.inkSecondary}
+                    />
+                  </View>
+                  <Text className="text-base font-medium text-ink">
+                    {formatDateTime(event.startsAt)}
+                  </Text>
+                </View>
+                {event.venue && (
+                  <View className="flex-row items-center gap-3">
+                    <View className="h-9 w-9 items-center justify-center rounded-xl bg-surface-raised">
+                      <Ionicons
+                        name="location-outline"
+                        size={16}
+                        color={colors.inkSecondary}
+                      />
+                    </View>
+                    <Text className="flex-1 text-base font-medium text-ink">
+                      {event.venue}
+                    </Text>
+                  </View>
+                )}
+              </View>
+              {event.venueImageUrl && (
+                <View className="mt-3 overflow-hidden rounded-2xl">
+                  <Image
+                    source={{ uri: event.venueImageUrl }}
+                    style={{ width: "100%", height: 150 }}
+                    contentFit="cover"
+                    transition={200}
+                  />
+                </View>
+              )}
+            </Card>
+
+            {/* Her karta kendi sirasi verilir. Ayni index'i paylasan iki kardes,
+            ayni gecikmeyle ayni karede acildiginda giris animasyonunda opaklik
+            0'da takilip bos alan olarak goruntuleniyor. Motorsporda sonuclar ve
+            puan durumu, basketbolda ozet ve puan durumu birlikte cikar. */}
+            <LiveMatchCard event={event} index={1} />
+
+            <LineupCard event={event} index={2} />
+
+            <MatchStatsCard event={event} index={6} />
+
+            <PreMatchCard event={event} index={3} />
+
+            <BriefingCard event={event} index={3} />
+
+            <LeagueStandingsCard event={event} index={4} />
+
+            <BracketCard event={event} index={4} />
+
+            <Card className="mb-4" index={5}>
+              <SectionHeader
+                icon="tv"
+                label={t("event.channel")}
+                tint={colors.primaryDark}
+              />
+              {channels.length === 0 && (
+                <Text className="text-sm text-ink-secondary">
+                  {t("event.noChannel")}
+                </Text>
+              )}
+              <View className="gap-2">
+                {channels.map((channel) => (
+                  <View
+                    key={channel.id}
+                    className="flex-row items-center gap-3 rounded-2xl bg-surface-raised px-3 py-2.5"
+                  >
+                    <View
+                      className="h-10 w-16 items-center justify-center overflow-hidden rounded-xl border border-line bg-white"
+                      style={{
+                        shadowColor: "#0F1A14",
+                        shadowOpacity: 0.1,
+                        shadowRadius: 4,
+                        shadowOffset: { width: 0, height: 1 },
+                        elevation: 1,
+                      }}
+                    >
+                      {channel.logoUrl || channelLogo(channel.name) ? (
+                        <Image
+                          source={
+                            channel.logoUrl
+                              ? { uri: channel.logoUrl }
+                              : channelLogo(channel.name)!
+                          }
+                          style={{ width: 56, height: 32 }}
+                          contentFit="contain"
+                        />
+                      ) : (
+                        <Ionicons
+                          name="tv-outline"
+                          size={18}
+                          color={colors.inkSecondary}
+                        />
+                      )}
+                    </View>
+                    <Text className="text-base font-medium text-ink">
+                      {channel.name}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </Card>
+
+            <Card className="mb-4" index={7}>
+              <SectionHeader
+                icon="notifications"
+                label={t("event.reminders")}
+                tint={colors.primaryDark}
+              />
+              <Text className="mb-3 text-sm text-ink-secondary">
+                {t("event.remindersBody")}
+              </Text>
+              {triggers.length === 0 ? (
+                <Text className="text-sm text-ink-secondary">
+                  {t("event.noReminders")}
+                </Text>
+              ) : (
+                <View className="flex-row flex-wrap gap-2">
+                  {triggers.map((trigger) => (
+                    <View
+                      key={trigger.toISOString()}
+                      className="flex-row items-center gap-1.5 rounded-pill bg-surface-raised px-3 py-2"
+                    >
+                      <Ionicons
+                        name="notifications-outline"
+                        size={14}
+                        color={colors.primaryDark}
+                      />
+                      <Text className="text-sm font-medium text-ink">
+                        {formatDateTime(trigger.toISOString())}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </Card>
+
+            {actions}
           </View>
         )}
-      </View>
-    </Screen>
-    {showSuccess && (
-      <Animated.View
-        entering={FadeIn.duration(150)}
-        exiting={FadeOut.duration(200)}
-        pointerEvents="none"
-        className="absolute inset-0 items-center justify-center"
-        style={{ backgroundColor: "rgba(0,0,0,0.35)" }}
-      >
-        <View className="items-center rounded-card bg-surface px-8 py-6 shadow-md">
-          <Lottie
-            source={successAnimation}
-            size={120}
-            loop={false}
-            onFinish={() => setShowSuccess(false)}
-          />
-          <Text className="mt-1 text-base font-semibold text-ink">
-            {t("event.addedToCalendar")}
-          </Text>
-        </View>
-      </Animated.View>
-    )}
+      </Screen>
+      {showSuccess && (
+        <Animated.View
+          entering={FadeIn.duration(150)}
+          exiting={FadeOut.duration(200)}
+          pointerEvents="none"
+          className="absolute inset-0 items-center justify-center"
+          style={{ backgroundColor: "rgba(0,0,0,0.35)" }}
+        >
+          <View className="items-center rounded-card bg-surface px-8 py-6 shadow-md">
+            <Lottie
+              source={successAnimation}
+              size={120}
+              loop={false}
+              onFinish={() => setShowSuccess(false)}
+            />
+            <Text className="mt-1 text-base font-semibold text-ink">
+              {t("event.addedToCalendar")}
+            </Text>
+          </View>
+        </Animated.View>
+      )}
     </>
   );
 }

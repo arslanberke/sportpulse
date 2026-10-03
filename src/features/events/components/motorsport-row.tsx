@@ -32,11 +32,17 @@ function Avatar({
   // are tall full-body — those get zoomed in horizontally so the top of the
   // frame shows the head/shoulders instead of the whole body down to the waist.
   const imgStyle = fullBody
-    ? { position: "absolute" as const, top: 0, left: -26, width: 96, height: 144 }
-    : { position: "absolute" as const, top: 0, width: 44, height: 66 };
+    ? {
+        position: "absolute" as const,
+        top: 0,
+        left: -18,
+        width: 66,
+        height: 99,
+      }
+    : { position: "absolute" as const, top: 0, width: 30, height: 45 };
   return (
     <View
-      className="h-11 w-11 items-center justify-center overflow-hidden rounded-full"
+      className="h-[30px] w-[30px] items-center justify-center overflow-hidden rounded-full"
       style={{ backgroundColor: `${tint}26` }}
     >
       {photoUrl && !failed ? (
@@ -51,7 +57,7 @@ function Avatar({
           transition={120}
         />
       ) : (
-        <Text className="text-xs font-bold" style={{ color: tint }}>
+        <Text className="text-[10px] font-bold" style={{ color: tint }}>
           {initials(name)}
         </Text>
       )}
@@ -66,7 +72,7 @@ function TeamLogo({ url }: { url?: string | null }) {
     <Image
       source={{ uri: url }}
       onError={() => setFailed(true)}
-      style={{ width: 26, height: 26 }}
+      style={{ width: 20, height: 20 }}
       contentFit="contain"
       cachePolicy="memory-disk"
     />
@@ -74,9 +80,9 @@ function TeamLogo({ url }: { url?: string | null }) {
 }
 
 /**
- * One row shared by motorsport session results and championship standings:
- * position, driver/rider photo, name + team, optional team logo, and an
- * optional trailing value (points). A team-colored strip runs down the left.
+ * One borderless row shared by motorsport session results and championship
+ * standings: position, a 2px team-colored strip, photo, name + team, and a
+ * fixed right column with the team logo or points.
  */
 export function MotorsportRow({
   position,
@@ -86,6 +92,7 @@ export function MotorsportRow({
   teamLogoUrl,
   points,
   highlight,
+  last = false,
   fullBody = false,
 }: {
   position: number;
@@ -95,44 +102,61 @@ export function MotorsportRow({
   teamLogoUrl?: string | null;
   points?: number;
   highlight: boolean;
+  last?: boolean;
   fullBody?: boolean;
 }) {
   const colors = useThemeColors();
   const accent = teamAccentColor(team);
   return (
-    <View className="flex-row items-center gap-3 overflow-hidden rounded-2xl bg-surface-raised py-2 pr-3">
+    <View className="h-[46px] flex-row items-center gap-2.5">
+      <Text
+        className="w-5 text-right text-[13px] font-bold"
+        style={{
+          color: highlight ? colors.primaryDark : colors.inkTertiary,
+          fontVariant: ["tabular-nums"],
+        }}
+      >
+        {position}
+      </Text>
       <View
-        className="h-11 w-1 rounded-full"
+        className="my-[9px] w-0.5 self-stretch rounded-full"
         style={{ backgroundColor: accent ?? "transparent" }}
       />
       <View
-        className="h-7 w-7 items-center justify-center rounded-lg"
-        style={{ backgroundColor: highlight ? `${colors.primary}1F` : "transparent" }}
+        className={`h-full flex-1 flex-row items-center gap-2.5 ${last ? "" : "border-b border-line"}`}
       >
-        <Text
-          className="text-sm font-bold"
-          style={{ color: highlight ? colors.primaryDark : colors.inkSecondary }}
-        >
-          {position}
-        </Text>
-      </View>
-      <Avatar photoUrl={photoUrl} name={name} accent={accent} fullBody={fullBody} />
-      <View className="flex-1">
-        <Text numberOfLines={1} className="text-sm font-semibold text-ink">
-          {name}
-        </Text>
-        {team && (
-          <Text numberOfLines={1} className="text-xs text-ink-secondary">
-            {team}
+        <Avatar
+          photoUrl={photoUrl}
+          name={name}
+          accent={accent}
+          fullBody={fullBody}
+        />
+        <View className="flex-1">
+          <Text
+            numberOfLines={1}
+            className="text-[13px] font-semibold text-ink"
+          >
+            {name}
           </Text>
-        )}
+          {team && (
+            <Text numberOfLines={1} className="text-[11px] text-ink-secondary">
+              {team}
+            </Text>
+          )}
+        </View>
+        <View className="w-[46px] flex-row items-center justify-end">
+          {points != null ? (
+            <Text
+              className="text-[13px] font-bold text-ink"
+              style={{ fontVariant: ["tabular-nums"] }}
+            >
+              {points}
+            </Text>
+          ) : (
+            <TeamLogo url={teamLogoUrl} />
+          )}
+        </View>
       </View>
-      <TeamLogo url={teamLogoUrl} />
-      {points != null && (
-        <Text className="ml-1 min-w-[32px] text-right text-sm font-bold text-ink">
-          {points}
-        </Text>
-      )}
     </View>
   );
 }
