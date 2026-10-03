@@ -42,6 +42,7 @@ import {
   eventTheme,
   overlayColors,
 } from "@/features/events/lib/event-theme";
+import { isEventOver } from "@/features/events/lib/event-duration";
 import { leagueBanner } from "@/features/events/lib/league-banner";
 import { reminderTimes } from "@/features/events/lib/reminder-times";
 import { splitUfcTitle } from "@/features/events/lib/ufc-title";
@@ -452,58 +453,60 @@ export default function EventDetailScreen() {
 
             <BracketCard event={event} index={4} />
 
-            <Card className="mb-4" index={5}>
-              <SectionHeader
-                icon="tv"
-                label={t("event.channel")}
-                tint={colors.primaryDark}
-              />
-              {channels.length === 0 && (
-                <Text className="text-sm text-ink-secondary">
-                  {t("event.noChannel")}
-                </Text>
-              )}
-              <View className="gap-2">
-                {channels.map((channel) => (
-                  <View
-                    key={channel.id}
-                    className="flex-row items-center gap-3 rounded-2xl bg-surface-raised px-3 py-2.5"
-                  >
+            {(channels.length > 0 || !isEventOver(event, now)) && (
+              <Card className="mb-4" index={5}>
+                <SectionHeader
+                  icon="tv"
+                  label={t("event.channel")}
+                  tint={colors.primaryDark}
+                />
+                {channels.length === 0 && (
+                  <Text className="text-sm text-ink-secondary">
+                    {t("event.noChannel")}
+                  </Text>
+                )}
+                <View className="gap-2">
+                  {channels.map((channel) => (
                     <View
-                      className="h-10 w-16 items-center justify-center overflow-hidden rounded-xl border border-line bg-white"
-                      style={{
-                        shadowColor: "#0F1A14",
-                        shadowOpacity: 0.1,
-                        shadowRadius: 4,
-                        shadowOffset: { width: 0, height: 1 },
-                        elevation: 1,
-                      }}
+                      key={channel.id}
+                      className="flex-row items-center gap-3 rounded-2xl bg-surface-raised px-3 py-2.5"
                     >
-                      {channel.logoUrl || channelLogo(channel.name) ? (
-                        <Image
-                          source={
-                            channel.logoUrl
-                              ? { uri: channel.logoUrl }
-                              : channelLogo(channel.name)!
-                          }
-                          style={{ width: 56, height: 32 }}
-                          contentFit="contain"
-                        />
-                      ) : (
-                        <Ionicons
-                          name="tv-outline"
-                          size={18}
-                          color={colors.inkSecondary}
-                        />
-                      )}
+                      <View
+                        className="h-10 w-16 items-center justify-center overflow-hidden rounded-xl border border-line bg-white"
+                        style={{
+                          shadowColor: "#0F1A14",
+                          shadowOpacity: 0.1,
+                          shadowRadius: 4,
+                          shadowOffset: { width: 0, height: 1 },
+                          elevation: 1,
+                        }}
+                      >
+                        {channel.logoUrl || channelLogo(channel.name) ? (
+                          <Image
+                            source={
+                              channel.logoUrl
+                                ? { uri: channel.logoUrl }
+                                : channelLogo(channel.name)!
+                            }
+                            style={{ width: 56, height: 32 }}
+                            contentFit="contain"
+                          />
+                        ) : (
+                          <Ionicons
+                            name="tv-outline"
+                            size={18}
+                            color={colors.inkSecondary}
+                          />
+                        )}
+                      </View>
+                      <Text className="text-base font-medium text-ink">
+                        {channel.name}
+                      </Text>
                     </View>
-                    <Text className="text-base font-medium text-ink">
-                      {channel.name}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            </Card>
+                  ))}
+                </View>
+              </Card>
+            )}
 
             <Card className="mb-4" index={7}>
               <SectionHeader

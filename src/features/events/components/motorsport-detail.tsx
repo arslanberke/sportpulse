@@ -12,6 +12,7 @@ import {
   useEventStandings,
 } from "@/features/events/hooks/use-events";
 import { channelLogo } from "@/features/events/lib/channel-logo";
+import { isEventOver } from "@/features/events/lib/event-duration";
 import { formatDateTime } from "@/lib/dates";
 import { useI18n } from "@/lib/i18n";
 import { logoThumb } from "@/lib/logo-thumb";
@@ -140,44 +141,49 @@ export function MotorsportDetail({
       </Text>
       <View className="mt-3">{state}</View>
 
-      <View className="mb-3.5 mt-3.5 border-y border-line">
-        {channels.length === 0 ? (
-          <Text className="py-3 text-[13px] text-ink-secondary">
-            {t("event.noChannel")}
-          </Text>
-        ) : (
-          channels.map((channel, i) => {
-            const logo = channel.logoUrl
-              ? { uri: channel.logoUrl }
-              : channelLogo(channel.name);
-            return (
-              <View
-                key={channel.id}
-                className={`flex-row items-center gap-2.5 py-3 ${i > 0 ? "border-t border-line" : ""}`}
-              >
-                {logo ? (
-                  <View className="h-[22px] w-12 items-center justify-center rounded bg-white">
-                    <Image
-                      source={logo}
-                      style={{ width: 44, height: 20 }}
-                      contentFit="contain"
+      {channels.length === 0 &&
+      ((hasResults && !results?.live) || isEventOver(event, now)) ? (
+        <View className="h-3.5" />
+      ) : (
+        <View className="mb-3.5 mt-3.5 border-y border-line">
+          {channels.length === 0 ? (
+            <Text className="py-3 text-[13px] text-ink-secondary">
+              {t("event.noChannel")}
+            </Text>
+          ) : (
+            channels.map((channel, i) => {
+              const logo = channel.logoUrl
+                ? { uri: channel.logoUrl }
+                : channelLogo(channel.name);
+              return (
+                <View
+                  key={channel.id}
+                  className={`flex-row items-center gap-2.5 py-3 ${i > 0 ? "border-t border-line" : ""}`}
+                >
+                  {logo ? (
+                    <View className="h-[22px] w-12 items-center justify-center rounded bg-white">
+                      <Image
+                        source={logo}
+                        style={{ width: 44, height: 20 }}
+                        contentFit="contain"
+                      />
+                    </View>
+                  ) : (
+                    <Ionicons
+                      name="tv-outline"
+                      size={18}
+                      color={colors.inkSecondary}
                     />
-                  </View>
-                ) : (
-                  <Ionicons
-                    name="tv-outline"
-                    size={18}
-                    color={colors.inkSecondary}
-                  />
-                )}
-                <Text className="flex-1 text-[13px] font-semibold text-ink">
-                  {channel.name}
-                </Text>
-              </View>
-            );
-          })
-        )}
-      </View>
+                  )}
+                  <Text className="flex-1 text-[13px] font-semibold text-ink">
+                    {channel.name}
+                  </Text>
+                </View>
+              );
+            })
+          )}
+        </View>
+      )}
 
       <View className="mb-2.5 flex-row gap-1.5">
         {tabs.map((x) => {
