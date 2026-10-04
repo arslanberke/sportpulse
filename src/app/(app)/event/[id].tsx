@@ -33,6 +33,7 @@ import { PreMatchCard } from "@/features/events/components/pre-match-card";
 import { LineupCard } from "@/features/events/components/lineup-card";
 import { LiveMatchCard } from "@/features/events/components/live-match-card";
 import { MatchStatsCard } from "@/features/events/components/match-stats-card";
+import { BoxScoreCard } from "@/features/events/components/box-score-card";
 import { MatchupArt } from "@/features/events/components/matchup-art";
 import { MotorsportDetail } from "@/features/events/components/motorsport-detail";
 import { useEvent } from "@/features/events/hooks/use-events";
@@ -444,6 +445,8 @@ export default function EventDetailScreen() {
             <LineupCard event={event} index={2} />
 
             <MatchStatsCard event={event} index={6} />
+
+            <BoxScoreCard event={event} index={7} />
 
             <PreMatchCard event={event} index={3} />
 

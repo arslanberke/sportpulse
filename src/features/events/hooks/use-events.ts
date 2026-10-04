@@ -23,6 +23,7 @@ import {
     fetchTeamEvents,
 } from '@/services/events';
 import { FINAL_STATUSES } from '@/services/providers/api-sports-fixture';
+import { fetchBoxScore } from '@/services/providers/espn-boxscore';
 import type { SportEvent, UserFollow } from '@/types';
 
 const HOUR_MS = 3_600_000;
@@ -345,5 +346,26 @@ export function useEventLeagueStandings(event: SportEvent | null) {
     enabled: Boolean(event) && isBasketball,
     staleTime: HOUR_MS,
     retry: false,
+  });
+}
+
+/** ESPN league slug for basketball leagues ESPN covers. */
+const ESPN_BASKETBALL: Record<string, string> = { NBA: 'nba' };
+
+/**
+ * NBA box score (quarters, team and player stats) from ESPN. Polls every 30s
+ * while the game is live, then stays cached.
+ */
+export function useEventBoxScore(event: SportEvent | null) {
+  const league = event?.sportId === 'basketball' ? ESPN_BASKETBALL[event.leagueName ?? ''] : undefined;
+  const espnId = event?.externalIds.espn;
+  const startsAt = event ? new Date(event.startsAt).getTime() : 0;
+  const started = useMemo(() => new Date().getTime() >= startsAt, [startsAt]);
+  return useQuery({
+    queryKey: ['event-boxscore', event?.id],
+    queryFn: () => fetchBoxScore(league!, espnId!),
+    enabled: Boolean(league && espnId) && started,
+    staleTime: 20_000,
+    refetchInterval: (query) => (query.state.data?.live ? 30_000 : false),
   });
 }
