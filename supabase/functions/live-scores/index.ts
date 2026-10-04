@@ -301,7 +301,28 @@ function espnLiveEntry(
   };
 }
 
-async function fetchEspnBoard(board: (typeof ESPN_BOARDS)[number]): Promise<EspnLiveEntry[]> {
+/** ESPN'de biten mac; sonucu events tablosuna yazmak icin (sync-events ligi ancak 4 saatte bir dolasir). */
+interface EspnFinal {
+  espnId: string;
+  homeScore: number | null;
+  awayScore: number | null;
+}
+
+function espnFinal(comp: Record<string, unknown>, sport: EspnLiveEntry['sport']): EspnFinal | null {
+  if (sport !== 'football' && sport !== 'basketball') return null;
+  const statusType = espnObj(espnObj(comp.status).type);
+  if (espnText(statusType.state) !== 'post' || statusType.completed !== true) return null;
+  const espnId = espnText(comp.id);
+  if (!espnId) return null;
+  return { espnId, homeScore: espnCompetitor(comp, 'home').score, awayScore: espnCompetitor(comp, 'away').score };
+}
+
+interface EspnBoardResult {
+  live: EspnLiveEntry[];
+  finals: EspnFinal[];
+}
+
+async function fetchEspnBoard(board: (typeof ESPN_BOARDS)[number]): Promise<EspnBoardResult> {
   const response = await fetch(`${ESPN_BASE}/${board.path}/scoreboard`, {
     headers: { 'User-Agent': PROVIDER_USER_AGENT },
     signal: AbortSignal.timeout(10_000),
@@ -310,6 +331,7 @@ async function fetchEspnBoard(board: (typeof ESPN_BOARDS)[number]): Promise<Espn
   const body = await response.json();
   const events = Array.isArray(body?.events) ? body.events.map(espnObj) : [];
   const out: EspnLiveEntry[] = [];
+  const finals: EspnFinal[] = [];
   for (const event of events) {
     const eventName = espnText(event.name);
     // Tenis: maclar groupings[].competitions[] altinda; yarista seanslar
@@ -327,14 +349,39 @@ async function fetchEspnBoard(board: (typeof ESPN_BOARDS)[number]): Promise<Espn
     for (const comp of comps) {
       const entry = espnLiveEntry(comp, board.sport, board.series, eventName);
       if (entry) out.push(entry);
+      const final = espnFinal(comp, board.sport);
+      if (final) finals.push(final);
     }
   }
-  return out;
+  return { live: out, finals };
 }
 
-async function fetchEspnLive(): Promise<EspnLiveEntry[]> {
+async function fetchEspnLive(): Promise<EspnBoardResult> {
   const settled = await Promise.allSettled(ESPN_BOARDS.map(fetchEspnBoard));
-  return settled.flatMap((r) => (r.status === 'fulfilled' ? r.value : []));
+  const boards = settled.flatMap((r) => (r.status === 'fulfilled' ? [r.value] : []));
+  return { live: boards.flatMap((b) => b.live), finals: boards.flatMap((b) => b.finals) };
+}
+
+/** Biten ESPN maclarinin sonucunu, henuz finished yazilmamis kayitlara yazar. */
+async function persistEspnFinals(supabase: ReturnType<typeof createClient>, finals: EspnFinal[]): Promise<void> {
+  if (finals.length === 0) return;
+  const byId = new Map(finals.map((f) => [f.espnId, f]));
+  const { data } = await supabase
+    .from('events')
+    .select('id, external_ids')
+    .in('external_ids->>espn', [...byId.keys()])
+    .is('merged_into_event_id', null)
+    .or('result_status.is.null,result_status.neq.finished');
+  const rows = ((data ?? []) as { id: string; external_ids: Record<string, unknown> | null }[]).flatMap((row) => {
+    const final = byId.get(String(row.external_ids?.espn ?? ''));
+    return final ? [{ id: row.id, home_score: final.homeScore, away_score: final.awayScore, result_status: 'finished' }] : [];
+  });
+  if (rows.length > 0) await supabase.rpc('set_event_results', { p_rows: rows });
+}
+
+function runInBackground(task: Promise<unknown>): void {
+  const runtime = (globalThis as { EdgeRuntime?: { waitUntil?: (p: Promise<unknown>) => void } }).EdgeRuntime;
+  if (runtime?.waitUntil) runtime.waitUntil(task);
 }
 
 async function fetchLiveScores(apiKey: string): Promise<FootballLiveScore[]> {
@@ -406,23 +453,23 @@ Deno.serve(async (request) => {
   const callApiSports = Boolean(apiKey) && now - previous.apisportsTriedAt >= APISPORTS_INTERVAL_MS;
   const [bsdLive, espnBoards, footballResult] = await Promise.all([
     bsdKey ? fetchBsdLive(bsdKey).catch(() => [] as EspnLiveEntry[]) : Promise.resolve([] as EspnLiveEntry[]),
-    fetchEspnLive().catch(() => [] as EspnLiveEntry[]),
+    fetchEspnLive().catch((): EspnBoardResult => ({ live: [], finals: [] })),
     callApiSports
       ? fetchLiveScores(apiKey!).then((scores) => {
           // Canli-kurtarma yazimi (dizide 40+ sirali RPC) yaniti bloklamasin:
           // arka planda yazilir, kullanici skoru hemen gorur.
-          const persist = syncKnownLiveEvents(supabase, scores).catch(() => {});
-          const runtime = (globalThis as { EdgeRuntime?: { waitUntil?: (p: Promise<unknown>) => void } }).EdgeRuntime;
-          if (runtime?.waitUntil) runtime.waitUntil(persist);
+          runInBackground(syncKnownLiveEvents(supabase, scores).catch(() => {}));
           return scores;
         }).catch((error: unknown) => (error instanceof Error ? error : new Error('API-Sports: unknown_error')))
       : Promise.resolve(null),
   ]);
 
+  runInBackground(persistEspnFinals(supabase, espnBoards.finals).catch(() => {}));
+
   const apiOk = Array.isArray(footballResult);
   const next: CachePayload = {
     scores: apiOk ? footballResult : previous.scores,
-    espn: [...bsdLive, ...espnBoards],
+    espn: [...bsdLive, ...espnBoards.live],
     apisportsAt: apiOk ? now : previous.apisportsAt,
     apisportsTriedAt: callApiSports ? now : previous.apisportsTriedAt,
   };
