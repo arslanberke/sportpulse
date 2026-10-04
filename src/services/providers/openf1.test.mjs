@@ -52,3 +52,15 @@ test('SessionInfo matches a same-named session with a drifted start', () => {
   assert.equal(f1SessionOver(info, '2026-10-04T08:33:00Z', Date.now(), 'Bahrain in Malaysia Grand Prix'), true);
   assert.equal(f1SessionOver(info, '2026-10-04T08:33:00Z', Date.now(), 'Bahrain in Malaysia Grand Prix Qualifying'), null);
 });
+
+test('SessionInfo moves only its own session to the official times', async () => {
+  const { alignToF1LiveSession } = await import('./f1-livetiming.ts');
+  const info = { startUtc: Date.parse('2026-10-04T07:00:00Z'), endUtc: Date.parse('2026-10-04T09:00:00Z'), status: 'Inactive', name: 'Race' };
+  const [race, quali] = alignToF1LiveSession([
+    { title: 'Bahrain in Malaysia Grand Prix', startsAtUtc: '2026-10-04T08:33:00Z' },
+    { title: 'Bahrain in Malaysia Grand Prix Qualifying', startsAtUtc: '2026-10-03T08:00:00Z' },
+  ], info);
+  assert.equal(race.startsAtUtc, '2026-10-04T07:00:00.000Z');
+  assert.equal(race.endsAtUtc, '2026-10-04T09:00:00.000Z');
+  assert.equal(quali.startsAtUtc, '2026-10-03T08:00:00Z');
+});

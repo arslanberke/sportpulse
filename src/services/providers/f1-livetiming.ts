@@ -1,5 +1,6 @@
 import { PROVIDER_USER_AGENT } from './log.ts';
 import { openF1SessionName } from './openf1.ts';
+import type { ProviderEvent } from './types.ts';
 
 /**
  * Formula 1's own live timing (livetiming.formula1.com). Only SessionInfo.json
@@ -70,4 +71,18 @@ export function f1SessionOver(
   if (ENDED.has(info.status)) return true;
   if (info.status === 'Inactive') return Number.isFinite(info.endUtc) && now > info.endUtc;
   return false;
+}
+
+/**
+ * Moves the event SessionInfo describes to F1's own start/end times. OpenF1
+ * does the same for every session, but is locked while any session is live.
+ */
+export function alignToF1LiveSession(events: ProviderEvent[], info: F1LiveSession | null): ProviderEvent[] {
+  if (!info?.name || !Number.isFinite(info.startUtc) || !Number.isFinite(info.endUtc)) return events;
+  return events.map((e) =>
+    openF1SessionName(e.title) === info.name &&
+    Math.abs(Date.parse(e.startsAtUtc) - info.startUtc) <= NAMED_MATCH_WINDOW_MS
+      ? { ...e, startsAtUtc: new Date(info.startUtc).toISOString(), endsAtUtc: new Date(info.endUtc).toISOString() }
+      : e,
+  );
 }

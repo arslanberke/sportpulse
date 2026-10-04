@@ -14,6 +14,7 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { fixtureSyncState } from '../../../src/features/events/lib/fixture-health.ts';
 import { espnProvider, fetchTournamentMatches } from '../../../src/services/providers/espn.ts';
 import { fetchFixtureSnapshot, fetchSeason } from '../../../src/services/providers/index.ts';
+import { alignToF1LiveSession, fetchF1LiveSession } from '../../../src/services/providers/f1-livetiming.ts';
 import { alignF1SessionTimes } from '../../../src/services/providers/openf1.ts';
 import { fetchTsdbResults } from '../../../src/services/providers/thesportsdb.ts';
 import type { LeagueRef } from '../../../src/services/providers/types.ts';
@@ -249,7 +250,9 @@ Deno.serve(async (request) => {
 
     try {
       const snapshot = await fetchFixtureSnapshot(ref, SYNC_DAYS);
-      const events = league.sport_id === 'f1' ? await alignF1SessionTimes(snapshot.events) : snapshot.events;
+      const events = league.sport_id === 'f1'
+        ? alignToF1LiveSession(await alignF1SessionTimes(snapshot.events), await fetchF1LiveSession())
+        : snapshot.events;
       source = snapshot.provider;
       received = events.length;
       fixtureIssues = snapshot.issues.length;
