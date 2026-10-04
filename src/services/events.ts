@@ -1,7 +1,6 @@
 import { dedupeEvents } from '@/features/events/lib/dedupe-events';
 import { APISPORTS_LEAGUE_IDS, isCompleteLineup, type ApiSportsFixtureState } from '@/services/providers/api-sports-fixture';
 import type { FootballLiveScore } from '@/services/providers/api-sports-live';
-import { fetchRacingResults } from '@/services/providers/espn-racing';
 import { supabase } from '@/services/supabase';
 import type {
     Channel,
@@ -393,22 +392,15 @@ export async function fetchEventBriefing(eventId: string): Promise<string | null
 }
 
 /**
- * Motorsport session results (or live running order) for one event. Formula 1
- * comes straight from ESPN on the device; MotoGP classes go through the
- * `event-results` Edge Function. Returns null while a session hasn't run yet
+ * Motorsport session results (or live running order) for one event, via the
+ * `event-results` Edge Function (ESPN/F1 live timing/OpenF1 for F1, MotoGP
+ * classes from MotoGP). Returns null while a session hasn't run yet
  * or isn't covered.
  */
 export async function fetchEventResults(
   event: SportEvent,
 ): Promise<SessionResults | null> {
-  if (event.sportId === 'f1') {
-    if (event.leagueName !== 'Formula 1') return null;
-    return fetchRacingResults({
-      sportId: event.sportId,
-      title: event.title,
-      startsAtUtc: event.startsAt,
-    });
-  }
+  if (event.sportId === 'f1' && event.leagueName !== 'Formula 1') return null;
   const { data, error } = await supabase.functions.invoke<{
     available: boolean;
     results: SessionResults | null;

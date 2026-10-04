@@ -1,13 +1,12 @@
-// Motorsport session results for a single event (F1 today; MotoGP once a
-// source exists). Runs server-side and caches the classification on the event
-// so repeat views don't re-hit the upstream API. Returns available:false when
+// Motorsport session results for a single event (F1 and MotoGP classes).
+// Runs server-side and caches the classification on the event so repeat views don't re-hit the upstream API. Returns available:false when
 // the session hasn't run yet or the series isn't covered.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 import { hasUser } from '../_shared/require-user.ts';
 
-import { fetchRacingResults } from '../../../src/services/providers/espn-racing.ts';
+import { fetchF1Results } from '../../../src/services/providers/f1-results.ts';
 import { fetchMotoGpResults } from '../../../src/services/providers/motogp.ts';
 import type { SessionResults } from '../../../src/services/providers/types.ts';
 
@@ -21,6 +20,8 @@ const CORS_HEADERS = {
 // Short enough that a not-yet-run session gets retried; long enough that a
 // finished one isn't re-fetched on every view.
 const CACHE_TTL_MS = 30 * 60 * 1000;
+// A running session's order goes stale fast; the app polls every 30 s.
+const LIVE_CACHE_TTL_MS = 20 * 1000;
 const MOTORSPORT = new Set(['f1', 'motogp']);
 
 function json(body: unknown, status = 200): Response {
@@ -74,7 +75,7 @@ Deno.serve(async (request) => {
 
   if (data.results_cache && data.results_cached_at) {
     const age = Date.now() - new Date(data.results_cached_at).getTime();
-    if (age < CACHE_TTL_MS) {
+    if (age < (data.results_cache.live ? LIVE_CACHE_TTL_MS : CACHE_TTL_MS)) {
       return json({ available: true, results: data.results_cache });
     }
   }
@@ -86,8 +87,7 @@ Deno.serve(async (request) => {
           startsAtUtc: data.starts_at,
           category: data.leagues?.name ?? 'MotoGP',
         })
-      : await fetchRacingResults({
-          sportId: data.sport_id,
+      : await fetchF1Results({
           title: data.title,
           startsAtUtc: data.starts_at,
         });

@@ -13,6 +13,7 @@
 // logic lives at `src/services/providers/api-sports-live.ts`.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { f1SessionOver, fetchF1LiveSession } from '../../../src/services/providers/f1-livetiming.ts';
 import { PROVIDER_USER_AGENT } from '../../../src/services/providers/log.ts';
 
 const CACHE_TTL_MS = 20_000;
@@ -372,7 +373,13 @@ async function fetchEspnBoard(board: (typeof ESPN_BOARDS)[number]): Promise<Espn
 async function fetchEspnLive(): Promise<EspnBoardResult> {
   const settled = await Promise.allSettled(ESPN_BOARDS.map(fetchEspnBoard));
   const boards = settled.flatMap((r) => (r.status === 'fulfilled' ? [r.value] : []));
-  return { live: boards.flatMap((b) => b.live), finals: boards.flatMap((b) => b.finals) };
+  let live = boards.flatMap((b) => b.live);
+  // ESPN F1 seansi bittikten sonra da 'in' kalabiliyor; F1'in kendi zamanlamasi bitti diyorsa canli degil.
+  if (live.some((e) => e.sport === 'f1')) {
+    const official = await fetchF1LiveSession();
+    if (official) live = live.filter((e) => e.sport !== 'f1' || f1SessionOver(official, e.startsAt) !== true);
+  }
+  return { live, finals: boards.flatMap((b) => b.finals) };
 }
 
 /** Biten ESPN maclarinin sonucunu, henuz finished yazilmamis kayitlara yazar. */
