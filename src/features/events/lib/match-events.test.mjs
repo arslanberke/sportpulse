@@ -43,3 +43,19 @@ test('an unrecognised provider event type still renders instead of disappearing'
   assert.equal(row.icon, 'other');
   assert.equal(row.title, 'Player A');
 });
+
+test('incident short names find the lineup photo by initial + surname', async () => {
+  const { lineupPhoto } = await import('./match-events.ts');
+  const lineup = [
+    { name: 'Rúben Neves', photoUrl: 'rn' },
+    { name: 'João Neves', photoUrl: 'jn' },
+    { name: 'Francisco Trincão', photoUrl: 'ft' },
+    { name: 'Vitinha', photoUrl: 'v' },
+  ];
+  assert.equal(lineupPhoto('F. Trincão', lineup), 'ft');
+  assert.equal(lineupPhoto('J. Neves', lineup), 'jn');
+  assert.equal(lineupPhoto('Vitinha', lineup), 'v');
+  assert.equal(lineupPhoto('Neves', lineup), null);
+  assert.equal(lineupPhoto('P. Neto', lineup), null);
+  assert.equal(lineupPhoto(null, lineup), null);
+});

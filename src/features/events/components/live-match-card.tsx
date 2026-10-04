@@ -1,12 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
+import { useState } from 'react';
 import { Text, View } from 'react-native';
 
 import { Card } from '@/components/ui/card';
 import { SectionHeader } from '@/components/ui/section-header';
 import { useThemeColors } from '@/constants/theme';
-import { useEventLive, useLiveScores } from '@/features/events/hooks/use-events';
+import { useEventLineup, useEventLive, useLiveScores } from '@/features/events/hooks/use-events';
 import { matchEspnLive, matchLiveScores, resolveMatchCentre } from '@/features/events/lib/live-match';
-import { toMatchEventRows, type MatchEventRow } from '@/features/events/lib/match-events';
+import { lineupPhoto, toMatchEventRows, type MatchEventRow } from '@/features/events/lib/match-events';
 import { useI18n, type Translate } from '@/lib/i18n';
 import { FINAL_STATUSES, LIVE_STATUSES } from '@/services/providers/api-sports-fixture';
 import type { SportEvent } from '@/types';
@@ -28,15 +30,44 @@ function EventIcon({ icon }: { icon: MatchEventRow['icon'] }) {
   return <Ionicons name={ICONS[icon]} size={14} color={color} />;
 }
 
-function EventRow({ row, t }: { row: MatchEventRow; t: Translate }) {
+function PlayerPhoto({ name, uri }: { name: string; uri: string | null }) {
+  const colors = useThemeColors();
+  const [failed, setFailed] = useState(false);
+  const initials = name.split(/[\s.]+/).filter(Boolean).map((w) => w[0]).slice(0, 2).join('');
+  return (
+    <View
+      className="h-7 w-7 items-center justify-center overflow-hidden rounded-full"
+      style={{ backgroundColor: `${colors.primary}26` }}
+    >
+      {uri && !failed ? (
+        <Image
+          source={{ uri }}
+          onError={() => setFailed(true)}
+          style={{ width: 28, height: 28 }}
+          contentFit="cover"
+          contentPosition="top"
+          cachePolicy="memory-disk"
+          recyclingKey={uri}
+          transition={120}
+        />
+      ) : (
+        <Text className="text-[10px] font-bold" style={{ color: colors.primary }}>{initials}</Text>
+      )}
+    </View>
+  );
+}
+
+function EventRow({ row, photo, t }: { row: MatchEventRow; photo: string | null; t: Translate }) {
   const suffix = row.icon === 'own-goal' ? ` (${t('event.ownGoal')})` : row.icon === 'penalty' ? ' (P)' : '';
   const body = (
     <View className={`flex-1 flex-row items-center gap-2 ${row.isHome ? '' : 'justify-end'}`}>
       {row.isHome && <EventIcon icon={row.icon} />}
+      {row.isHome && row.icon !== 'other' && <PlayerPhoto name={row.title} uri={photo} />}
       <View className={row.isHome ? '' : 'items-end'}>
         <Text className="text-sm font-medium text-ink" numberOfLines={1}>{row.title}{suffix}</Text>
         {row.subtitle && <Text className="text-xs text-ink-tertiary" numberOfLines={1}>{row.subtitle}</Text>}
       </View>
+      {!row.isHome && row.icon !== 'other' && <PlayerPhoto name={row.title} uri={photo} />}
       {!row.isHome && <EventIcon icon={row.icon} />}
     </View>
   );
@@ -59,6 +90,7 @@ export function LiveMatchCard({ event, index }: { event: SportEvent; index?: num
   const { t } = useI18n();
   const colors = useThemeColors();
   const detailed = useEventLive(event);
+  const lineup = useEventLineup(event);
   // The aggregated feed is always consulted for football: `event-live` can
   // answer with a stale cached state (or not cover the league at all), while
   // BSD/ESPN/API-Sports in `live-scores` know the match is still being played.
@@ -102,7 +134,14 @@ export function LiveMatchCard({ event, index }: { event: SportEvent; index?: num
 
       {rows.length > 0 ? (
         <View className="gap-3">
-          {rows.map((row) => <EventRow key={row.key} row={row} t={t} />)}
+          {rows.map((row) => (
+            <EventRow
+              key={row.key}
+              row={row}
+              photo={lineupPhoto(row.title, (row.isHome ? lineup.data?.home : lineup.data?.away) ?? [])}
+              t={t}
+            />
+          ))}
         </View>
       ) : (
         <Text className="text-center text-sm text-ink-secondary">
