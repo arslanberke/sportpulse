@@ -16,6 +16,7 @@ import { TimelineCard, liveFromScore, liveFromText, type TimelineLive } from '@/
 import { WeekHeader } from '@/features/events/components/week-header';
 import { useLiveScores, useUpcomingEvents } from '@/features/events/hooks/use-events';
 import { useFixtureHealth } from '@/features/events/hooks/use-fixture-health';
+import { isEventOver } from '@/features/events/lib/event-duration';
 import { espnLiveScoreText, matchEspnLive, matchLiveScores } from '@/features/events/lib/live-match';
 import { isFavoriteEvent, useFavorites } from '@/features/follows/hooks/use-favorites';
 import { useFollows } from '@/features/follows/hooks/use-follows';
@@ -269,7 +270,7 @@ export default function HomeScreen() {
   const hasFilters = Boolean(activeFilter || favoritesOnly || liveOnly || weekActive || dayOffset !== 0 || leagueFilter || channelFilter || searchTerm.trim());
   const weekGroups = groupCalendarEvents(visibleEvents, now);
   const slots = timelineSlots(visibleEvents, now, t('home.now'), undefined, {
-    isOngoing: (e) => isLive(e) || Boolean(e.endsAt && new Date(e.endsAt) > now),
+    isOngoing: (e) => isLive(e) || !isEventOver(e, now),
   });
   const activeSlots = slots.filter((s) => !s.finished);
   const doneSlots = slots.filter((s) => s.finished);
