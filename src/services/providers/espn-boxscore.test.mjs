@@ -4,7 +4,7 @@ import { parseBoxScore } from './espn-boxscore.ts';
 
 const keys = ['minutes', 'points', 'rebounds', 'assists', 'steals', 'blocks', 'plusMinus'];
 const athlete = (id, shortName, starter, stats, didNotPlay = false) => ({
-  athlete: { id, shortName, position: { abbreviation: 'G' } }, starter, didNotPlay, stats,
+  athlete: { id, shortName, position: { abbreviation: 'G' }, headshot: { href: `https://a.espncdn.com/i/headshots/nba/players/full/${id}.png` } }, starter, didNotPlay, stats,
 });
 const summary = (state) => ({
   header: { competitions: [{
@@ -37,6 +37,7 @@ test('maps periods, team stats and players to home/away by team id', () => {
   assert.deepEqual(box.teamStats, [{ key: 'fieldGoalsMade-fieldGoalsAttempted', home: '37-94', away: '42-86' }]);
   assert.deepEqual(box.players.home.map((p) => p.name), ['S. Starter', 'B. Bench']);
   assert.equal(box.players.away[0].rebounds, 10);
+  assert.equal(box.players.away[0].photoUrl, 'https://a.espncdn.com/combiner/i?img=/i/headshots/nba/players/full/4.png&w=96&h=70');
 });
 
 test('live flag follows the game state; no box score before tip-off', () => {

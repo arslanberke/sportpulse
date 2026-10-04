@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Image } from "expo-image";
 import { Pressable, Text, View } from "react-native";
 
 import { Card } from "@/components/ui/card";
@@ -53,9 +54,39 @@ function Cell({ value, bold = false, wide = false }: { value: string | number; b
   );
 }
 
+function Headshot({ player }: { player: BoxPlayer }) {
+  const colors = useThemeColors();
+  const [failed, setFailed] = useState(false);
+  const initials = player.name.split(/[\s.]+/).filter(Boolean).map((w) => w[0]).slice(0, 2).join("");
+  return (
+    <View
+      className="mr-2.5 h-[30px] w-[30px] items-center justify-center overflow-hidden rounded-full"
+      style={{ backgroundColor: `${colors.primary}26` }}
+    >
+      {player.photoUrl && !failed ? (
+        <Image
+          source={{ uri: player.photoUrl }}
+          onError={() => setFailed(true)}
+          style={{ position: "absolute", top: 0, width: 41, height: 30 }}
+          contentFit="cover"
+          contentPosition="top"
+          cachePolicy="memory-disk"
+          recyclingKey={player.photoUrl}
+          transition={120}
+        />
+      ) : (
+        <Text className="text-[10px] font-bold" style={{ color: colors.primary }}>
+          {initials}
+        </Text>
+      )}
+    </View>
+  );
+}
+
 function PlayerRow({ player, last }: { player: BoxPlayer; last: boolean }) {
   return (
-    <View className={`flex-row items-center py-2.5 ${last ? "" : "border-b border-line"}`}>
+    <View className={`flex-row items-center py-2 ${last ? "" : "border-b border-line"}`}>
+      <Headshot player={player} />
       <View className="flex-1 flex-row items-baseline gap-1.5">
         <Text numberOfLines={1} className="shrink text-[13px] font-semibold text-ink">
           {player.name}

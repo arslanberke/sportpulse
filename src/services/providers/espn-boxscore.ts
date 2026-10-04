@@ -4,6 +4,7 @@ export interface BoxPlayer {
   id: string;
   name: string;
   position: string | null;
+  photoUrl: string | null;
   starter: boolean;
   minutes: string;
   points: number;
@@ -46,7 +47,7 @@ export const BOX_TEAM_STATS = [
 
 interface EspnStat { name: string; displayValue: string }
 interface EspnAthlete {
-  athlete: { id: string; shortName: string; position?: { abbreviation?: string } };
+  athlete: { id: string; shortName: string; position?: { abbreviation?: string }; headshot?: { href?: string } };
   starter: boolean;
   didNotPlay: boolean;
   stats: string[];
@@ -69,6 +70,13 @@ const num = (v: string | undefined) => {
   return Number.isFinite(n) ? n : 0;
 };
 
+/** ESPN's resizer serves a ~8 KB thumbnail instead of the ~60 KB full PNG. */
+function smallHeadshot(href: string | undefined): string | null {
+  if (!href) return null;
+  const path = href.replace(/^https?:\/\/a\.espncdn\.com/, '');
+  return path.startsWith('/') ? `https://a.espncdn.com/combiner/i?img=${path}&w=96&h=70` : href;
+}
+
 function players(group: { keys: string[]; athletes: EspnAthlete[] } | undefined): BoxPlayer[] {
   if (!group) return [];
   const at = (a: EspnAthlete, key: string) => a.stats[group.keys.indexOf(key)];
@@ -78,6 +86,7 @@ function players(group: { keys: string[]; athletes: EspnAthlete[] } | undefined)
       id: a.athlete.id,
       name: a.athlete.shortName,
       position: a.athlete.position?.abbreviation ?? null,
+      photoUrl: smallHeadshot(a.athlete.headshot?.href),
       starter: a.starter,
       minutes: at(a, 'minutes') ?? '0',
       points: num(at(a, 'points')),
