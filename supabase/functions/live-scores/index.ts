@@ -13,6 +13,7 @@
 // logic lives at `src/services/providers/api-sports-live.ts`.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { f1SessionOver, fetchF1LiveSession } from '../../../src/services/providers/f1-livetiming.ts';
 import { PROVIDER_USER_AGENT } from '../../../src/services/providers/log.ts';
 
 const CACHE_TTL_MS = 20_000;
@@ -274,6 +275,16 @@ function espnCompetitor(comp: Record<string, unknown>, side: 'home' | 'away') {
   return { name, score: score !== null && Number.isFinite(score) ? score : null, lines: espnLines(found.linescores) };
 }
 
+// ESPN bazen biten seansi saatlerce 'in' birakir (F1 yarisi tur 45'te takili
+// kaldi). Baslangictan bu kadar sonra hala 'in' olan kayit canli sayilmaz.
+const ESPN_MAX_LIVE_MS: Record<EspnLiveEntry['sport'], number> = {
+  football: 3 * 3_600_000,
+  basketball: 4 * 3_600_000,
+  tennis: 6 * 3_600_000,
+  f1: 3 * 3_600_000,
+  ufc: 7 * 3_600_000,
+};
+
 /** Bir ESPN competition'ini (mac, seans veya bout) canli kayda cevirir; degilse null. */
 function espnLiveEntry(
   comp: Record<string, unknown>,
@@ -283,6 +294,9 @@ function espnLiveEntry(
 ): EspnLiveEntry | null {
   const statusType = espnObj(espnObj(comp.status).type);
   if (!espnIsLive(statusType)) return null;
+  const startsAt = espnText(comp.date) ?? '';
+  const started = Date.parse(startsAt);
+  if (Number.isFinite(started) && Date.now() - started > ESPN_MAX_LIVE_MS[sport]) return null;
   const home = espnCompetitor(comp, 'home');
   const away = espnCompetitor(comp, 'away');
   return {
@@ -290,14 +304,14 @@ function espnLiveEntry(
     sport,
     series,
     name: espnText(comp.name) ?? fallbackName ?? '',
-    statusDetail: espnText(statusType.detail) ?? espnText(statusType.shortDetail),
+    statusDetail: sport === 'f1' ? null : espnText(statusType.detail) ?? espnText(statusType.shortDetail),
     home: home.name,
     away: away.name,
     homeScore: home.score,
     awayScore: away.score,
     homeLines: home.lines,
     awayLines: away.lines,
-    startsAt: espnText(comp.date) ?? '',
+    startsAt,
   };
 }
 
@@ -359,7 +373,13 @@ async function fetchEspnBoard(board: (typeof ESPN_BOARDS)[number]): Promise<Espn
 async function fetchEspnLive(): Promise<EspnBoardResult> {
   const settled = await Promise.allSettled(ESPN_BOARDS.map(fetchEspnBoard));
   const boards = settled.flatMap((r) => (r.status === 'fulfilled' ? [r.value] : []));
-  return { live: boards.flatMap((b) => b.live), finals: boards.flatMap((b) => b.finals) };
+  let live = boards.flatMap((b) => b.live);
+  // ESPN F1 seansi bittikten sonra da 'in' kalabiliyor; F1'in kendi zamanlamasi bitti diyorsa canli degil.
+  if (live.some((e) => e.sport === 'f1')) {
+    const official = await fetchF1LiveSession();
+    if (official) live = live.filter((e) => e.sport !== 'f1' || f1SessionOver(official, e.startsAt) !== true);
+  }
+  return { live, finals: boards.flatMap((b) => b.finals) };
 }
 
 /** Biten ESPN maclarinin sonucunu, henuz finished yazilmamis kayitlara yazar. */
