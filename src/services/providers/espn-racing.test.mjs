@@ -37,3 +37,8 @@ test('running session is marked live with its current order', () => {
 test('session without an order yet has no results', () => {
   assert.equal(sessionResults(findSession(events, '2026-10-04T07:00:00Z').competition, new Map()), null);
 });
+
+test('a session of the same type matches despite a drifted start time', () => {
+  assert.equal(findSession(events, '2026-10-04T08:33:00Z', 'Bahrain in Malaysia Grand Prix')?.competition.id, 'race');
+  assert.equal(findSession(events, '2026-10-04T08:33:00Z'), null);
+});

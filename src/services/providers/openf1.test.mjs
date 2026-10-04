@@ -45,3 +45,10 @@ test('F1 live timing: finished session is over, other sessions unknown', () => {
   assert.equal(f1SessionOver({ ...info, status: 'Inactive' }, '2026-10-04T07:00:00Z', Date.parse('2026-10-04T06:00:00Z')), false);
   assert.equal(f1SessionOver({ ...info, status: 'Inactive' }, '2026-10-04T07:00:00Z', Date.parse('2026-10-04T10:00:00Z')), true);
 });
+
+test('SessionInfo matches a same-named session with a drifted start', () => {
+  const info = { startUtc: Date.parse('2026-10-04T07:00:00Z'), endUtc: Date.parse('2026-10-04T09:00:00Z'), status: 'Finalised', name: 'Race' };
+  assert.equal(f1SessionOver(info, '2026-10-04T08:33:00Z'), null);
+  assert.equal(f1SessionOver(info, '2026-10-04T08:33:00Z', Date.now(), 'Bahrain in Malaysia Grand Prix'), true);
+  assert.equal(f1SessionOver(info, '2026-10-04T08:33:00Z', Date.now(), 'Bahrain in Malaysia Grand Prix Qualifying'), null);
+});

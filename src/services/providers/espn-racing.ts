@@ -1,5 +1,6 @@
 import { PROVIDER_USER_AGENT, warnHttp } from './log.ts';
 import { f1DriverPhoto, f1TeamLogo } from './motorsport-brands.ts';
+import { openF1SessionName } from './openf1.ts';
 import type { SessionEntry, SessionResults } from './types.ts';
 
 /**
@@ -23,6 +24,17 @@ const LEAGUE_SLUG: Record<string, string> = { f1: 'f1' };
 
 // A session's scheduled start in our data and ESPN's can drift slightly.
 const MATCH_WINDOW_MS = 30 * 60_000;
+// TheSportsDB times can be off by over an hour; the session type still pins it.
+const TYPED_MATCH_WINDOW_MS = 3 * 3_600_000;
+const ESPN_TYPE: Record<string, string> = {
+  'Practice 1': 'FP1',
+  'Practice 2': 'FP2',
+  'Practice 3': 'FP3',
+  'Sprint Qualifying': 'SS',
+  Sprint: 'SR',
+  Qualifying: 'Qual',
+  Race: 'Race',
+};
 
 const SESSION_LABEL: Record<string, string> = {
   FP1: 'Free Practice 1',
@@ -66,17 +78,24 @@ async function getJson<T>(url: string): Promise<T | null> {
   }
 }
 
-/** The scoreboard session starting closest to `startsAtUtc`, if any. */
+/**
+ * The scoreboard session starting closest to `startsAtUtc`, if any. With the
+ * event title, a session of the same type up to a few hours off also matches.
+ */
 export function findSession(
   events: ScoreboardEvent[],
   startsAtUtc: string,
+  title?: string,
 ): { gpId: string; competition: ScoreboardCompetition } | null {
   const start = new Date(startsAtUtc).getTime();
+  const sessionName = title ? openF1SessionName(title) : null;
+  const type = sessionName ? ESPN_TYPE[sessionName] : undefined;
   let best: { gpId: string; competition: ScoreboardCompetition; gap: number } | null = null;
   for (const ev of events) {
     for (const c of ev.competitions ?? []) {
       const gap = Math.abs(new Date(c.date).getTime() - start);
-      if (gap <= MATCH_WINDOW_MS && (!best || gap < best.gap)) {
+      const window = type && c.type?.abbreviation === type ? TYPED_MATCH_WINDOW_MS : MATCH_WINDOW_MS;
+      if (gap <= window && (!best || gap < best.gap)) {
         best = { gpId: ev.id, competition: c, gap };
       }
     }
@@ -132,7 +151,7 @@ export async function fetchRacingResults(params: {
   const board = await getJson<{ events?: ScoreboardEvent[] }>(
     `${SITE}/${slug}/scoreboard?dates=${fmt(from)}-${fmt(to)}`,
   );
-  const match = findSession(board?.events ?? [], params.startsAtUtc);
+  const match = findSession(board?.events ?? [], params.startsAtUtc, params.title);
   if (!match) return null;
 
   const core = await getJson<{ items?: CoreCompetition[] }>(

@@ -17,7 +17,7 @@ export async function fetchF1Results(params: {
     fetchRacingResults({ sportId: 'f1', title: params.title, startsAtUtc: params.startsAtUtc }),
     fetchF1LiveSession(),
   ]);
-  const over = official ? f1SessionOver(official, params.startsAtUtc) : null;
+  const over = official ? f1SessionOver(official, params.startsAtUtc, Date.now(), params.title) : null;
   if (espn?.live && over !== true) return espn;
 
   const session = await fetchOpenF1Session(params.title, params.startsAtUtc);
