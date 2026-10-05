@@ -75,14 +75,14 @@ export function FollowRow({
         accessibilityState={{ checked: ticked, disabled: coveredByParent }}
       >
         <View
-          className="h-6 w-6 items-center justify-center rounded-md border-2"
+          className="h-[22px] w-[22px] items-center justify-center rounded-full border-[1.5px]"
           style={{
             borderColor: ticked ? colors.primary : colors.inkTertiary,
             backgroundColor: ticked ? colors.primary : 'transparent',
             opacity: coveredByParent ? 0.45 : 1,
           }}
         >
-          {ticked && <Ionicons name="checkmark" size={16} color="#FFFFFF" />}
+          {ticked && <Ionicons name="checkmark" size={14} color="#FFFFFF" />}
         </View>
       </Pressable>
 

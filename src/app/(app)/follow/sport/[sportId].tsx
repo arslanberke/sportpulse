@@ -2,8 +2,9 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Text, TextInput, View } from 'react-native';
 
-import { Card } from '@/components/ui/card';
+import { FlatEmpty } from '@/components/ui/flat';
 import { Screen } from '@/components/ui/screen';
+import { FlatHeader } from '@/components/ui/section-header';
 import { useThemeColors } from '@/constants/theme';
 import { useLeagues, useSportLogos, useSports } from '@/features/catalog/hooks/use-catalog';
 import { groupByKind, type LeagueKind } from '@/features/catalog/lib/league-kind';
@@ -73,8 +74,8 @@ export default function SportFollowScreen() {
   return (
     <Screen>
       <Stack.Screen options={{ title: sportName }} />
-      <View className="pt-4">
-        <Card className="mb-4" index={0}>
+      <View className="pt-2">
+        <View className="border-b border-line pb-2">
           <FollowRow
             label={t('explore.followWholeSport', { sport: sportName })}
             icon={sport?.icon}
@@ -82,15 +83,15 @@ export default function SportFollowScreen() {
             following={sportFollowed}
             onToggleFollow={() => toggleAll(group)}
           />
-          <Text className="mt-1 text-sm text-ink-secondary">
+          <Text className="text-xs text-ink-secondary">
             {sportFollowed ? t('explore.allLeaguesIncluded') : t('explore.pickLeaguesHint')}
           </Text>
-        </Card>
+        </View>
 
         {/* Arama her gruba birlikte uygulandigi icin kartlarin ustunde durur. */}
         {sportLeagues.length > 6 && (
           <TextInput
-            className="mb-4 rounded-button bg-surface px-4 py-3 text-ink"
+            className="mt-3 rounded-pill border border-line bg-surface px-4 py-2.5 text-[13px] text-ink"
             placeholder={t('explore.searchLeagues')}
             placeholderTextColor={colors.inkTertiary}
             value={search}
@@ -99,18 +100,17 @@ export default function SportFollowScreen() {
         )}
 
         {groups.length === 0 ? (
-          <Card className="mb-4" index={1}>
-            <Text className="py-2 text-sm text-ink-secondary">{t('explore.noLeagues')}</Text>
-          </Card>
+          <FlatEmpty message={t('explore.noLeagues')} />
         ) : (
-          groups.map((section, sectionIndex) => (
-            <Card key={section.kind} className="mb-4" index={sectionIndex + 1}>
-              <Text className="mb-2 text-lg font-semibold text-ink">
-                {grouped ? t(KIND_LABEL[section.kind]) : t('explore.leagues')}
-              </Text>
+          groups.map((section) => (
+            <View key={section.kind}>
+              <FlatHeader
+                label={grouped ? t(KIND_LABEL[section.kind]) : t('explore.leagues')}
+                note={String(section.leagues.length)}
+              />
               {section.leagues.map((league, i) => (
+                <View key={league.id} className="border-b border-line">
                 <FollowRow
-                  key={league.id}
                   index={i}
                   label={league.name}
                   imageUrl={league.logoUrl}
@@ -122,8 +122,9 @@ export default function SportFollowScreen() {
                       : undefined
                   }
                 />
+                </View>
               ))}
-            </Card>
+            </View>
           ))
         )}
       </View>
