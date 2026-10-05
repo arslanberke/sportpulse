@@ -59,8 +59,12 @@ export interface EspnEvent {
  * notstarted / inprogress / finished / postponed). Skor yalnizca mac
  * basladiysa okunur: baslamamis macta ESPN "0" gonderir ve bu 0-0 sanilirdi.
  */
-export function espnResult(event: EspnEvent): Pick<ProviderEvent, 'homeScore' | 'awayScore' | 'resultStatus'> {
+export function espnResult(event: EspnEvent, now: Date = new Date()): Pick<ProviderEvent, 'homeScore' | 'awayScore' | 'resultStatus'> {
   const type = event.status?.type;
+  // ESPN marks running tennis tournaments STATUS_FINAL; a tournament isn't over before its endDate.
+  if (event.endDate && new Date(event.endDate).getTime() > now.getTime() && type?.state !== 'pre') {
+    return { homeScore: null, awayScore: null, resultStatus: null };
+  }
   const resultStatus = type?.name === 'STATUS_POSTPONED' ? 'postponed'
     : type?.completed || type?.state === 'post' ? 'finished'
     : type?.state === 'in' ? 'inprogress'
