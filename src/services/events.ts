@@ -37,8 +37,8 @@ interface EventRow {
   leagues: { name: string; artwork_url: string | null; logo_url: string | null } | null;
   home_team: { name: string; logo_url: string | null } | null;
   parent?: { title: string } | null;
-  home_player?: { name: string; country_flag_url: string | null } | null;
-  away_player?: { name: string; country_flag_url: string | null } | null;
+  home_player?: { name: string; country_flag_url: string | null; rank?: number | null } | null;
+  away_player?: { name: string; country_flag_url: string | null; rank?: number | null } | null;
   away_team: { name: string; logo_url: string | null } | null;
 }
 
@@ -78,6 +78,8 @@ function mapRow(row: EventRow): SportEvent {
     awayTeamName: row.away_team?.name ?? row.away_player?.name ?? null,
     homeTeamLogoUrl: row.home_team?.logo_url ?? row.home_player?.country_flag_url ?? null,
     awayTeamLogoUrl: row.away_team?.logo_url ?? row.away_player?.country_flag_url ?? null,
+    homePlayerRank: row.home_player?.rank ?? null,
+    awayPlayerRank: row.away_player?.rank ?? null,
   };
 }
 
@@ -237,7 +239,7 @@ export async function fetchEvent(id: string, depth = 0): Promise<SportEvent | nu
   const { data, error } = await supabase
     .from('events')
     .select(
-      'id, sport_id, league_id, home_team_id, away_team_id, parent_event_id, home_player_id, away_player_id, title, starts_at, ends_at, status, home_score, away_score, result_status, image_url, venue, venue_image_url, importance, external_ids, merged_into_event_id, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url)',
+      'id, sport_id, league_id, home_team_id, away_team_id, parent_event_id, home_player_id, away_player_id, title, starts_at, ends_at, status, home_score, away_score, result_status, image_url, venue, venue_image_url, importance, external_ids, merged_into_event_id, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url), home_player:players!home_player_id (name, country_flag_url, rank), away_player:players!away_player_id (name, country_flag_url, rank)',
     )
     .eq('id', id)
     .maybeSingle();

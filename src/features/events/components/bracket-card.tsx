@@ -133,9 +133,9 @@ export function BracketCard({ event, index = 0, flat = false }: { event: SportEv
       {isLoading && <LoadingCard />}
       {isError && <ErrorCard message={t('common.somethingWentWrong')} onRetry={() => void refetch()} />}
       {!isLoading && !isError && sorted.length === 0 && <Text className="py-4 text-sm leading-6 text-ink-secondary">{t(filters.time === 'results' ? 'draw.resultsUnavailable' : 'draw.empty')}</Text>}
-      <View className="gap-2">
+      <View className={flat ? 'border-t border-line' : 'gap-2'}>
         {sorted.map((match) => (
-            <View key={match.id} className="rounded-2xl border border-line bg-surface-raised px-3 py-3">
+            <View key={match.id} className={flat ? 'border-b border-line py-3' : 'rounded-2xl border border-line bg-surface-raised px-3 py-3'}>
               <View className="mb-1 flex-row items-center justify-between">
                 <Text className="text-xs font-semibold uppercase tracking-wide text-ink-tertiary">
                   {match.round ?? ''}

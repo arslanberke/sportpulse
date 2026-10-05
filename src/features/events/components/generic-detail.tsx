@@ -142,6 +142,7 @@ export function GenericDetail({
   const ufc = event.sportId === "ufc" ? splitUfcTitle(event.title) : null;
   const hasScore = event.homeScore != null && event.awayScore != null;
   const duel = Boolean(event.homeTeamName && event.awayTeamName);
+  const tournament = event.sportId === "tennis" && !event.parentEventId && !duel;
   const homeLeads = hasScore && (event.homeScore ?? 0) > (event.awayScore ?? 0);
   const awayLeads = hasScore && (event.awayScore ?? 0) > (event.homeScore ?? 0);
   const sideHref = (playerId?: string | null, teamId?: string | null) =>
@@ -155,7 +156,7 @@ export function GenericDetail({
     <Text className="text-[12.5px] font-semibold" style={{ color: colors.danger }}>
       {t(event.status === "postponed" ? "home.postponed" : "home.cancelled")}
     </Text>
-  ) : over ? (
+  ) : over && tournament ? null : over ? (
     <Text className="text-[12.5px] font-semibold text-ink-secondary">{t("home.finished")}</Text>
   ) : (
     <Text className="text-[12.5px] font-semibold text-ink">
@@ -221,7 +222,7 @@ export function GenericDetail({
         {formatDateTime(event.startsAt)}
         {event.venue ? ` · ${event.venue}` : ""}
       </Text>
-      <View className="mt-2">{state}</View>
+      {state ? <View className="mt-2">{state}</View> : null}
 
       {channels.length === 0 && over ? (
         <View className="h-3.5" />
@@ -230,24 +231,22 @@ export function GenericDetail({
           {channels.length === 0 ? (
             <Text className="py-3 text-[13px] text-ink-secondary">{t("event.noChannel")}</Text>
           ) : (
-            channels.map((channel, i) => {
-              const logo = channel.logoUrl ? { uri: channel.logoUrl } : channelLogo(channel.name);
-              return (
-                <View
-                  key={channel.id}
-                  className={`flex-row items-center gap-2.5 py-3 ${i > 0 ? "border-t border-line" : ""}`}
-                >
-                  {logo ? (
-                    <View className="h-[22px] w-12 items-center justify-center rounded bg-white">
-                      <Image source={logo} style={{ width: 44, height: 20 }} contentFit="contain" />
-                    </View>
-                  ) : (
-                    <Ionicons name="tv-outline" size={18} color={colors.inkSecondary} />
-                  )}
-                  <Text className="flex-1 text-[13px] font-semibold text-ink">{channel.name}</Text>
-                </View>
-              );
-            })
+            <View className="flex-row items-center gap-2 py-3">
+              {channels.slice(0, 3).map((channel) => {
+                const logo = channel.logoUrl ? { uri: channel.logoUrl } : channelLogo(channel.name);
+                return logo ? (
+                  <View
+                    key={channel.id}
+                    className="h-[22px] w-12 items-center justify-center rounded bg-white"
+                  >
+                    <Image source={logo} style={{ width: 44, height: 20 }} contentFit="contain" />
+                  </View>
+                ) : null;
+              })}
+              <Text className="flex-1 text-[13px] font-semibold text-ink" numberOfLines={1}>
+                {channels.map((c) => c.name).join(" · ")}
+              </Text>
+            </View>
           )}
         </View>
       )}
@@ -274,7 +273,7 @@ export function GenericDetail({
       {tab === "info" && (
         <>
           <InfoLine label={t("event.motorsport.start")} value={formatDateTime(event.startsAt)} />
-          <InfoLine label={t("event.motorsport.venue")} value={event.venue} />
+          <InfoLine label={t("event.venue")} value={event.venue} />
           <InfoLine label={t("event.channel")} value={channels.map((c) => c.name).join(", ") || "–"} />
           <InfoLine
             label={t("event.reminders")}

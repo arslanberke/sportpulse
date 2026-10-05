@@ -181,7 +181,7 @@ function InfoRow({
     <View
       className={`min-h-[46px] flex-row items-center gap-3 py-2 ${last ? "" : "border-b border-line"}`}
     >
-      <Text className="w-24 text-[12.5px] text-ink-secondary">{label}</Text>
+      <Text className="w-28 text-[12.5px] text-ink-secondary">{label}</Text>
       <Text className="flex-1 text-[13px] font-semibold text-ink">{value}</Text>
     </View>
   );
