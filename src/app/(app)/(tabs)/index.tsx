@@ -271,6 +271,7 @@ export default function HomeScreen() {
   const weekGroups = groupCalendarEvents(visibleEvents, now);
   const slots = timelineSlots(visibleEvents, now, t('home.now'), undefined, {
     isOngoing: (e) => isLive(e) || !isEventOver(e, now),
+    isLive,
   });
   const activeSlots = slots.filter((s) => !s.finished);
   const doneSlots = slots.filter((s) => s.finished);

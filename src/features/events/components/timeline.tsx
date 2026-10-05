@@ -26,18 +26,30 @@ const LABEL_HEIGHT = 14;
  * baslangic saatine gore sirali dilimlerde. Baslamis ama surmeyen (biten)
  * etkinlikler en altta, `finished` isaretli dilimlerde kalir.
  */
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** "Now" order: confirmed live first, multi-day tournaments/rallies last. */
+function nowRank(event: SportEvent, isLive?: (event: SportEvent) => boolean): number {
+  if (isLive?.(event)) return 0;
+  const span = event.endsAt ? new Date(event.endsAt).getTime() - new Date(event.startsAt).getTime() : 0;
+  return span > DAY_MS ? 2 : 1;
+}
+
 export function timelineSlots(
   events: SportEvent[],
   now: Date,
   nowLabel: string,
   labelFor: (event: SportEvent) => string = (event) => formatTime(event.startsAt),
-  finished?: { isOngoing: (event: SportEvent) => boolean },
+  finished?: { isOngoing: (event: SportEvent) => boolean; isLive?: (event: SportEvent) => boolean },
 ): TimelineSlot[] {
   const sorted = [...events].sort(
     (a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime(),
   );
   const begun = sorted.filter((e) => new Date(e.startsAt).getTime() <= now.getTime());
-  const started = finished ? begun.filter(finished.isOngoing) : begun;
+  const started = (finished ? begun.filter(finished.isOngoing) : begun)
+    .map((event, i) => ({ event, i, rank: nowRank(event, finished?.isLive) }))
+    .sort((a, b) => a.rank - b.rank || a.i - b.i)
+    .map((x) => x.event);
   const done = finished ? begun.filter((e) => !finished.isOngoing(e)) : [];
   const upcoming = sorted.filter((e) => new Date(e.startsAt).getTime() > now.getTime());
   const slots: TimelineSlot[] = [];
