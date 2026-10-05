@@ -35,6 +35,7 @@ import { LiveMatchCard } from "@/features/events/components/live-match-card";
 import { MatchStatsCard } from "@/features/events/components/match-stats-card";
 import { BoxScoreCard } from "@/features/events/components/box-score-card";
 import { MatchupArt } from "@/features/events/components/matchup-art";
+import { MatchDetail } from "@/features/events/components/match-detail";
 import { MotorsportDetail } from "@/features/events/components/motorsport-detail";
 import { useEvent } from "@/features/events/hooks/use-events";
 import { channelLogo } from "@/features/events/lib/channel-logo";
@@ -213,11 +214,30 @@ export default function EventDetailScreen() {
     </>
   );
   const isMotorsport = event.sportId === "f1" || event.sportId === "motogp";
+  const isTeamMatch =
+    (event.sportId === "football" || event.sportId === "basketball") &&
+    Boolean(event.homeTeamName && event.awayTeamName);
 
   return (
     <>
-      <Screen onScroll={isMotorsport ? undefined : onScroll}>
-        {isMotorsport ? (
+      <Screen onScroll={isMotorsport || isTeamMatch ? undefined : onScroll}>
+        {isTeamMatch ? (
+          <MatchDetail
+            event={event}
+            reminders={triggers}
+            onCalendar={handleShareIcs}
+            onShare={handleShare}
+            actions={
+              showLiveActivity ? (
+                <Button
+                  title={t("event.startLiveActivity")}
+                  onPress={handleLiveActivity}
+                  variant="secondary"
+                />
+              ) : null
+            }
+          />
+        ) : isMotorsport ? (
           <MotorsportDetail
             event={event}
             reminders={triggers}

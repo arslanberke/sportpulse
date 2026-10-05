@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { ActivityIndicator, Text, View } from "react-native";
 
 import { Card } from "@/components/ui/card";
+import { FlatHeader } from "@/components/ui/section-header";
 import { useThemeColors } from "@/constants/theme";
 import { useEventBriefing } from "@/features/events/hooks/use-events";
 import { useI18n } from "@/lib/i18n";
@@ -22,9 +23,11 @@ function toBullets(text: string): string[] {
 export function BriefingCard({
   event,
   index,
+  flat = false,
 }: {
   event: SportEvent;
   index?: number;
+  flat?: boolean;
 }) {
   const { t } = useI18n();
   const colors = useThemeColors();
@@ -35,18 +38,22 @@ export function BriefingCard({
   const bullets = briefing ? toBullets(briefing) : [];
 
   return (
-    <Card className="mb-4" index={index}>
-      <View className="mb-3 flex-row items-center gap-3">
-        <View
-          className="h-9 w-9 items-center justify-center rounded-xl"
-          style={{ backgroundColor: `${colors.primary}1F` }}
-        >
-          <Ionicons name="sparkles" size={18} color={colors.primaryDark} />
+    <Card className="mb-4" index={index} flat={flat}>
+      {flat ? (
+        <FlatHeader label={t("event.briefing")} />
+      ) : (
+        <View className="mb-3 flex-row items-center gap-3">
+          <View
+            className="h-9 w-9 items-center justify-center rounded-xl"
+            style={{ backgroundColor: `${colors.primary}1F` }}
+          >
+            <Ionicons name="sparkles" size={18} color={colors.primaryDark} />
+          </View>
+          <Text className="text-base font-semibold text-ink">
+            {t("event.briefing")}
+          </Text>
         </View>
-        <Text className="text-base font-semibold text-ink">
-          {t("event.briefing")}
-        </Text>
-      </View>
+      )}
 
       {isLoading ? (
         <View className="flex-row items-center gap-2 py-1">

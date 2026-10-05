@@ -57,7 +57,7 @@ function PlayerPhoto({ name, uri }: { name: string; uri: string | null }) {
   );
 }
 
-function EventRow({ row, photo, t }: { row: MatchEventRow; photo: string | null; t: Translate }) {
+function EventRow({ row, photo, t, flat = false }: { row: MatchEventRow; photo: string | null; t: Translate; flat?: boolean }) {
   const suffix = row.icon === 'own-goal' ? ` (${t('event.ownGoal')})` : row.icon === 'penalty' ? ' (P)' : '';
   const body = (
     <View className={`flex-1 flex-row items-center gap-2 ${row.isHome ? '' : 'justify-end'}`}>
@@ -72,7 +72,7 @@ function EventRow({ row, photo, t }: { row: MatchEventRow; photo: string | null;
     </View>
   );
   return (
-    <View className="flex-row items-center gap-3">
+    <View className={`flex-row items-center gap-3 ${flat ? 'min-h-[46px] border-b border-line py-1.5' : ''}`}>
       {row.isHome ? body : <View className="flex-1" />}
       <Text className="w-10 text-center text-xs font-semibold text-ink-tertiary">{row.minuteLabel}</Text>
       {row.isHome ? <View className="flex-1" /> : body}
@@ -81,31 +81,59 @@ function EventRow({ row, photo, t }: { row: MatchEventRow; photo: string | null;
 }
 
 /**
+ * Reconciled match-centre state for a football event. The aggregated feed is
+ * always consulted: `event-live` can answer with a stale cached state (or not
+ * cover the league at all), while BSD/ESPN/API-Sports in `live-scores` know
+ * the match is still being played. A live aggregate signal outranks a
+ * final-looking detail snapshot.
+ */
+export function useMatchCentre(event: SportEvent) {
+  const detailed = useEventLive(event);
+  const aggregate = useLiveScores(event.sportId === 'football');
+  const aggregateScore = matchLiveScores([event], aggregate.data?.scores ?? []).get(event.id) ?? null;
+  const feedHit = matchEspnLive([event], aggregate.data?.espn ?? []).get(event.id);
+  const feedEntry = feedHit && feedHit !== 'window' ? feedHit : null;
+  return {
+    state: resolveMatchCentre(detailed.data ?? null, aggregateScore, feedEntry),
+    isError: detailed.isError && aggregate.isError,
+  };
+}
+
+/**
  * Match-centre card: current score/minute plus a FlashScore-style events
  * timeline (goals, cards, substitutions). Only renders for the five leagues
  * `event-live` actually covers, and only from kickoff onward — never shows a
  * fabricated score for a match that hasn't started.
  */
-export function LiveMatchCard({ event, index }: { event: SportEvent; index?: number }) {
+export function LiveMatchCard({ event, index, flat = false }: { event: SportEvent; index?: number; flat?: boolean }) {
   const { t } = useI18n();
   const colors = useThemeColors();
-  const detailed = useEventLive(event);
+  const live = useMatchCentre(event);
   const lineup = useEventLineup(event);
-  // The aggregated feed is always consulted for football: `event-live` can
-  // answer with a stale cached state (or not cover the league at all), while
-  // BSD/ESPN/API-Sports in `live-scores` know the match is still being played.
-  // A live aggregate signal outranks a final-looking detail snapshot.
-  const aggregate = useLiveScores(event.sportId === 'football');
-  const aggregateScore = matchLiveScores([event], aggregate.data?.scores ?? []).get(event.id) ?? null;
-  const feedHit = matchEspnLive([event], aggregate.data?.espn ?? []).get(event.id);
-  const feedEntry = feedHit && feedHit !== 'window' ? feedHit : null;
-  const live = resolveMatchCentre(detailed.data ?? null, aggregateScore, feedEntry);
-  const isError = detailed.isError && aggregate.isError;
+  if (!live.state) return null;
+  const isError = live.isError;
+  const rows = toMatchEventRows(live.state.events);
+  const isLive = LIVE_STATUSES.has(live.state.status);
+  const isFinal = FINAL_STATUSES.has(live.state.status);
+  const rowList = rows.map((row) => (
+    <EventRow
+      key={row.key}
+      row={row}
+      photo={lineupPhoto(row.title, (row.isHome ? lineup.data?.home : lineup.data?.away) ?? [])}
+      t={t}
+      flat={flat}
+    />
+  ));
 
-  if (!live) return null;
-  const rows = toMatchEventRows(live.events);
-  const isLive = LIVE_STATUSES.has(live.status);
-  const isFinal = FINAL_STATUSES.has(live.status);
+  if (flat) {
+    return rows.length > 0 ? (
+      <View>{rowList}</View>
+    ) : (
+      <Text className="py-3 text-center text-[13px] text-ink-secondary">
+        {isError ? t('event.matchCentreError') : t('event.noKeyMomentsYet')}
+      </Text>
+    );
+  }
 
   return (
     <Card className="mb-4" index={index}>
@@ -113,15 +141,15 @@ export function LiveMatchCard({ event, index }: { event: SportEvent; index?: num
       <View className="mb-4 flex-row items-center justify-between rounded-2xl bg-surface-raised px-4 py-3">
         <Text className="flex-1 text-sm font-semibold text-ink" numberOfLines={1}>{event.homeTeamName}</Text>
         <View className="items-center px-3">
-          <Text className="text-2xl font-bold text-ink">{live.homeScore ?? '–'} : {live.awayScore ?? '–'}</Text>
+          <Text className="text-2xl font-bold text-ink">{live.state.homeScore ?? '–'} : {live.state.awayScore ?? '–'}</Text>
           {isLive ? (
             <View className="mt-1 flex-row items-center gap-1">
               <View className="h-1.5 w-1.5 rounded-full bg-danger" />
               <Text className="text-xs font-semibold text-danger">
-                {live.status === 'HT'
+                {live.state.status === 'HT'
                   ? t('event.halfTime')
-                  : live.elapsed !== null
-                    ? `${live.elapsed}'`
+                  : live.state.elapsed !== null
+                    ? `${live.state.elapsed}'`
                     : t('home.live')}
               </Text>
             </View>
@@ -134,14 +162,7 @@ export function LiveMatchCard({ event, index }: { event: SportEvent; index?: num
 
       {rows.length > 0 ? (
         <View className="gap-3">
-          {rows.map((row) => (
-            <EventRow
-              key={row.key}
-              row={row}
-              photo={lineupPhoto(row.title, (row.isHome ? lineup.data?.home : lineup.data?.away) ?? [])}
-              t={t}
-            />
-          ))}
+          {rowList}
         </View>
       ) : (
         <Text className="text-center text-sm text-ink-secondary">
