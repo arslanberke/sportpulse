@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 
-import { Card } from '@/components/ui/card';
 import { useThemeColors } from '@/constants/theme';
+import { OptionPill, SettingRow } from '@/features/settings/components/setting-rows';
 import {
   useReminderPrefs,
   useSaveReminderPrefs,
@@ -63,68 +63,54 @@ function LoadedSection({ prefs }: { prefs: ReminderPrefs }) {
 
   return (
     <>
-      <Card className="mb-6">
-        <Text className="mb-1 text-lg font-semibold text-ink">
-          {t('settings.reminderOffsets')}
-        </Text>
-        <Text className="mb-3 text-sm text-ink-secondary">
-          {t('settings.reminderOffsetsBody')}
-        </Text>
-        <View className="flex-row flex-wrap">
-          {OFFSET_OPTIONS.map((option) => {
-            const active = prefs.offsetsMinutes.includes(option.minutes);
-            return (
-              <Pressable
+      <SettingRow
+        label={t('settings.reminderOffsets')}
+        body={t('settings.reminderOffsetsBody')}
+        below={
+          <View className="flex-row flex-wrap gap-1.5">
+            {OFFSET_OPTIONS.map((option) => (
+              <OptionPill
                 key={option.minutes}
+                label={t(option.key)}
+                active={prefs.offsetsMinutes.includes(option.minutes)}
                 onPress={() => toggleOffset(option.minutes)}
-                className={`mb-2 mr-2 rounded-full px-4 py-2.5 ${
-                  active ? 'bg-primary' : 'bg-background'
-                }`}
-              >
-                <Text className={`font-semibold ${active ? 'text-on-primary' : 'text-ink-secondary'}`}>
-                  {t(option.key)}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      </Card>
+              />
+            ))}
+          </View>
+        }
+      />
 
-      <Card className="mb-6">
-        <Text className="mb-1 text-lg font-semibold text-ink">{t('settings.quietHours')}</Text>
-        <Text className="mb-3 text-sm text-ink-secondary">{t('settings.quietHoursBody')}</Text>
-        <View className="mb-3 flex-row gap-3">
-          <View className="flex-1">
-            <Text className="mb-1 text-sm font-semibold text-ink-secondary">
-              {t('settings.quietFrom')}
-            </Text>
+      <SettingRow
+        label={t('settings.quietHours')}
+        body={t('settings.quietHoursBody')}
+        below={
+          <View className="flex-row items-center gap-2">
             <TextInput
-              className="rounded-button bg-background px-4 py-3 text-ink"
+              accessibilityLabel={t('settings.quietFrom')}
+              className="w-20 rounded-pill border border-line bg-surface px-3 py-1.5 text-center text-[13px] text-ink"
               placeholder="23:00"
               placeholderTextColor={colors.inkTertiary}
               value={quietStart}
               onChangeText={setQuietStart}
               autoCapitalize="none"
             />
-          </View>
-          <View className="flex-1">
-            <Text className="mb-1 text-sm font-semibold text-ink-secondary">
-              {t('settings.quietUntil')}
-            </Text>
+            <Text className="text-ink-tertiary">–</Text>
             <TextInput
-              className="rounded-button bg-background px-4 py-3 text-ink"
+              accessibilityLabel={t('settings.quietUntil')}
+              className="w-20 rounded-pill border border-line bg-surface px-3 py-1.5 text-center text-[13px] text-ink"
               placeholder="08:00"
               placeholderTextColor={colors.inkTertiary}
               value={quietEnd}
               onChangeText={setQuietEnd}
               autoCapitalize="none"
             />
+            <View className="flex-1" />
+            <Pressable onPress={saveQuietHours} className="rounded-pill bg-ink px-3.5 py-1.5 active:opacity-70">
+              <Text className="text-xs font-semibold text-background">{t('common.save')}</Text>
+            </Pressable>
           </View>
-        </View>
-        <Pressable onPress={saveQuietHours} className="items-center rounded-button bg-primary py-3">
-          <Text className="font-semibold text-on-primary">{t('common.save')}</Text>
-        </Pressable>
-      </Card>
+        }
+      />
     </>
   );
 }

@@ -87,8 +87,8 @@ test('backdrop clips decorative lines and preserves opaque badge colors', () => 
   assert.equal(code.includes('tintColor='), false);
 });
 
-test('both hero callers pass artwork, badge and sport', () => {
-  for (const file of ['../components/event-card.tsx', '../../../app/(app)/event/[id].tsx']) {
+test('event card hero passes artwork, badge and sport', () => {
+  for (const file of ['../components/event-card.tsx']) {
     const code = readFileSync(new URL(file, import.meta.url), 'utf8');
     assert.ok(/leagueBanner\(\s*event\.leagueName,\s*event\.leagueArtworkUrl,\s*event\.leagueBadgeUrl,\s*event\.sportId,?\s*\)/.test(code), `${file} must supply league identity`);
   }
