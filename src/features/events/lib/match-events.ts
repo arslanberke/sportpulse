@@ -59,3 +59,38 @@ export function toMatchEventRows(events: ApiSportsFixtureEvent[]): MatchEventRow
     }))
     .sort((a, b) => a.sortMinute - b.sortMinute);
 }
+
+function nameParts(name: string): string[] {
+  return name
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .split(/[\s.]+/)
+    .filter(Boolean);
+}
+
+/**
+ * Lineup photo for an incident player. Incidents use "B. Fernandes" while the
+ * lineup has "Bruno Fernandes", so match on surname + first initial, falling
+ * back to a unique surname. Returns null when ambiguous or unknown.
+ */
+export function lineupPhoto(
+  name: string | null,
+  players: { name: string; photoUrl: string | null }[],
+): string | null {
+  if (!name) return null;
+  const want = nameParts(name);
+  if (want.length === 0) return null;
+  const surname = want[want.length - 1];
+  const initial = want.length > 1 ? want[0][0] : null;
+  const exact = players.find((p) => nameParts(p.name).join(' ') === want.join(' '));
+  if (exact) return exact.photoUrl;
+  const bySurname = players.filter((p) => {
+    const parts = nameParts(p.name);
+    return parts[parts.length - 1] === surname;
+  });
+  const byInitial = initial ? bySurname.filter((p) => nameParts(p.name)[0]?.[0] === initial) : [];
+  if (byInitial.length === 1) return byInitial[0].photoUrl;
+  if (!initial && bySurname.length === 1) return bySurname[0].photoUrl;
+  return null;
+}
