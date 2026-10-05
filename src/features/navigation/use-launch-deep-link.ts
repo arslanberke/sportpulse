@@ -1,6 +1,7 @@
 import * as Linking from 'expo-linking';
 import { router } from 'expo-router';
 import { useEffect, useRef } from 'react';
+import { Platform } from 'react-native';
 
 // Href tipi bu surumde yalnizca paketin ic modulunden erisilebiliyor.
 type Target = Parameters<typeof router.push>[0];
@@ -21,7 +22,9 @@ export function useLaunchDeepLink() {
   const handled = useRef(false);
 
   useEffect(() => {
-    if (handled.current) return;
+    // Web'de baslangic adresi zaten tarayicinin adresi (http://localhost/login);
+    // expo-router onu kendisi acar. Burada islenirse alan adi yol sanilir.
+    if (handled.current || Platform.OS === 'web') return;
 
     void Linking.getInitialURL().then((url) => {
       if (handled.current || !url) return;
