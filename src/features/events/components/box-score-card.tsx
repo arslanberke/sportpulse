@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Image } from "expo-image";
+import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
 import { Card } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/section-header";
 import { useThemeColors } from "@/constants/theme";
-import { useEventBoxScore } from "@/features/events/hooks/use-events";
+import { espnBasketballLeague, useEventBoxScore } from "@/features/events/hooks/use-events";
 import { useI18n, type Translate } from "@/lib/i18n";
 import { logoThumb } from "@/lib/logo-thumb";
 import type { BoxPlayer } from "@/services/providers/espn-boxscore";
@@ -109,9 +110,14 @@ function Headshot({ player }: { player: BoxPlayer }) {
   );
 }
 
-function PlayerRow({ player, last }: { player: BoxPlayer; last: boolean }) {
+function PlayerRow({ player, league, last }: { player: BoxPlayer; league: string | undefined; last: boolean }) {
+  const router = useRouter();
   return (
-    <View className={`flex-row items-center py-2 ${last ? "" : "border-b border-line"}`}>
+    <Pressable
+      onPress={league ? () => router.push(`/basketball-player/${player.id}?league=${league}`) : undefined}
+      disabled={!league}
+      className={`flex-row items-center py-2 active:opacity-60 ${last ? "" : "border-b border-line"}`}
+    >
       <Headshot player={player} />
       <View className="flex-1 flex-row items-baseline gap-1.5">
         <Text numberOfLines={1} className="shrink text-[13px] font-semibold text-ink">
@@ -125,7 +131,7 @@ function PlayerRow({ player, last }: { player: BoxPlayer; last: boolean }) {
       <Cell value={player.points} bold />
       <Cell value={player.rebounds} />
       <Cell value={player.assists} />
-    </View>
+    </Pressable>
   );
 }
 
@@ -143,6 +149,7 @@ export function BoxScoreCard({
   const { t } = useI18n();
   const colors = useThemeColors();
   const { data: box } = useEventBoxScore(event);
+  const league = espnBasketballLeague(event);
   const [tab, setTab] = useState<Tab>("periods");
   const [side, setSide] = useState<"home" | "away">("home");
 
@@ -252,7 +259,7 @@ export function BoxScoreCard({
             <Cell value={t("event.box.colAst")} />
           </View>
           {players.map((p, i) => (
-            <PlayerRow key={p.id} player={p} last={i === players.length - 1} />
+            <PlayerRow key={p.id} player={p} league={league} last={i === players.length - 1} />
           ))}
         </View>
       )}

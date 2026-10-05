@@ -37,6 +37,7 @@ export default function AppLayout() {
       <Stack.Screen name="team/[teamId]" options={{ title: '' }} />
       <Stack.Screen name="player/[playerId]" options={{ title: '' }} />
       <Stack.Screen name="football-player/[bsdId]" options={{ title: '' }} />
+      <Stack.Screen name="basketball-player/[espnId]" options={{ title: '' }} />
     </Stack>
   );
 }

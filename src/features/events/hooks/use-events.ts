@@ -352,12 +352,17 @@ export function useEventLeagueStandings(event: SportEvent | null) {
 /** ESPN league slug for basketball leagues ESPN covers. */
 const ESPN_BASKETBALL: Record<string, string> = { NBA: 'nba' };
 
+/** ESPN league slug for a basketball event's box score and player pages. */
+export function espnBasketballLeague(event: SportEvent | null): string | undefined {
+  return event?.sportId === 'basketball' ? ESPN_BASKETBALL[event.leagueName ?? ''] : undefined;
+}
+
 /**
  * NBA box score (quarters, team and player stats) from ESPN. Polls every 30s
  * while the game is live, then stays cached.
  */
 export function useEventBoxScore(event: SportEvent | null) {
-  const league = event?.sportId === 'basketball' ? ESPN_BASKETBALL[event.leagueName ?? ''] : undefined;
+  const league = espnBasketballLeague(event);
   const espnId = event?.externalIds.espn;
   const startsAt = event ? new Date(event.startsAt).getTime() : 0;
   const started = useMemo(() => new Date().getTime() >= startsAt, [startsAt]);
