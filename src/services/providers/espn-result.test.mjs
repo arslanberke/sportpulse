@@ -43,3 +43,10 @@ test('half-readable score is dropped rather than written as a wrong result', () 
     { homeScore: null, awayScore: null, resultStatus: 'finished' },
   );
 });
+
+test('tournament ESPN marks final before its endDate is not finished', () => {
+  const tournament = { id: '959-2026', name: 'China Open', date: '2026-09-27T04:00Z', endDate: '2026-10-12T03:59Z',
+    status: { type: { name: 'STATUS_FINAL', state: 'post', completed: true } } };
+  assert.equal(espnResult(tournament, new Date('2026-10-05T15:00Z')).resultStatus, null);
+  assert.equal(espnResult(tournament, new Date('2026-10-12T05:00Z')).resultStatus, 'finished');
+});
