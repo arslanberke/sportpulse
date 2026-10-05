@@ -23,6 +23,7 @@ import { splitUfcTitle } from "@/features/events/lib/ufc-title";
 import { isFavoriteEvent, useFavorites } from "@/features/follows/hooks/use-favorites";
 import { formatDateShort, formatDayTime, formatTime } from "@/lib/dates";
 import { useI18n, type Translate } from "@/lib/i18n";
+import { localizeStatus } from "@/lib/localize";
 import { logoThumb } from "@/lib/logo-thumb";
 import { useNow } from "@/lib/now";
 import type { FootballLiveScore } from "@/services/providers/api-sports-live";
@@ -382,7 +383,7 @@ export function EventCard({
    */
   liveGeneric?: { scoreText: string | null; detail: string | null };
 }) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const now = useNow();
   const { favoriteTeamIds, favoritePlayerIds } = useFavorites();
   const colors = useThemeColors();
@@ -430,7 +431,7 @@ export function EventCard({
                   <View className="mt-1 flex-row items-center gap-1">
                     <View className="h-1.5 w-1.5 rounded-full bg-danger" />
                     <Text className="text-center text-[10px] font-semibold text-danger" numberOfLines={1}>
-                      {liveGeneric.detail ?? t('home.live')}
+                      {liveGeneric.detail ? localizeStatus(liveGeneric.detail, language) : t('home.live')}
                     </Text>
                   </View>
                 </>

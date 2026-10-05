@@ -17,6 +17,7 @@ import { isEventOver } from "@/features/events/lib/event-duration";
 import { splitUfcTitle } from "@/features/events/lib/ufc-title";
 import { formatDateTime } from "@/lib/dates";
 import { useI18n } from "@/lib/i18n";
+import { venueLabelKey } from "@/lib/localize";
 import { logoThumb } from "@/lib/logo-thumb";
 import { useNow } from "@/lib/now";
 import type { SportEvent } from "@/types";
@@ -273,7 +274,7 @@ export function GenericDetail({
       {tab === "info" && (
         <>
           <InfoLine label={t("event.motorsport.start")} value={formatDateTime(event.startsAt)} />
-          <InfoLine label={t("event.venue")} value={event.venue} />
+          <InfoLine label={t(venueLabelKey(event.sportId))} value={event.venue} />
           <InfoLine label={t("event.channel")} value={channels.map((c) => c.name).join(", ") || "–"} />
           <InfoLine
             label={t("event.reminders")}

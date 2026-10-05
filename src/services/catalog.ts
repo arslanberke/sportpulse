@@ -4,6 +4,8 @@ import { searchFootballPlayers } from '@/services/football-players';
 import { searchPlayers } from '@/services/players';
 import { supabase } from '@/services/supabase';
 import type { Channel, FootballPlayerSummary, League, Player, Sport, Team } from '@/types';
+import { useLanguageStore } from '@/lib/i18n';
+import { localizeTeamName } from '@/lib/localize';
 
 /** Rows per kind in a catalog search; enough to scroll, short enough to scan. */
 const SEARCH_LIMIT = 20;
@@ -89,7 +91,7 @@ export async function fetchTeams(leagueId?: string): Promise<Team[]> {
         id: row.id,
         sportId: row.sport_id,
         leagueId: row.league_id,
-        name: row.name,
+        name: localizeTeamName(row.name, useLanguageStore.getState().language),
         logoUrl: row.logo_url,
         externalIds: row.external_ids,
       }))
@@ -106,7 +108,7 @@ export async function fetchTeams(leagueId?: string): Promise<Team[]> {
     id: row.id,
     sportId: row.sport_id,
     leagueId: row.league_id,
-    name: row.name,
+    name: localizeTeamName(row.name, useLanguageStore.getState().language),
     logoUrl: row.logo_url,
     externalIds: row.external_ids,
   }));
@@ -129,7 +131,7 @@ export async function fetchTeam(teamId: string, depth = 0): Promise<Team | null>
     id: row.id,
     sportId: row.sport_id,
     leagueId: row.league_id,
-    name: row.name,
+    name: localizeTeamName(row.name, useLanguageStore.getState().language),
     logoUrl: row.logo_url,
     externalIds: row.external_ids,
   };

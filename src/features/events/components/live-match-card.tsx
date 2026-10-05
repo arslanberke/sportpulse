@@ -10,6 +10,7 @@ import { useEventLineup, useEventLive, useLiveScores } from '@/features/events/h
 import { matchEspnLive, matchLiveScores, resolveMatchCentre } from '@/features/events/lib/live-match';
 import { lineupPhoto, toMatchEventRows, type MatchEventRow } from '@/features/events/lib/match-events';
 import { useI18n, type Translate } from '@/lib/i18n';
+import { localizeIncident } from '@/lib/localize';
 import { FINAL_STATUSES, LIVE_STATUSES } from '@/services/providers/api-sports-fixture';
 import type { SportEvent } from '@/types';
 
@@ -58,14 +59,15 @@ function PlayerPhoto({ name, uri }: { name: string; uri: string | null }) {
 }
 
 function EventRow({ row, photo, t, flat = false }: { row: MatchEventRow; photo: string | null; t: Translate; flat?: boolean }) {
+  const { language } = useI18n();
   const suffix = row.icon === 'own-goal' ? ` (${t('event.ownGoal')})` : row.icon === 'penalty' ? ' (P)' : '';
   const body = (
     <View className={`flex-1 flex-row items-center gap-2 ${row.isHome ? '' : 'justify-end'}`}>
       {row.isHome && <EventIcon icon={row.icon} />}
       {row.isHome && row.icon !== 'other' && <PlayerPhoto name={row.title} uri={photo} />}
       <View className={row.isHome ? '' : 'items-end'}>
-        <Text className="text-sm font-medium text-ink" numberOfLines={1}>{row.title}{suffix}</Text>
-        {row.subtitle && <Text className="text-xs text-ink-tertiary" numberOfLines={1}>{row.subtitle}</Text>}
+        <Text className="text-sm font-medium text-ink" numberOfLines={1}>{row.icon === 'other' ? localizeIncident(row.title, language) : row.title}{suffix}</Text>
+        {row.subtitle && <Text className="text-xs text-ink-tertiary" numberOfLines={1}>{localizeIncident(row.subtitle, language)}</Text>}
       </View>
       {!row.isHome && row.icon !== 'other' && <PlayerPhoto name={row.title} uri={photo} />}
       {!row.isHome && <EventIcon icon={row.icon} />}
