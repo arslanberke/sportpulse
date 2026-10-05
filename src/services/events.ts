@@ -587,3 +587,20 @@ export async function fetchPlayerEvents(playerId: string): Promise<SportEvent[]>
   // Kartta yarismanin adi turnuva olsun: "ATP Tour" degil "Cincinnati Open".
   return withTournamentNames(rows);
 }
+
+/** Our event ids for ESPN event ids (links a player's game log to match pages). */
+export async function fetchEventIdsByEspn(espnIds: string[]): Promise<Record<string, string>> {
+  if (espnIds.length === 0) return {};
+  const { data, error } = await supabase
+    .from('events')
+    .select('id, external_ids')
+    .in('external_ids->>espn', espnIds)
+    .is('merged_into_event_id', null);
+  if (error) return {};
+  const out: Record<string, string> = {};
+  for (const row of (data ?? []) as { id: string; external_ids: Record<string, string> | null }[]) {
+    const espn = row.external_ids?.espn;
+    if (espn) out[espn] = row.id;
+  }
+  return out;
+}
