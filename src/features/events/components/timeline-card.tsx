@@ -8,6 +8,7 @@ import { FAVORITE_COLOR, useThemeColors } from '@/constants/theme';
 import { isFavoriteEvent, useFavorites } from '@/features/follows/hooks/use-favorites';
 import { formatDayTime, formatTime } from '@/lib/dates';
 import { useI18n } from '@/lib/i18n';
+import { localizeStatus } from '@/lib/localize';
 import { logoThumb } from '@/lib/logo-thumb';
 import type { FootballLiveScore } from '@/services/providers/api-sports-live';
 import type { SportEvent } from '@/types';
@@ -93,7 +94,7 @@ export function TimelineCard({
   /** Ilk satirin ustunde ayrac cizilmez. */
   first?: boolean;
 }) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const colors = useThemeColors();
   const badgeTint = useLogoTint(event.leagueBadgeUrl);
   const { favoriteTeamIds, favoritePlayerIds } = useFavorites();
@@ -147,7 +148,7 @@ export function TimelineCard({
               <>
                 <View className="flex-row items-center" style={{ gap: 4 }}>
                   <View className="h-1.5 w-1.5 rounded-full bg-live" />
-                  <Text className="text-[11px] font-bold text-live" numberOfLines={1}>{live.detail ?? t('home.live')}</Text>
+                  <Text className="text-[11px] font-bold text-live" numberOfLines={1}>{live.detail ? localizeStatus(live.detail, language) : t('home.live')}</Text>
                 </View>
                 {matchup && <ScoreStack home={live.home} away={live.away} />}
               </>

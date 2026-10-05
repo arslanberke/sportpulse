@@ -28,6 +28,7 @@ import { isEventOver } from "@/features/events/lib/event-duration";
 import { matchEspnLive } from "@/features/events/lib/live-match";
 import { formatDateTime } from "@/lib/dates";
 import { useI18n } from "@/lib/i18n";
+import { localizeStatus, venueLabelKey } from "@/lib/localize";
 import { logoThumb } from "@/lib/logo-thumb";
 import { useNow } from "@/lib/now";
 import {
@@ -206,7 +207,7 @@ export function MatchDetail({
   /** Extra buttons at the bottom of the info tab (live activity). */
   actions: ReactNode;
 }) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const colors = useThemeColors();
   const now = useNow();
   const badgeTint = useLogoTint(event.leagueBadgeUrl);
@@ -257,7 +258,7 @@ export function MatchDetail({
 
   const state = header.live ? (
     <Text className="text-[12.5px] font-bold" style={{ color: colors.live }}>
-      ● {header.detail ?? t("home.live")}
+      ● {header.detail ? localizeStatus(header.detail, language) : t("home.live")}
     </Text>
   ) : header.finished ? (
     <Text className="text-[12.5px] font-semibold text-ink-secondary">
@@ -408,7 +409,7 @@ export function MatchDetail({
             value={formatDateTime(event.startsAt)}
           />
           {event.venue && (
-            <InfoRow label={t("event.venue")} value={event.venue} />
+            <InfoRow label={t(venueLabelKey(event.sportId))} value={event.venue} />
           )}
           <InfoRow
             label={t("event.reminders")}

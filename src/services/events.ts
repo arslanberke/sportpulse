@@ -1,6 +1,8 @@
 import { dedupeEvents } from '@/features/events/lib/dedupe-events';
 import { APISPORTS_LEAGUE_IDS, isCompleteLineup, type ApiSportsFixtureState } from '@/services/providers/api-sports-fixture';
 import type { FootballLiveScore } from '@/services/providers/api-sports-live';
+import { useLanguageStore } from '@/lib/i18n';
+import { localizeEventTitle, localizeRound, localizeTeamName } from '@/lib/localize';
 import { supabase } from '@/services/supabase';
 import type {
     Channel,
@@ -48,6 +50,8 @@ interface BroadcastRow {
 }
 
 function mapRow(row: EventRow): SportEvent {
+  const language = useLanguageStore.getState().language;
+  const team = (name: string | null | undefined) => (name ? localizeTeamName(name, language) : null);
   return {
     id: row.id,
     sportId: row.sport_id,
@@ -57,7 +61,7 @@ function mapRow(row: EventRow): SportEvent {
     homePlayerId: row.home_player_id ?? null,
     awayPlayerId: row.away_player_id ?? null,
     awayTeamId: row.away_team_id,
-    title: row.title,
+    title: localizeEventTitle(row.title, row.sport_id, language),
     startsAt: row.starts_at,
     endsAt: row.ends_at ?? null,
     status: row.status,
@@ -74,8 +78,8 @@ function mapRow(row: EventRow): SportEvent {
     leagueName: row.parent?.title ?? row.leagues?.name ?? null,
     leagueArtworkUrl: row.leagues?.artwork_url ?? null,
     leagueBadgeUrl: row.leagues?.logo_url ?? null,
-    homeTeamName: row.home_team?.name ?? row.home_player?.name ?? null,
-    awayTeamName: row.away_team?.name ?? row.away_player?.name ?? null,
+    homeTeamName: team(row.home_team?.name) ?? row.home_player?.name ?? null,
+    awayTeamName: team(row.away_team?.name) ?? row.away_player?.name ?? null,
     homeTeamLogoUrl: row.home_team?.logo_url ?? row.home_player?.country_flag_url ?? null,
     awayTeamLogoUrl: row.away_team?.logo_url ?? row.away_player?.country_flag_url ?? null,
     homePlayerRank: row.home_player?.rank ?? null,
@@ -530,7 +534,7 @@ export async function fetchTournamentBracket(tournamentId: string): Promise<Spor
     away_player: { name: string; country_flag_url: string | null; rank: number | null } | null;
   })[]).map((row) => ({
     ...mapRow(row),
-    round: row.round,
+    round: row.round ? localizeRound(row.round, useLanguageStore.getState().language) : null,
     bracket: row.bracket,
     // Kura kartlari kisi adini ve bayragini gosteriyor; kulup alanlari bos.
     homeTeamName: row.home_player?.name ?? null,
@@ -569,7 +573,7 @@ export async function fetchPlayerEvents(playerId: string): Promise<SportEvent[]>
     away_player: { name: string; country_flag_url: string | null; rank: number | null } | null;
   })[]).map((row) => ({
     ...mapRow(row),
-    round: row.round,
+    round: row.round ? localizeRound(row.round, useLanguageStore.getState().language) : null,
     bracket: row.bracket,
     leagueName: row.leagues?.name ?? null,
     homeTeamName: row.home_player?.name ?? null,

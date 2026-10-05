@@ -17,6 +17,7 @@ import {
 import { useThemeColors } from '@/constants/theme';
 import { confirmAsync, showAlert } from '@/lib/alert';
 import { formatDateTime } from '@/lib/dates';
+import { queryClient } from '@/lib/query-client';
 import { useI18n, useLanguageStore, type Language } from '@/lib/i18n';
 import { useThemeStore, type ThemePreference } from '@/lib/theme';
 import { deleteAccount, signOut } from '@/services/auth';
@@ -45,7 +46,10 @@ function LanguageRow() {
             key={option.value}
             label={option.label}
             active={language === option.value}
-            onPress={() => setLanguage(option.value)}
+            onPress={() => {
+              setLanguage(option.value);
+              void queryClient.invalidateQueries();
+            }}
           />
         ))}
       </View>
