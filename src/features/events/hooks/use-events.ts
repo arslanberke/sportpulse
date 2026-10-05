@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { Image } from 'expo-image';
 import { useMemo } from 'react';
 
 import { useLeagueChannels } from '@/features/catalog/hooks/use-catalog';
@@ -24,7 +25,7 @@ import {
 } from '@/services/events';
 import { FINAL_STATUSES } from '@/services/providers/api-sports-fixture';
 import { fetchBoxScore } from '@/services/providers/espn-boxscore';
-import type { SportEvent, UserFollow } from '@/types';
+import type { EventLineup, SportEvent, UserFollow } from '@/types';
 
 const HOUR_MS = 3_600_000;
 
@@ -177,6 +178,20 @@ export function useEvent(id: string | undefined) {
  * their XIs. Provider calls only happen from ~3h before kickoff onward
  * (official lineups drop ~1h before); polls every ~4 min until published.
  */
+const LINEUP_PHOTO_WAIT_MS = 2_000;
+
+/** Warms the image cache so the pitch and roster show every photo at once. */
+async function prefetchLineupPhotos(lineup: EventLineup): Promise<void> {
+  const urls = [...lineup.home, ...lineup.away]
+    .map((p) => p.photoUrl)
+    .filter((u): u is string => Boolean(u));
+  if (urls.length === 0) return;
+  await Promise.race([
+    Image.prefetch(urls, 'memory-disk').catch(() => false),
+    new Promise((resolve) => setTimeout(resolve, LINEUP_PHOTO_WAIT_MS)),
+  ]);
+}
+
 export function useEventLineup(event: SportEvent | null) {
   const startsAt = event ? new Date(event.startsAt).getTime() : 0;
   const phase = useMemo(() => {
@@ -187,10 +202,13 @@ export function useEventLineup(event: SportEvent | null) {
 
   return useQuery({
     queryKey: ['event-lineup', event?.id],
-    queryFn: () =>
-      fetchEventLineup(event!.id, event!.leagueName, event!.externalIds, {
+    queryFn: async () => {
+      const lineup = await fetchEventLineup(event!.id, event!.leagueName, event!.externalIds, {
         remote: phase === 'ready',
-      }),
+      });
+      if (lineup) await prefetchLineupPhotos(lineup);
+      return lineup;
+    },
     enabled: Boolean(event) && phase !== 'na',
     staleTime: 120_000,
     refetchInterval: (query) =>
