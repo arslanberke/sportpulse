@@ -9,7 +9,7 @@ import { useState } from 'react';
 import { Pressable, ScrollView, Switch, Text, View } from 'react-native';
 
 import { Card } from '@/components/ui/card';
-import { SectionHeader } from '@/components/ui/section-header';
+import { FlatHeader, SectionHeader } from '@/components/ui/section-header';
 import { useThemeColors } from '@/constants/theme';
 import { formatDayTime } from '@/lib/dates';
 import { useI18n } from '@/lib/i18n';
@@ -89,7 +89,7 @@ function PlayerLine({
  *
  * Eleme turlari ve ciftler suzuluyor (bkz. `fetchTournamentBracket`).
  */
-export function BracketCard({ event, index = 0 }: { event: SportEvent; index?: number }) {
+export function BracketCard({ event, index = 0, flat = false }: { event: SportEvent; index?: number; flat?: boolean }) {
   const { t } = useI18n();
   const colors = useThemeColors();
 
@@ -112,8 +112,8 @@ export function BracketCard({ event, index = 0 }: { event: SportEvent; index?: n
   });
 
   return (
-    <Card className="mb-4" index={index}>
-      <SectionHeader icon="git-network" label={t('event.bracket')} tint={colors.primaryDark} />
+    <Card className="mb-4" index={index} flat={flat}>
+      {flat ? <FlatHeader label={t('event.bracket')} /> : <SectionHeader icon="git-network" label={t('event.bracket')} tint={colors.primaryDark} />}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-3">
         <DrawOption label={t('home.allSports')} active={!filters.category} onPress={() => setFilters(value => ({ ...value, category: null }))} />
         {categories.map(category => <DrawOption key={category} label={category} active={filters.category === category} onPress={() => setFilters(value => ({ ...value, category }))} />)}
@@ -133,9 +133,9 @@ export function BracketCard({ event, index = 0 }: { event: SportEvent; index?: n
       {isLoading && <LoadingCard />}
       {isError && <ErrorCard message={t('common.somethingWentWrong')} onRetry={() => void refetch()} />}
       {!isLoading && !isError && sorted.length === 0 && <Text className="py-4 text-sm leading-6 text-ink-secondary">{t(filters.time === 'results' ? 'draw.resultsUnavailable' : 'draw.empty')}</Text>}
-      <View className="gap-2">
+      <View className={flat ? 'border-t border-line' : 'gap-2'}>
         {sorted.map((match) => (
-            <View key={match.id} className="rounded-2xl border border-line bg-surface-raised px-3 py-3">
+            <View key={match.id} className={flat ? 'border-b border-line py-3' : 'rounded-2xl border border-line bg-surface-raised px-3 py-3'}>
               <View className="mb-1 flex-row items-center justify-between">
                 <Text className="text-xs font-semibold uppercase tracking-wide text-ink-tertiary">
                   {match.round ?? ''}

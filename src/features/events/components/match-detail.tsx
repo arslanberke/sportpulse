@@ -181,7 +181,7 @@ function InfoRow({
     <View
       className={`min-h-[46px] flex-row items-center gap-3 py-2 ${last ? "" : "border-b border-line"}`}
     >
-      <Text className="w-24 text-[12.5px] text-ink-secondary">{label}</Text>
+      <Text className="w-28 text-[12.5px] text-ink-secondary">{label}</Text>
       <Text className="flex-1 text-[13px] font-semibold text-ink">{value}</Text>
     </View>
   );
@@ -225,11 +225,12 @@ export function MatchDetail({
     ...(football && centre.state
       ? [{ key: "events" as const, label: t("event.tab.events") }]
       : []),
-    ...(football && event.status === "scheduled"
-      ? [{ key: "lineup" as const, label: t("event.tab.lineup") }]
-      : []),
+    ...(football ? [{ key: "info" as const, label: t("event.motorsport.info") }] : []),
     ...(football && statRows > 0
       ? [{ key: "stats" as const, label: t("event.tab.stats") }]
+      : []),
+    ...(football && event.status === "scheduled"
+      ? [{ key: "lineup" as const, label: t("event.tab.lineup") }]
       : []),
     ...(basketball && b && Math.max(b.periods.home.length, b.periods.away.length) > 0
       ? [{ key: "periods" as const, label: t("event.box.periods") }]
@@ -243,10 +244,14 @@ export function MatchDetail({
     ...(basketball && (standings.data?.conferences.length ?? 0) > 0
       ? [{ key: "standings" as const, label: t("event.leagueStandings") }]
       : []),
-    { key: "info", label: t("event.motorsport.info") },
+    ...(football ? [] : [{ key: "info" as const, label: t("event.motorsport.info") }]),
   ];
   const tab =
-    picked && tabs.some((x) => x.key === picked) ? picked : tabs[0].key;
+    picked && tabs.some((x) => x.key === picked)
+      ? picked
+      : football
+        ? "info"
+        : tabs[0].key;
   const channels = event.channels ?? [];
   const hasScore = header.home !== null && header.away !== null;
 

@@ -3,8 +3,8 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Text, TextInput, View } from 'react-native';
 
-import { Card } from '@/components/ui/card';
 import { Screen } from '@/components/ui/screen';
+import { FlatHeader } from '@/components/ui/section-header';
 import { useThemeColors } from '@/constants/theme';
 import { useLeagues, useTeams } from '@/features/catalog/hooks/use-catalog';
 import { hasTeams } from '@/features/catalog/lib/team-sports';
@@ -68,19 +68,18 @@ export default function LeagueFollowScreen() {
   return (
     <Screen>
       <Stack.Screen options={{ title: league?.name ?? '' }} />
-      <View className="pt-4">
+      <View className="pt-2">
         {/* Yarisma ara donemdeyken ilk maca kalan sure; lig oynanirken gizli. */}
         {leagueStart.startsAt && leagueStart.daysUntil !== null && (
-          <Card className="mb-4" index={0}>
-            <View className="flex-row items-center gap-3">
-              <Ionicons name="hourglass-outline" size={22} color={colors.primaryDark} />
+          <View className="mb-1 flex-row items-center gap-3 border-b border-line py-2.5">
+              <Ionicons name="hourglass-outline" size={18} color={colors.primaryDark} />
               <View className="flex-1">
-                <Text className="text-base font-semibold text-ink">
+                <Text className="text-[13.5px] font-semibold text-ink">
                   {leagueStart.daysUntil === 1
                     ? t('explore.startsTomorrow')
                     : t('explore.startsInDays', { count: leagueStart.daysUntil })}
                 </Text>
-                <Text className="mt-0.5 text-sm text-ink-secondary">
+                <Text className="mt-0.5 text-xs text-ink-secondary">
                   {t('explore.firstMatch', {
                     date: leagueStart.hasTime
                       ? formatDayTime(leagueStart.startsAt.toISOString())
@@ -88,11 +87,10 @@ export default function LeagueFollowScreen() {
                   })}
                 </Text>
               </View>
-            </View>
-          </Card>
+          </View>
         )}
 
-        <Card className="mb-4" index={1}>
+        <View className="border-b border-line pb-2">
           <FollowRow
             label={t('explore.followWholeLeague')}
             imageUrl={league?.logoUrl}
@@ -100,7 +98,7 @@ export default function LeagueFollowScreen() {
             coveredByParent={sportFollowed}
             onToggleFollow={() => toggleAll(group)}
           />
-          <Text className="mt-1 text-sm text-ink-secondary">
+          <Text className="text-xs text-ink-secondary">
             {sportFollowed
               ? t('explore.coveredBySport')
               : !teamLevel
@@ -109,14 +107,14 @@ export default function LeagueFollowScreen() {
                   ? t('explore.coveredByLeague')
                   : t('explore.pickTeamsHint')}
           </Text>
-        </Card>
+        </View>
 
         {teamLevel && (
-        <Card className="mb-4" index={2}>
-          <Text className="mb-2 text-lg font-semibold text-ink">{t('explore.teams')}</Text>
+        <View>
+          <FlatHeader label={t('explore.teams')} note={hasRoster ? String((teams ?? []).length) : null} />
           {(teams ?? []).length > 6 && (
             <TextInput
-              className="mb-2 rounded-button bg-background px-4 py-3 text-ink"
+              className="my-1.5 rounded-pill border border-line bg-surface px-4 py-2.5 text-[13px] text-ink"
               placeholder={t('explore.searchTeams')}
               placeholderTextColor={colors.inkTertiary}
               value={search}
@@ -129,8 +127,8 @@ export default function LeagueFollowScreen() {
             </Text>
           ) : (
             visibleTeams.map((team, i) => (
+              <View key={team.id} className="border-b border-line">
               <FollowRow
-                key={team.id}
                 index={i}
                 label={team.name}
                 imageUrl={team.logoUrl}
@@ -147,9 +145,10 @@ export default function LeagueFollowScreen() {
                   toggleFavorite.mutate({ teamId: team.id, isFavorite: favorite });
                 }}
               />
+              </View>
             ))
           )}
-        </Card>
+        </View>
         )}
       </View>
     </Screen>

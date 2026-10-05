@@ -4,9 +4,8 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
-import { Card } from '@/components/ui/card';
+import { InfoLine, IdentityRow, PillTabs, StatStrip } from '@/components/ui/flat';
 import { Screen } from '@/components/ui/screen';
-import { SectionHeader } from '@/components/ui/section-header';
 import { EmptyCard, ErrorCard, LoadingCard } from '@/components/ui/states';
 import { useThemeColors } from '@/constants/theme';
 import { RatingPill } from '@/features/events/components/match-stats-card';
@@ -15,7 +14,8 @@ import { formatDate, formatDateShort } from '@/lib/dates';
 import { useI18n } from '@/lib/i18n';
 import type { FootballPlayerMatch, FootballSeasonStat } from '@/types';
 import { logoThumb } from '@/lib/logo-thumb';
-import { LinearGradient } from 'expo-linear-gradient';
+
+type Tab = 'now' | 'career' | 'info';
 
 function age(dateOfBirth: string | null): number | null {
   if (!dateOfBirth) return null;
@@ -35,16 +35,6 @@ function marketValue(eur: number | null): string | null {
   if (eur >= 1_000_000) return `€${(eur / 1_000_000).toFixed(1)}M`;
   if (eur >= 1_000) return `€${Math.round(eur / 1_000)}K`;
   return `€${eur}`;
-}
-
-function Fact({ label, value }: { label: string; value: string | null }) {
-  if (!value) return null;
-  return (
-    <View className="min-w-[30%] flex-1 rounded-2xl bg-surface-raised px-3 py-2.5">
-      <Text className="text-[11px] uppercase tracking-wide text-ink-tertiary">{label}</Text>
-      <Text className="mt-0.5 text-sm font-semibold text-ink" numberOfLines={2}>{value}</Text>
-    </View>
-  );
 }
 
 /** Genisleyen sezon satirindaki tek bir mac: rakip, skor, dk, gol/asist, puan. */
@@ -109,9 +99,9 @@ function SeasonRow({ stat, playerId }: { stat: FootballSeasonStat; playerId: str
   );
   const cells: (string | number | null)[] = [stat.matches, stat.goals, stat.assists];
   const row = (
-    <View className="flex-row items-center gap-2 py-2.5">
+    <View className="min-h-[48px] flex-row items-center gap-2 border-b border-line py-2">
       {stat.teamLogoUrl ? (
-        <Image source={{ uri: logoThumb(stat.teamLogoUrl) }} style={{ width: 20, height: 20 }} contentFit="contain" allowDownscaling={false} />
+        <Image source={{ uri: logoThumb(stat.teamLogoUrl) }} style={{ width: 20, height: 20 }} contentFit="contain" cachePolicy="memory-disk" />
       ) : (
         <View className="h-5 w-5" />
       )}
@@ -124,7 +114,7 @@ function SeasonRow({ stat, playerId }: { stat: FootballSeasonStat; playerId: str
         )}
       </View>
       {cells.map((value, i) => (
-        <Text key={i} className="w-9 text-center text-sm font-semibold text-ink">
+        <Text key={i} className="w-9 text-right text-sm font-semibold text-ink" style={{ fontVariant: ['tabular-nums'] }}>
           {value ?? '–'}
         </Text>
       ))}
@@ -144,7 +134,7 @@ function SeasonRow({ stat, playerId }: { stat: FootballSeasonStat; playerId: str
         row
       )}
       {open && (
-        <View className="mb-1 rounded-xl bg-surface-raised px-3 py-1">
+        <View className="border-b border-line pb-1 pl-7">
           {isFetching ? (
             <ActivityIndicator size="small" color={colors.inkTertiary} style={{ marginVertical: 10 }} />
           ) : matches && matches.length > 0 ? (
@@ -172,7 +162,7 @@ function SeasonHeader() {
       <View className="h-5 w-5" />
       <View className="flex-1" />
       {labels.map((label) => (
-        <Text key={label} className="w-9 text-center text-[10px] font-semibold uppercase text-ink-tertiary" numberOfLines={1}>
+        <Text key={label} className="w-9 text-right text-[10px] font-semibold uppercase text-ink-tertiary" numberOfLines={1}>
           {label}
         </Text>
       ))}
@@ -207,9 +197,9 @@ function SeasonGroup({ label, stats, playerId }: { label: string | null; stats: 
 export default function FootballPlayerScreen() {
   const { bsdId } = useLocalSearchParams<{ bsdId: string }>();
   const { t } = useI18n();
-  const colors = useThemeColors();
 
   const { data: player, isLoading, isError, refetch } = useFootballPlayer(bsdId);
+  const [picked, setPicked] = useState<Tab | null>(null);
 
   if (isLoading) {
     return (
@@ -264,81 +254,87 @@ export default function FootballPlayerScreen() {
     else pastGroups.push({ label: stat.seasonLabel, stats: [stat] });
   }
 
+  const total = current.reduce(
+    (acc, st) => ({
+      matches: acc.matches + (st.matches ?? 0),
+      goals: acc.goals + (st.goals ?? 0),
+      assists: acc.assists + (st.assists ?? 0),
+    }),
+    { matches: 0, goals: 0, assists: 0 },
+  );
+  const tabs: { key: Tab; label: string }[] = [
+    ...(current.length > 0 ? [{ key: 'now' as const, label: `${t('footballPlayer.thisSeason')}${currentLabel ? ` · ${currentLabel}` : ''}` }] : []),
+    ...(pastGroups.length > 0 ? [{ key: 'career' as const, label: t('footballPlayer.career') }] : []),
+    { key: 'info', label: t('event.motorsport.info') },
+  ];
+  const tab = picked && tabs.some((x) => x.key === picked) ? picked : tabs[0].key;
+
   return (
     <Screen>
       <Stack.Screen options={{ title: player.shortName ?? player.name }} />
-      <View className="pt-4">
-        <View className="mb-4 overflow-hidden rounded-3xl border border-line bg-surface p-5">
-          <LinearGradient colors={[`${colors.primary}25`, 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ position: 'absolute', inset: 0 }} />
-          <View className="flex-row items-center gap-4">
-            {player.photoUrl ? (
-              <Image source={{ uri: player.photoUrl }} style={{ width: 84, height: 104 }} contentFit="contain" allowDownscaling={false} />
-            ) : (
-              <View className="h-[104px] w-[84px] items-center justify-center rounded-2xl bg-surface-raised">
-                <Ionicons name="person" size={36} color={colors.inkTertiary} />
-              </View>
-            )}
-            <View className="flex-1">
-              <Text className="text-2xl font-semibold tracking-tight text-ink" numberOfLines={3}>
-                {player.name}
-              </Text>
-              <View className="mt-1.5 flex-row items-center gap-1.5">
-                {player.teamLogoUrl && (
-                  <Image source={{ uri: logoThumb(player.teamLogoUrl) }} style={{ width: 18, height: 18 }} contentFit="contain" allowDownscaling={false} />
-                )}
-                <Text className="text-sm text-ink-secondary" numberOfLines={1}>
-                  {[player.jerseyNumber != null ? `#${player.jerseyNumber}` : null, player.teamName, positionLabel].filter(Boolean).join(' · ')}
-                </Text>
-              </View>
-              {injured && (
-                <View className="mt-2 self-start rounded-lg bg-danger/15 px-2 py-1">
-                  <Text className="text-xs font-semibold text-danger">
-                    {availabilityLabels[player.availability ?? ''] ?? player.availability}
-                    {player.injuryExpectedReturn
-                      ? ` · ${t('footballPlayer.injuryReturn', { date: formatDate(player.injuryExpectedReturn) })}`
-                      : ''}
-                  </Text>
-                </View>
-              )}
-            </View>
+      <View className="pt-2">
+        <IdentityRow
+          imageUrl={player.photoUrl}
+          shape="photo"
+          placeholder="person"
+          title={player.name}
+          subtitle={[player.jerseyNumber != null ? `#${player.jerseyNumber}` : null, player.teamName, positionLabel].filter(Boolean).join(' · ')}
+        />
+        {injured && (
+          <View className="mb-2 self-start rounded-md bg-danger/15 px-2 py-1">
+            <Text className="text-xs font-semibold text-danger">
+              {availabilityLabels[player.availability ?? ''] ?? player.availability}
+              {player.injuryExpectedReturn
+                ? ` · ${t('footballPlayer.injuryReturn', { date: formatDate(player.injuryExpectedReturn) })}`
+                : ''}
+            </Text>
           </View>
+        )}
+        {current.length > 0 && (
+          <StatStrip
+            items={[
+              { value: String(total.matches), label: t('footballPlayer.statApps') },
+              { value: String(total.goals), label: t('footballPlayer.statGoals') },
+              { value: String(total.assists), label: t('footballPlayer.statAssists') },
+            ]}
+          />
+        )}
 
-          <View className="mt-4 flex-row flex-wrap gap-2">
-            <Fact label={t('footballPlayer.nationality')} value={player.nationality} />
-            <Fact
-              label={t('footballPlayer.born')}
-              value={player.dateOfBirth ? `${formatDate(player.dateOfBirth)}${years != null ? ` (${years})` : ''}` : null}
-            />
-            <Fact label={t('footballPlayer.height')} value={player.heightCm != null ? `${player.heightCm} cm` : null} />
-            <Fact label={t('footballPlayer.weight')} value={player.weightKg != null ? `${player.weightKg} kg` : null} />
-            <Fact label={t('footballPlayer.foot')} value={foot} />
-            <Fact label={t('footballPlayer.marketValue')} value={marketValue(player.marketValueEur)} />
-            <Fact label={t('footballPlayer.contract')} value={player.contractUntil ? formatDate(player.contractUntil) : null} />
-          </View>
+        <View className="mt-2">
+          <PillTabs tabs={tabs} value={tab} onChange={setPicked} />
         </View>
 
-        {current.length > 0 && (
-          <Card className="mb-4" index={1}>
-            <SectionHeader
-              icon="stats-chart"
-              label={`${t('footballPlayer.thisSeason')}${currentLabel ? ` · ${currentLabel}` : ''}`}
-              tint={colors.primaryDark}
-            />
+        {tab === 'now' && (
+          <>
             <SeasonHeader />
             {current.map((stat) => (
               <SeasonRow key={`${stat.leagueId}-${stat.teamId}`} stat={stat} playerId={player.id} />
             ))}
-          </Card>
+          </>
         )}
 
-        {pastGroups.length > 0 && (
-          <Card className="mb-4" index={2}>
-            <SectionHeader icon="time" label={t('footballPlayer.career')} tint={colors.primaryDark} />
+        {tab === 'career' && (
+          <>
             <SeasonHeader />
             {pastGroups.map((group, i) => (
               <SeasonGroup key={group.label ?? `season-${i}`} label={group.label} stats={group.stats} playerId={player.id} />
             ))}
-          </Card>
+          </>
+        )}
+
+        {tab === 'info' && (
+          <>
+            <InfoLine label={t('footballPlayer.nationality')} value={player.nationality} />
+            <InfoLine
+              label={t('footballPlayer.born')}
+              value={player.dateOfBirth ? `${formatDate(player.dateOfBirth)}${years != null ? ` (${years})` : ''}` : null}
+            />
+            <InfoLine label={t('footballPlayer.height')} value={player.heightCm != null ? `${player.heightCm} cm` : null} />
+            <InfoLine label={t('footballPlayer.weight')} value={player.weightKg != null ? `${player.weightKg} kg` : null} />
+            <InfoLine label={t('footballPlayer.foot')} value={foot} />
+            <InfoLine label={t('footballPlayer.marketValue')} value={marketValue(player.marketValueEur)} />
+            <InfoLine label={t('footballPlayer.contract')} value={player.contractUntil ? formatDate(player.contractUntil) : null} last />
+          </>
         )}
       </View>
     </Screen>

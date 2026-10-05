@@ -1,15 +1,20 @@
+import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
-import { Link } from 'expo-router';
+import { router } from 'expo-router';
 import * as Updates from 'expo-updates';
 import { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Text, View } from 'react-native';
 
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Screen } from '@/components/ui/screen';
 import { CountryPicker } from '@/features/settings/components/country-picker';
 import { ExtraAlertsSection } from '@/features/settings/components/extra-alerts-section';
 import { ReminderPrefsSection } from '@/features/settings/components/reminder-prefs-section';
+import {
+  OptionPill,
+  SettingRow,
+  SettingsGroup,
+} from '@/features/settings/components/setting-rows';
+import { useThemeColors } from '@/constants/theme';
 import { confirmAsync, showAlert } from '@/lib/alert';
 import { formatDateTime } from '@/lib/dates';
 import { useI18n, useLanguageStore, type Language } from '@/lib/i18n';
@@ -28,65 +33,45 @@ const themes: { value: ThemePreference; key: 'settings.themeSystem' | 'settings.
 ];
 
 /** Switch the app language; the choice is saved on the device. */
-function LanguageSection() {
+function LanguageRow() {
   const { t, language } = useI18n();
   const setLanguage = useLanguageStore((s) => s.setLanguage);
 
   return (
-    <Card className="mb-6">
-      <Text className="mb-3 text-lg font-semibold text-ink">{t('settings.language')}</Text>
-      <View className="flex-row gap-3">
+    <SettingRow label={t('settings.language')}>
+      <View className="flex-row gap-1.5">
         {languages.map((option) => (
-          <Pressable
+          <OptionPill
             key={option.value}
+            label={option.label}
+            active={language === option.value}
             onPress={() => setLanguage(option.value)}
-            className={`h-12 flex-1 items-center justify-center rounded-button ${
-              language === option.value ? 'bg-primary' : 'bg-background'
-            }`}
-          >
-            <Text
-              className={`font-semibold ${
-                language === option.value ? 'text-on-primary' : 'text-ink-secondary'
-              }`}
-            >
-              {option.label}
-            </Text>
-          </Pressable>
+          />
         ))}
       </View>
-    </Card>
+    </SettingRow>
   );
 }
 
 /** Switch the app theme; the choice is saved on the device. */
-function ThemeSection() {
+function ThemeRow() {
   const { t } = useI18n();
   const preference = useThemeStore((s) => s.preference);
   const setPreference = useThemeStore((s) => s.setPreference);
 
   return (
-    <Card className="mb-6">
-      <Text className="mb-3 text-lg font-semibold text-ink">{t('settings.theme')}</Text>
-      <View className="flex-row gap-3">
+    <SettingRow label={t('settings.theme')}>
+      <View className="flex-row gap-1.5">
         {themes.map((option) => (
-          <Pressable
+          <OptionPill
             key={option.value}
+            label={t(option.key)}
+            active={preference === option.value}
             onPress={() => setPreference(option.value)}
-            className={`h-12 flex-1 items-center justify-center rounded-button ${
-              preference === option.value ? 'bg-primary' : 'bg-background'
-            }`}
-          >
-            <Text
-              className={`font-semibold ${
-                preference === option.value ? 'text-on-primary' : 'text-ink-secondary'
-              }`}
-            >
-              {t(option.key)}
-            </Text>
-          </Pressable>
+          />
         ))}
       </View>
-    </Card>
+    </SettingRow>
   );
 }
 
@@ -100,7 +85,7 @@ function BuildInfo() {
       : t('settings.embeddedBuild');
 
   return (
-    <Text className="mb-6 text-center text-xs text-ink-tertiary">
+    <Text className="mb-6 mt-5 text-center text-[11px] text-ink-tertiary">
       SportPulse {version} · {update}
     </Text>
   );
@@ -110,6 +95,7 @@ export default function SettingsScreen() {
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const { t } = useI18n();
+  const colors = useThemeColors();
 
   // Hesap silme uygulama icinden sunulmak zorunda (App Store 5.1.1(v), ayrica
   // KVKK m.11 silme hakki). Geri alinamadigi icin once onay istenir.
@@ -154,54 +140,41 @@ export default function SettingsScreen() {
 
   return (
     <Screen>
-      <View className="pt-4">
-        <ReminderPrefsSection />
+      <View className="pt-1">
+        <SettingsGroup label={t('settings.groupNotifications')}>
+          <ReminderPrefsSection />
+          <ExtraAlertsSection />
+        </SettingsGroup>
 
-        <ExtraAlertsSection />
+        <SettingsGroup label={t('settings.groupApp')}>
+          <SettingRow label={t('settings.country')} body={t('settings.countryBody')} below={<CountryPicker />} />
+          <LanguageRow />
+          <ThemeRow />
+        </SettingsGroup>
 
-        <Card className="mb-6">
-          <Text className="mb-1 text-lg font-semibold text-ink">{t('settings.country')}</Text>
-          <Text className="mb-3 text-sm text-ink-secondary">{t('settings.countryBody')}</Text>
-          <CountryPicker />
-        </Card>
+        <SettingsGroup label={t('settings.legal')}>
+          <View className="border-b border-line py-2.5">
+            <Text className="text-xs leading-5 text-ink-secondary">{t('settings.legalMarks')}</Text>
+            <Text className="mt-2 text-xs leading-5 text-ink-tertiary">{t('settings.legalSources')}</Text>
+          </View>
+          <SettingRow label={t('settings.privacy')} onPress={() => router.push('/privacy')}>
+              <Ionicons name="chevron-forward" size={16} color={colors.inkTertiary} />
+            </SettingRow>
+        </SettingsGroup>
 
-        <LanguageSection />
-        <ThemeSection />
-
-        <Card className="mb-6">
-          <Text className="mb-2 text-lg font-semibold text-ink">{t('settings.legal')}</Text>
-          <Text className="text-sm leading-5 text-ink-secondary">
-            {t('settings.legalMarks')}
-          </Text>
-          <Text className="mt-3 text-sm leading-5 text-ink-tertiary">
-            {t('settings.legalSources')}
-          </Text>
-          <Link href="/privacy" className="mt-3 text-sm font-semibold text-primary">
-            {t('settings.privacy')}
-          </Link>
-        </Card>
-
-        <Button
-          title={t('settings.logOut')}
-          onPress={handleSignOut}
-          variant="danger"
-          loading={isSigningOut}
-        />
-
-        <Card className="mb-6 mt-6">
-          <Text className="mb-1 text-lg font-semibold text-ink">
-            {t('settings.deleteAccount')}
-          </Text>
-          <Text className="mb-3 text-sm leading-5 text-ink-secondary">
-            {t('settings.deleteAccountBody')}
-          </Text>
-          <Button
-            title={t('settings.deleteAccount')}
-            onPress={handleDeleteAccount}
-            variant="danger"
-            loading={isDeleting}
-          />
-        </Card>
+        <SettingsGroup label={t('settings.groupAccount')}>
+          <SettingRow label={t('settings.logOut')} danger onPress={isSigningOut ? undefined : handleSignOut}>
+            {isSigningOut && <ActivityIndicator size="small" color={colors.danger} />}
+          </SettingRow>
+          <SettingRow
+            label={t('settings.deleteAccount')}
+            body={t('settings.deleteAccountBody')}
+            danger
+            onPress={isDeleting ? undefined : handleDeleteAccount}
+          >
+            {isDeleting && <ActivityIndicator size="small" color={colors.danger} />}
+          </SettingRow>
+        </SettingsGroup>
 
         <BuildInfo />
       </View>

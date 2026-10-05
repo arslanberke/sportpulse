@@ -1,4 +1,6 @@
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
+
+import { OptionPill } from '@/features/settings/components/setting-rows';
 
 import { useProfile, useUpdateProfile } from '@/features/profile/hooks/use-profile';
 
@@ -21,26 +23,18 @@ export function CountryPicker() {
   const updateProfile = useUpdateProfile();
 
   return (
-    <View className="flex-row flex-wrap">
-      {COUNTRIES.map((country) => {
-        const active = profile?.countryCode === country.code;
-        return (
-          <Pressable
-            key={country.code}
-            onPress={() =>
-              profile && updateProfile.mutate({ userId: profile.id, countryCode: country.code })
-            }
-            className={`mb-2 mr-2 flex-row items-center gap-1.5 rounded-full px-4 py-2.5 ${
-              active ? 'bg-primary' : 'bg-background'
-            }`}
-          >
-            <Text>{country.flag}</Text>
-            <Text className={`font-semibold ${active ? 'text-on-primary' : 'text-ink-secondary'}`}>
-              {country.name}
-            </Text>
-          </Pressable>
-        );
-      })}
+    <View className="flex-row flex-wrap gap-1.5">
+      {COUNTRIES.map((country) => (
+        <OptionPill
+          key={country.code}
+          label={country.name}
+          leading={<Text className="text-xs">{country.flag}</Text>}
+          active={profile?.countryCode === country.code}
+          onPress={() =>
+            profile && updateProfile.mutate({ userId: profile.id, countryCode: country.code })
+          }
+        />
+      ))}
     </View>
   );
 }

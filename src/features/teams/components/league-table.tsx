@@ -2,9 +2,9 @@ import { Image } from 'expo-image';
 import { Fragment } from 'react';
 import { Text, View } from 'react-native';
 
-import { Card } from '@/components/ui/card';
 import { useThemeColors } from '@/constants/theme';
 import { useI18n, type Translate } from '@/lib/i18n';
+import { logoThumb } from '@/lib/logo-thumb';
 import type { LeagueTable, LeagueTableRow } from '@/types';
 
 /** Which numeric columns a sport's table shows, in display order. */
@@ -40,31 +40,30 @@ function columnsFor(sportId: string, t: Translate): Column[] {
 export function LeagueTableCard({
   table,
   highlightTeam,
-  index,
 }: {
   table: LeagueTable;
   /** Name of the club whose page this is; matched loosely across providers. */
   highlightTeam: string | null;
-  index?: number;
 }) {
   return (
-    <Card className="mb-4" index={index}>
-      <View className="mb-3 flex-row items-center gap-2">
+    <View className="mb-5">
+      <View className="mb-2 mt-1 flex-row items-center gap-2">
         {table.leagueLogoUrl && (
           <Image
-            source={{ uri: table.leagueLogoUrl }}
-            style={{ width: 20, height: 20 }}
+            source={{ uri: logoThumb(table.leagueLogoUrl) }}
+            style={{ width: 16, height: 16 }}
             contentFit="contain"
+            cachePolicy="memory-disk"
           />
         )}
-        <Text className="flex-1 text-base font-semibold text-ink" numberOfLines={1}>
+        <Text className="flex-1 text-xs font-bold text-ink-secondary" numberOfLines={1}>
           {table.leagueName}
         </Text>
-        <Text className="text-xs text-ink-secondary">{table.season}</Text>
+        <Text className="text-xs text-ink-tertiary">{table.season}</Text>
       </View>
 
       <LeagueTableBody table={table} highlightTeams={[highlightTeam]} />
-    </Card>
+    </View>
   );
 }
 
@@ -105,27 +104,28 @@ export function LeagueTableBody({
                 ))}
               </View>
 
-              <View className="gap-1">
+              <View>
                 {group.rows.map((row) => {
                   const folded = fold(row.team);
                   const mine = folded !== null && needles.includes(folded);
                   return (
                     <View
                       key={`${row.team}-${row.rank}`}
-                      className="flex-row items-center rounded-lg px-1 py-1"
-                      style={mine ? { backgroundColor: `${colors.primary}1F` } : undefined}
+                      className="min-h-[34px] flex-row items-center border-b border-line px-1"
+                      style={mine ? { backgroundColor: `${colors.primary}14` } : undefined}
                     >
                       <Text className="w-5 text-xs font-semibold text-ink-secondary">
                         {row.rank}
                       </Text>
                       {row.teamLogoUrl ? (
                         <Image
-                          source={{ uri: row.teamLogoUrl }}
-                          style={{ width: 20, height: 20, marginRight: 8 }}
+                          source={{ uri: logoThumb(row.teamLogoUrl) }}
+                          style={{ width: 18, height: 18, marginRight: 8 }}
                           contentFit="contain"
+                          cachePolicy="memory-disk"
                         />
                       ) : (
-                        <View style={{ width: 20, height: 20, marginRight: 8 }} />
+                        <View style={{ width: 18, height: 18, marginRight: 8 }} />
                       )}
                       <Text
                         className="flex-1 text-sm text-ink"
