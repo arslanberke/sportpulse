@@ -96,9 +96,11 @@ function StatRow({ row }: { row: MatchStatRow }) {
 export function MatchStatsCard({
   event,
   index,
+  flat = false,
 }: {
   event: SportEvent;
   index?: number;
+  flat?: boolean;
 }) {
   const { t } = useI18n();
   const colors = useThemeColors();
@@ -109,12 +111,14 @@ export function MatchStatsCard({
   if (!stats || stats.rows.length === 0) {
     if (isLoading) {
       return (
-        <Card className="mb-4" index={index}>
-          <SectionHeader
-            icon="stats-chart"
-            label={t("event.stats")}
-            tint={colors.primaryDark}
-          />
+        <Card className="mb-4" index={index} flat={flat}>
+          {!flat && (
+            <SectionHeader
+              icon="stats-chart"
+              label={t("event.stats")}
+              tint={colors.primaryDark}
+            />
+          )}
           <Text className="text-sm text-ink-secondary">
             {t("event.statsLoading")}
           </Text>
@@ -126,13 +130,15 @@ export function MatchStatsCard({
 
   const rows = stats.rows.filter((row) => STAT_LABELS[row.key]);
   return (
-    <Card className="mb-4" index={index}>
-      <SectionHeader
-        icon="stats-chart"
-        label={t("event.stats")}
-        tint={colors.primaryDark}
-      />
-      <View className="gap-3">
+    <Card className="mb-4" index={index} flat={flat}>
+      {!flat && (
+        <SectionHeader
+          icon="stats-chart"
+          label={t("event.stats")}
+          tint={colors.primaryDark}
+        />
+      )}
+      <View className={flat ? "mt-1 gap-3" : "gap-3"}>
         {rows.map((row) => (
           <StatRow key={row.key} row={row} />
         ))}

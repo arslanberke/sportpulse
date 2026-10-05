@@ -4,6 +4,7 @@ import { Fragment } from "react";
 import { Text, View } from "react-native";
 
 import { Card } from "@/components/ui/card";
+import { FlatHeader } from "@/components/ui/section-header";
 import { useThemeColors } from "@/constants/theme";
 import { useEventLeagueStandings } from "@/features/events/hooks/use-events";
 import { useI18n } from "@/lib/i18n";
@@ -91,9 +92,11 @@ function ConferenceTable({ conference }: { conference: ConferenceStandings }) {
 export function LeagueStandingsCard({
   event,
   index,
+  flat = false,
 }: {
   event: SportEvent;
   index?: number;
+  flat?: boolean;
 }) {
   const { t } = useI18n();
   const colors = useThemeColors();
@@ -103,7 +106,10 @@ export function LeagueStandingsCard({
   if (!standings || standings.conferences.length === 0) return null;
 
   return (
-    <Card className="mb-4" index={index}>
+    <Card className="mb-4" index={index} flat={flat}>
+      {flat ? (
+        <FlatHeader label={t("event.leagueStandings")} note={standings.season} />
+      ) : (
       <View className="mb-3 flex-row items-center gap-3">
         <View
           className="h-9 w-9 items-center justify-center rounded-xl"
@@ -118,6 +124,7 @@ export function LeagueStandingsCard({
           {standings.season}
         </Text>
       </View>
+      )}
       <View className="gap-4">
         {standings.conferences.map((conference, i) => (
           <Fragment key={conference.name}>

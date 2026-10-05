@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
 import { Card } from "@/components/ui/card";
+import { FlatHeader } from "@/components/ui/section-header";
 import { useThemeColors } from "@/constants/theme";
 import { useTeamTables } from "@/features/catalog/hooks/use-catalog";
 import { useTeamEvents } from "@/features/events/hooks/use-events";
@@ -114,9 +115,11 @@ function TeamForm({
 export function PreMatchCard({
   event,
   index,
+  flat = false,
 }: {
   event: SportEvent;
   index?: number;
+  flat?: boolean;
 }) {
   const { t } = useI18n();
   const colors = useThemeColors();
@@ -146,18 +149,22 @@ export function PreMatchCard({
   ];
 
   return (
-    <Card className="mb-4" index={index}>
-      <View className="mb-3 flex-row items-center gap-3">
-        <View
-          className="h-9 w-9 items-center justify-center rounded-xl"
-          style={{ backgroundColor: `${colors.primary}1F` }}
-        >
-          <Ionicons name="stats-chart" size={18} color={colors.primaryDark} />
+    <Card className="mb-4" index={index} flat={flat}>
+      {flat ? (
+        <FlatHeader label={t("event.preMatch.title")} />
+      ) : (
+        <View className="mb-3 flex-row items-center gap-3">
+          <View
+            className="h-9 w-9 items-center justify-center rounded-xl"
+            style={{ backgroundColor: `${colors.primary}1F` }}
+          >
+            <Ionicons name="stats-chart" size={18} color={colors.primaryDark} />
+          </View>
+          <Text className="text-base font-semibold text-ink">
+            {t("event.preMatch.title")}
+          </Text>
         </View>
-        <Text className="text-base font-semibold text-ink">
-          {t("event.preMatch.title")}
-        </Text>
-      </View>
+      )}
 
       <View className="mb-4 flex-row gap-2">
         {tabs.map(([key, label]) => {

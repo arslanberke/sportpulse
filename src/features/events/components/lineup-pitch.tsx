@@ -1,10 +1,11 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { LinearGradient } from "expo-linear-gradient";
-import { Text, View } from "react-native";
+import { useRouter } from "expo-router";
+import { Pressable, Text, View } from "react-native";
 
 import { useThemeColors } from "@/constants/theme";
+import { PlayerAvatar } from "@/features/events/components/player-avatar";
 import { RatingPill } from "@/features/events/components/match-stats-card";
+import { logoThumb } from "@/lib/logo-thumb";
 import type { LineupPlayer } from "@/types";
 
 /** Turns an ISO 3166-1 alpha-2 code into its flag emoji ("tr" -> 🇹🇷). */
@@ -18,7 +19,18 @@ export function countryFlag(code: string | null): string {
   );
 }
 
-const TOKEN = 46; // centered hit box for one player token
+/** BSD player ids are numeric; other sources carry names and have no profile. */
+export function playerProfileId(player: LineupPlayer): string | null {
+  return /^\d+$/.test(player.id) ? player.id : null;
+}
+
+const TOKEN = 62;
+const AVATAR = 32;
+
+function surname(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  return parts.length > 1 ? parts[parts.length - 1] : name;
+}
 
 /** Groups starters into rows by their provider grid (row 1 = keeper). */
 function toRows(players: LineupPlayer[]): LineupPlayer[][] {
@@ -45,41 +57,43 @@ function PlayerToken({
   xPct: number;
   yPct: number;
 }) {
+  const router = useRouter();
+  const colors = useThemeColors();
+  const id = playerProfileId(player);
   return (
-    <View
-      style={{ position: "absolute", left: `${xPct}%`, top: `${yPct}%` }}
-      pointerEvents="none"
+    <Pressable
+      onPress={id ? () => router.push(`/football-player/${id}`) : undefined}
+      disabled={!id}
+      style={{
+        position: "absolute",
+        left: `${xPct}%`,
+        top: `${yPct}%`,
+        width: TOKEN,
+        marginLeft: -TOKEN / 2,
+        marginTop: -AVATAR / 2 - 2,
+      }}
+      className="items-center active:opacity-60"
     >
       <View
-        style={{ width: TOKEN, marginLeft: -TOKEN / 2, marginTop: -TOKEN / 2 }}
-        className="items-center"
+        className="rounded-full"
+        style={{ padding: 1.5, backgroundColor: colors.background }}
       >
-        <View className="h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-white/70 bg-black/25">
-          {player.photoUrl ? (
-            <Image
-              source={{ uri: player.photoUrl }}
-              style={{ width: 40, height: 40 }}
-              contentFit="cover"
-            />
-          ) : (
-            <Ionicons name="person" size={20} color="rgba(255,255,255,0.9)" />
-          )}
-          <View className="absolute -bottom-0.5 -right-0.5 h-4 min-w-4 items-center justify-center rounded-full bg-white px-1">
-            <Text className="text-[9px] font-bold text-neutral-900">
-              {player.number ?? ""}
-            </Text>
-          </View>
-        </View>
-        <View className="mt-0.5 max-w-[62px] flex-row items-center justify-center gap-0.5 rounded bg-black/55 px-1 py-px">
-          <Text numberOfLines={1} className="text-center text-[9px] font-semibold text-white">
-            {player.isCaptain ? `${player.name} (C)` : player.name}
-          </Text>
-          {typeof player.rating === "number" && (
-            <RatingPill rating={player.rating} />
-          )}
-        </View>
+        <PlayerAvatar name={player.name} uri={player.photoUrl} size={AVATAR} />
       </View>
-    </View>
+      {typeof player.rating === "number" && (
+        <View style={{ position: "absolute", top: -4, right: 6 }}>
+          <RatingPill rating={player.rating} />
+        </View>
+      )}
+      <Text
+        numberOfLines={1}
+        className="mt-0.5 text-center text-[10px] font-semibold text-ink"
+        style={{ maxWidth: TOKEN }}
+      >
+        <Text className="text-ink-tertiary">{player.number ?? ""} </Text>
+        {surname(player.name)}
+      </Text>
+    </Pressable>
   );
 }
 
@@ -94,19 +108,21 @@ function HalfLineup({
   const rows = toRows(players);
   if (rows.length === 0) return null;
 
-  // Each half spans 6%..46% (home, top) or 54%..94% (away, bottom) vertically.
-  const bandStart = side === "home" ? 7 : 55;
-  const bandEnd = side === "home" ? 45 : 93;
-  const span = bandEnd - bandStart;
+  // Home keeper at the top, away keeper at the bottom; each half 5%..44%.
+  const bandStart = 5;
+  const span = 39;
 
   return (
     <>
       {rows.map((row, rIdx) => {
         const t = rows.length === 1 ? 0 : rIdx / (rows.length - 1);
-        // Home keeper (row 0) sits at the top; away keeper at the bottom.
-        const yPct = side === "home" ? bandStart + t * span : bandEnd - t * span;
+        const yHalf = bandStart + t * span;
+        const yPct = side === "home" ? yHalf : 100 - yHalf;
         return row.map((player, cIdx) => {
-          const xPct = ((cIdx + 1) / (row.length + 1)) * 100;
+          // Away players are mirrored so both teams read left-to-right from
+          // their own goal.
+          const x = (cIdx + 0.5) / row.length;
+          const xPct = (side === "home" ? x : 1 - x) * 100;
           return (
             <PlayerToken
               key={player.id}
@@ -121,59 +137,95 @@ function HalfLineup({
   );
 }
 
+function FormationTag({
+  logoUrl,
+  formation,
+  top,
+}: {
+  logoUrl: string | null;
+  formation: string | null;
+  top: boolean;
+}) {
+  if (!formation) return null;
+  return (
+    <View
+      className="absolute left-2.5 flex-row items-center gap-1.5"
+      style={top ? { top: 8 } : { bottom: 8 }}
+    >
+      {logoUrl && (
+        <Image
+          source={{ uri: logoThumb(logoUrl) }}
+          style={{ width: 14, height: 14 }}
+          contentFit="contain"
+          cachePolicy="memory-disk"
+        />
+      )}
+      <Text className="text-[10.5px] font-bold text-ink-secondary">
+        {formation}
+      </Text>
+    </View>
+  );
+}
+
 /**
- * FlashScore-style vertical pitch with both teams facing each other:
- * home attacking down from the top, away attacking up from the bottom.
+ * Flat vertical pitch in the page's own colors: home attacking down from the
+ * top, away attacking up from the bottom.
  */
 export function LineupPitch({
   home,
   away,
+  homeLogoUrl = null,
+  awayLogoUrl = null,
+  homeFormation = null,
+  awayFormation = null,
 }: {
   home: LineupPlayer[];
   away: LineupPlayer[];
+  homeLogoUrl?: string | null;
+  awayLogoUrl?: string | null;
+  homeFormation?: string | null;
+  awayFormation?: string | null;
 }) {
   const colors = useThemeColors();
   const starters = (list: LineupPlayer[]) => list.filter((p) => !p.isSubstitute);
   const hasGrid = home.concat(away).some((p) => !p.isSubstitute && p.grid);
   if (!hasGrid) return null;
 
-  const line = "rgba(255,255,255,0.28)";
+  const line = `${colors.primaryDark}33`;
 
   return (
     <View
       className="overflow-hidden rounded-2xl"
       style={{
-        aspectRatio: 0.72,
-        backgroundColor: colors.primary,
+        aspectRatio: 0.56,
         width: "100%",
         maxWidth: 380,
         alignSelf: "center",
+        backgroundColor: `${colors.primary}0F`,
+        borderWidth: 1,
+        borderColor: line,
       }}
     >
-      <LinearGradient
-        colors={["#0f7a3d", "#0c6a35", "#0f7a3d"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={{ position: "absolute", inset: 0 }}
-      />
-      {/* pitch markings */}
       <View style={{ position: "absolute", top: "50%", left: 0, right: 0, height: 1, backgroundColor: line }} />
       <View
         style={{
           position: "absolute",
           top: "50%",
           left: "50%",
-          width: 84,
-          height: 84,
-          marginLeft: -42,
-          marginTop: -42,
-          borderRadius: 42,
+          width: 76,
+          height: 76,
+          marginLeft: -38,
+          marginTop: -38,
+          borderRadius: 38,
           borderWidth: 1,
           borderColor: line,
         }}
       />
-      <View style={{ position: "absolute", top: 0, left: "22%", right: "22%", height: "12%", borderWidth: 1, borderTopWidth: 0, borderColor: line }} />
-      <View style={{ position: "absolute", bottom: 0, left: "22%", right: "22%", height: "12%", borderWidth: 1, borderBottomWidth: 0, borderColor: line }} />
+      <View style={{ position: "absolute", top: 0, left: "22%", right: "22%", height: "14%", borderWidth: 1, borderTopWidth: 0, borderColor: line }} />
+      <View style={{ position: "absolute", bottom: 0, left: "22%", right: "22%", height: "14%", borderWidth: 1, borderBottomWidth: 0, borderColor: line }} />
+
+      <FormationTag logoUrl={homeLogoUrl} formation={homeFormation} top />
+      <FormationTag logoUrl={awayLogoUrl} formation={awayFormation} top={false} />
 
       <HalfLineup players={starters(home)} side="home" />
       <HalfLineup players={starters(away)} side="away" />

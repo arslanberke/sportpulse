@@ -1,149 +1,141 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
+import { useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
 import { Card } from "@/components/ui/card";
+import { FlatHeader } from "@/components/ui/section-header";
 import { useThemeColors } from "@/constants/theme";
 import {
-    countryFlag,
-    LineupPitch,
+  LineupPitch,
+  playerProfileId,
 } from "@/features/events/components/lineup-pitch";
 import { RatingPill } from "@/features/events/components/match-stats-card";
+import { PlayerAvatar } from "@/features/events/components/player-avatar";
 import {
-    useEventLineup,
-    useEventStats
+  useEventLineup,
+  useEventStats,
 } from "@/features/events/hooks/use-events";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, type Translate } from "@/lib/i18n";
+import { logoThumb } from "@/lib/logo-thumb";
 import { useNow } from "@/lib/now";
 import type { EventLineup, LineupPlayer, SportEvent } from "@/types";
 
-function badge(player: LineupPlayer, keeper: string) {
-  const marks: string[] = [];
-  if (player.isCaptain) marks.push("C");
-  if ((player.position ?? "").toLowerCase() === "goalkeeper") marks.push(keeper);
-  return marks.length ? ` (${marks.join(", ")})` : "";
+type Side = "home" | "away";
+
+function positionLabel(position: string | null, t: Translate): string {
+  switch ((position ?? "").toLowerCase()) {
+    case "g":
+    case "goalkeeper":
+      return t("event.pos.gk");
+    case "d":
+    case "defender":
+      return t("event.pos.def");
+    case "m":
+    case "midfielder":
+      return t("event.pos.mid");
+    case "f":
+    case "forward":
+    case "attacker":
+      return t("event.pos.fwd");
+    default:
+      return position ?? "";
+  }
 }
 
-/** One player as it appears in the textual roster (flag · number · name). */
-function RosterCell({
-  player,
-  align,
-}: {
-  player: LineupPlayer | undefined;
-  align: "left" | "right";
-}) {
+/** One 22f roster row: number · photo · name/position · rating. */
+function RosterRow({ player, last }: { player: LineupPlayer; last: boolean }) {
   const { t } = useI18n();
   const router = useRouter();
-  if (!player) return <View className="flex-1" />;
-  const keeper = t("event.keeperShort");
-  // BSD oyuncu kimligi sayisal; diger kaynaklarda id yerine ad tasiyan
-  // satirlar profil sayfasina gidemez.
-  const openProfile = /^\d+$/.test(player.id)
-    ? () => router.push(`/football-player/${player.id}`)
-    : undefined;
-  const flag = countryFlag(player.countryCode);
-  const num = (
-    <Text className="w-6 text-center text-sm font-bold text-ink-secondary">
-      {player.number ?? ""}
-    </Text>
-  );
-  const name = (
-    <Text
-      numberOfLines={1}
-      className={`flex-1 text-sm font-medium text-ink ${align === "right" ? "text-right" : ""}`}
-    >
-      {player.name}
-      {badge(player, keeper)}
-    </Text>
-  );
-  const flagText = <Text className="text-sm">{flag}</Text>;
-  const rating =
-    typeof player.rating === "number" ? (
-      <RatingPill rating={player.rating} />
-    ) : null;
+  const id = playerProfileId(player);
+  const pos = positionLabel(player.position, t);
   return (
     <Pressable
-      onPress={openProfile}
-      disabled={!openProfile}
-      className="flex-1 flex-row items-center gap-1.5 active:opacity-60"
-      accessibilityRole={openProfile ? 'button' : undefined}
+      onPress={id ? () => router.push(`/football-player/${id}`) : undefined}
+      disabled={!id}
+      className="h-[46px] flex-row items-center gap-2.5 active:opacity-60"
     >
-      {align === "left" ? (
-        <>
-          {flagText}
-          {num}
-          {name}
-          {rating}
-        </>
-      ) : (
-        <>
-          {rating}
-          {name}
-          {num}
-          {flagText}
-        </>
-      )}
+      <Text
+        className="w-5 text-right text-xs font-bold text-ink-tertiary"
+        style={{ fontVariant: ["tabular-nums"] }}
+      >
+        {player.number ?? ""}
+      </Text>
+      <View
+        className={`h-full flex-1 flex-row items-center gap-2.5 ${last ? "" : "border-b border-line"}`}
+      >
+        <PlayerAvatar name={player.name} uri={player.photoUrl} />
+        <View className="flex-1">
+          <Text numberOfLines={1} className="text-[13px] font-semibold text-ink">
+            {player.name}
+            {player.isCaptain ? ` (${t("event.captainShort")})` : ""}
+          </Text>
+          {pos ? (
+            <Text numberOfLines={1} className="text-[11px] text-ink-secondary">
+              {pos}
+            </Text>
+          ) : null}
+        </View>
+        {typeof player.rating === "number" && (
+          <RatingPill rating={player.rating} />
+        )}
+      </View>
     </Pressable>
   );
 }
 
-/** Two-column roster (home left, away right), paired row by row. */
-function RosterColumns({
-  home,
-  away,
+function RosterGroup({
+  label,
+  note,
+  players,
 }: {
-  home: LineupPlayer[];
-  away: LineupPlayer[];
+  label: string;
+  note?: string | null;
+  players: LineupPlayer[];
 }) {
-  const rows = Math.max(home.length, away.length);
+  if (players.length === 0) return null;
   return (
-    <View className="gap-1.5">
-      {Array.from({ length: rows }).map((_, i) => (
-        <View key={i} className="flex-row items-center gap-3">
-          <RosterCell player={home[i]} align="left" />
-          <RosterCell player={away[i]} align="right" />
-        </View>
+    <>
+      <FlatHeader label={label} note={note ?? String(players.length)} />
+      {players.map((p, i) => (
+        <RosterRow key={p.id} player={p} last={i === players.length - 1} />
       ))}
-    </View>
+    </>
   );
 }
 
-function TeamHeader({
+function TeamChip({
   name,
-  badgeUrl,
-  formation,
-  align,
+  logoUrl,
+  on,
+  onPress,
 }: {
-  name: string | null;
-  badgeUrl: string | null;
-  formation: string | null;
-  align: "left" | "right";
+  name: string;
+  logoUrl: string | null;
+  on: boolean;
+  onPress: () => void;
 }) {
-  const logo = badgeUrl ? (
-    <Image
-      source={{ uri: badgeUrl }}
-      style={{ width: 22, height: 22 }}
-      contentFit="contain"
-    />
-  ) : null;
   return (
-    <View
-      className={`flex-1 flex-row items-center gap-2 ${align === "right" ? "justify-end" : ""}`}
+    <Pressable
+      onPress={onPress}
+      className={`flex-row items-center gap-1.5 rounded-pill border px-2.5 py-1 ${on ? "border-ink bg-ink" : "border-line bg-surface"}`}
     >
-      {align === "left" && logo}
-      <View className={align === "right" ? "items-end" : ""}>
-        <Text numberOfLines={1} className="text-sm font-bold text-ink">
-          {name ?? ""}
-        </Text>
-        {formation && (
-          <Text className="text-xs font-medium text-ink-secondary">
-            {formation}
-          </Text>
-        )}
-      </View>
-      {align === "right" && logo}
-    </View>
+      {logoUrl && (
+        <Image
+          source={{ uri: logoThumb(logoUrl) }}
+          style={{ width: 14, height: 14 }}
+          contentFit="contain"
+          cachePolicy="memory-disk"
+        />
+      )}
+      <Text
+        numberOfLines={1}
+        className={`text-xs font-semibold ${on ? "text-background" : "text-ink-secondary"}`}
+      >
+        {name}
+      </Text>
+    </Pressable>
   );
 }
 
@@ -155,40 +147,42 @@ function LineupBody({
   event: SportEvent;
 }) {
   const { t } = useI18n();
-  const homeSubs = lineup.home.filter((p) => p.isSubstitute);
-  const awaySubs = lineup.away.filter((p) => p.isSubstitute);
-  const homeStart = lineup.home.filter((p) => !p.isSubstitute);
-  const awayStart = lineup.away.filter((p) => !p.isSubstitute);
+  const [side, setSide] = useState<Side>("home");
+  const players = lineup[side];
+  const starters = players.filter((p) => !p.isSubstitute);
+  const subs = players.filter((p) => p.isSubstitute);
+  // A rated substitute is one who actually came on.
+  const cameOn = subs.filter((p) => typeof p.rating === "number");
+  const bench = subs.filter((p) => typeof p.rating !== "number");
+  const formation = side === "home" ? lineup.homeFormation : lineup.awayFormation;
 
   return (
-    <View className="gap-4">
-      <View className="flex-row items-center gap-3">
-        <TeamHeader
-          name={event.homeTeamName ?? null}
-          badgeUrl={event.homeTeamLogoUrl ?? null}
-          formation={lineup.homeFormation}
-          align="left"
+    <View>
+      <LineupPitch
+        home={lineup.home}
+        away={lineup.away}
+        homeLogoUrl={event.homeTeamLogoUrl ?? null}
+        awayLogoUrl={event.awayTeamLogoUrl ?? null}
+        homeFormation={lineup.homeFormation}
+        awayFormation={lineup.awayFormation}
+      />
+      <View className="mt-3 flex-row gap-1.5">
+        <TeamChip
+          name={event.homeTeamName ?? ""}
+          logoUrl={event.homeTeamLogoUrl ?? null}
+          on={side === "home"}
+          onPress={() => setSide("home")}
         />
-        <TeamHeader
-          name={event.awayTeamName ?? null}
-          badgeUrl={event.awayTeamLogoUrl ?? null}
-          formation={lineup.awayFormation}
-          align="right"
+        <TeamChip
+          name={event.awayTeamName ?? ""}
+          logoUrl={event.awayTeamLogoUrl ?? null}
+          on={side === "away"}
+          onPress={() => setSide("away")}
         />
       </View>
-
-      <LineupPitch home={lineup.home} away={lineup.away} />
-
-      <RosterColumns home={homeStart} away={awayStart} />
-
-      {(homeSubs.length > 0 || awaySubs.length > 0) && (
-        <View className="gap-1.5">
-          <Text className="text-xs font-semibold uppercase tracking-wide text-ink-secondary">
-            {t("event.substitutes")}
-          </Text>
-          <RosterColumns home={homeSubs} away={awaySubs} />
-        </View>
-      )}
+      <RosterGroup label={t("event.startingXI")} note={formation} players={starters} />
+      <RosterGroup label={t("event.cameOn")} players={cameOn} />
+      <RosterGroup label={t("event.substitutes")} players={bench} />
     </View>
   );
 }
@@ -212,9 +206,11 @@ function withRatings(
 export function LineupCard({
   event,
   index,
+  flat = false,
 }: {
   event: SportEvent;
   index?: number;
+  flat?: boolean;
 }) {
   const { t } = useI18n();
   const colors = useThemeColors();
@@ -225,30 +221,32 @@ export function LineupCard({
   if (event.sportId !== "football" || event.status !== "scheduled") return null;
 
   return (
-    <Card className="mb-4" index={index}>
-      <View className="mb-3 flex-row items-center gap-3">
-        <View
-          className="h-9 w-9 items-center justify-center rounded-xl"
-          style={{ backgroundColor: `${colors.primary}1F` }}
-        >
-          <Ionicons name="people" size={18} color={colors.primaryDark} />
+    <Card className="mb-4" index={index} flat={flat}>
+      {!flat && (
+        <View className="mb-3 flex-row items-center gap-3">
+          <View
+            className="h-9 w-9 items-center justify-center rounded-xl"
+            style={{ backgroundColor: `${colors.primary}1F` }}
+          >
+            <Ionicons name="people" size={18} color={colors.primaryDark} />
+          </View>
+          <Text className="text-base font-semibold text-ink">
+            {t("event.lineups")}
+          </Text>
         </View>
-        <Text className="text-base font-semibold text-ink">
-          {t("event.lineups")}
-        </Text>
-      </View>
+      )}
 
       {lineup ? (
         <LineupBody lineup={withRatings(lineup, stats)} event={event} />
       ) : isLoading ? (
-        <View className="flex-row items-center gap-2 py-1">
+        <View className="flex-row items-center gap-2 py-3">
           <ActivityIndicator size="small" color={colors.primaryDark} />
-          <Text className="text-sm text-ink-secondary">
+          <Text className="text-[13px] text-ink-secondary">
             {t("event.lineupsLoading")}
           </Text>
         </View>
       ) : (
-        <Text className="text-sm text-ink-secondary">
+        <Text className="py-3 text-[13px] text-ink-secondary">
           {isError
             ? t("event.lineupsError")
             : now >= new Date(event.startsAt)

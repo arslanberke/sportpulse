@@ -28,3 +28,13 @@ export function SectionHeader({
     </View>
   );
 }
+
+/** 22f section label: small muted title with an optional right-hand note. */
+export function FlatHeader({ label, note }: { label: string; note?: string | null }) {
+  return (
+    <View className="mx-0.5 mb-1 mt-3.5 flex-row justify-between">
+      <Text className="text-xs font-bold text-ink-secondary">{label}</Text>
+      {note ? <Text className="text-xs text-ink-tertiary">{note}</Text> : null}
+    </View>
+  );
+}

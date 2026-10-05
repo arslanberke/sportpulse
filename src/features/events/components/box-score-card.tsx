@@ -7,10 +7,12 @@ import { SectionHeader } from "@/components/ui/section-header";
 import { useThemeColors } from "@/constants/theme";
 import { useEventBoxScore } from "@/features/events/hooks/use-events";
 import { useI18n, type Translate } from "@/lib/i18n";
+import { logoThumb } from "@/lib/logo-thumb";
 import type { BoxPlayer } from "@/services/providers/espn-boxscore";
 import type { SportEvent } from "@/types";
 
-type Tab = "periods" | "team" | "players";
+export type BoxScoreTab = "periods" | "team" | "players";
+type Tab = BoxScoreTab;
 
 const STAT_LABELS: Record<string, Parameters<Translate>[0]> = {
   "fieldGoalsMade-fieldGoalsAttempted": "event.box.fg",
@@ -51,6 +53,30 @@ function Cell({ value, bold = false, wide = false }: { value: string | number; b
     >
       {value}
     </Text>
+  );
+}
+
+/** Leading number of a stat value ("42-86" -> 42, "48.8" -> 48.8). */
+function leading(value: string): number {
+  const n = parseFloat(value);
+  return Number.isFinite(n) ? n : 0;
+}
+
+/** Thin two-sided bar; the leading side is drawn in the accent color. */
+function CompareBar({ home, away }: { home: string; away: string }) {
+  const colors = useThemeColors();
+  const h = leading(home);
+  const a = leading(away);
+  if (h + a <= 0) return null;
+  return (
+    <View className="mt-1.5 flex-row gap-1">
+      <View className="h-[3px] flex-1 flex-row justify-end overflow-hidden rounded-full bg-line">
+        <View style={{ width: `${(h / (h + a)) * 100}%`, backgroundColor: h >= a ? colors.primaryDark : colors.inkTertiary }} />
+      </View>
+      <View className="h-[3px] flex-1 flex-row overflow-hidden rounded-full bg-line">
+        <View style={{ width: `${(a / (h + a)) * 100}%`, backgroundColor: a >= h ? colors.primaryDark : colors.inkTertiary }} />
+      </View>
+    </View>
   );
 }
 
@@ -104,7 +130,16 @@ function PlayerRow({ player, last }: { player: BoxPlayer; last: boolean }) {
 }
 
 /** NBA box score: quarter scores, team stats and per-player lines (ESPN). */
-export function BoxScoreCard({ event, index }: { event: SportEvent; index?: number }) {
+export function BoxScoreCard({
+  event,
+  index,
+  view,
+}: {
+  event: SportEvent;
+  index?: number;
+  /** Shows only this section, flat, with no own tab chips (22f detail tabs). */
+  view?: BoxScoreTab;
+}) {
   const { t } = useI18n();
   const colors = useThemeColors();
   const { data: box } = useEventBoxScore(event);
@@ -126,17 +161,21 @@ export function BoxScoreCard({ event, index }: { event: SportEvent; index?: numb
       : []),
   ];
   if (tabs.length === 0) return null;
-  const active = tabs.some((x) => x.key === tab) ? tab : tabs[0].key;
+  const active = view ?? (tabs.some((x) => x.key === tab) ? tab : tabs[0].key);
   const players = box.players[side];
 
   return (
-    <Card className="mb-4" index={index}>
-      <SectionHeader icon="stats-chart" label={t("event.stats")} tint={colors.primaryDark} />
-      <View className="mb-2.5 flex-row gap-1.5">
-        {tabs.map((x) => (
-          <Chip key={x.key} label={x.label} on={x.key === active} onPress={() => setTab(x.key)} />
-        ))}
-      </View>
+    <Card className="mb-4" index={index} flat={Boolean(view)}>
+      {!view && (
+        <>
+          <SectionHeader icon="stats-chart" label={t("event.stats")} tint={colors.primaryDark} />
+          <View className="mb-2.5 flex-row gap-1.5">
+            {tabs.map((x) => (
+              <Chip key={x.key} label={x.label} on={x.key === active} onPress={() => setTab(x.key)} />
+            ))}
+          </View>
+        </>
+      )}
 
       {active === "periods" && (
         <View>
@@ -152,9 +191,19 @@ export function BoxScoreCard({ event, index }: { event: SportEvent; index?: numb
               key={s}
               className={`flex-row items-center py-2.5 ${row === 0 ? "border-b border-line" : ""}`}
             >
-              <Text numberOfLines={1} className="flex-1 text-[13px] font-semibold text-ink">
-                {s === "home" ? homeName : awayName}
-              </Text>
+              <View className="flex-1 flex-row items-center gap-2">
+                {(s === "home" ? event.homeTeamLogoUrl : event.awayTeamLogoUrl) && (
+                  <Image
+                    source={{ uri: logoThumb((s === "home" ? event.homeTeamLogoUrl : event.awayTeamLogoUrl)!) }}
+                    style={{ width: 18, height: 18 }}
+                    contentFit="contain"
+                    cachePolicy="memory-disk"
+                  />
+                )}
+                <Text numberOfLines={1} className="shrink text-[13px] font-semibold text-ink">
+                  {s === "home" ? homeName : awayName}
+                </Text>
+              </View>
               {Array.from({ length: periodCount }, (_, i) => (
                 <Cell key={i} value={box.periods[s][i] ?? "–"} />
               ))}
@@ -174,13 +223,16 @@ export function BoxScoreCard({ event, index }: { event: SportEvent; index?: numb
           {box.teamStats.map((row, i) => (
             <View
               key={row.key}
-              className={`flex-row items-center py-2.5 ${i < box.teamStats.length - 1 ? "border-b border-line" : ""}`}
+              className={`py-2.5 ${i < box.teamStats.length - 1 ? "border-b border-line" : ""}`}
             >
-              <Text className="w-16 text-[13px] font-semibold text-ink">{row.home}</Text>
-              <Text numberOfLines={1} className="flex-1 text-center text-[12.5px] text-ink-secondary">
-                {t(STAT_LABELS[row.key])}
-              </Text>
-              <Text className="w-16 text-right text-[13px] font-semibold text-ink">{row.away}</Text>
+              <View className="flex-row items-center">
+                <Text className="w-16 text-[13px] font-semibold text-ink">{row.home}</Text>
+                <Text numberOfLines={1} className="flex-1 text-center text-[12.5px] text-ink-secondary">
+                  {t(STAT_LABELS[row.key])}
+                </Text>
+                <Text className="w-16 text-right text-[13px] font-semibold text-ink">{row.away}</Text>
+              </View>
+              <CompareBar home={row.home} away={row.away} />
             </View>
           ))}
         </View>

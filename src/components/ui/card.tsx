@@ -12,10 +12,13 @@ interface CardProps {
    * geri getirilebilsin (bkz. `src/lib/animations.ts` gecmisi).
    */
   index?: number;
+  /** 22f: no surface, border or padding; content sits on the page. */
+  flat?: boolean;
 }
 
 /** Rounded content container. */
-export function Card({ children, className = '' }: CardProps) {
+export function Card({ children, className = '', flat = false }: CardProps) {
+  if (flat) return <View className={className}>{children}</View>;
   return (
     <View
       className={`rounded-card border border-line bg-surface p-5 ${className}`}
