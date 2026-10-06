@@ -12,6 +12,7 @@ import { formatCountdown } from "@/features/events/components/event-card";
 import { LeagueStandingsCard } from "@/features/events/components/league-standings-card";
 import { LiveMatchCard } from "@/features/events/components/live-match-card";
 import { MatchStatsCard } from "@/features/events/components/match-stats-card";
+import { TennisSetsCard } from "@/features/events/components/tennis-sets-card";
 import { channelLogo } from "@/features/events/lib/channel-logo";
 import { isEventOver } from "@/features/events/lib/event-duration";
 import { splitUfcTitle } from "@/features/events/lib/ufc-title";
@@ -263,6 +264,7 @@ export function GenericDetail({
 
       {tab === "overview" && (
         <>
+          {event.sportId === "tennis" && duel && <TennisSetsCard event={event} />}
           <LiveMatchCard event={event} flat />
           <MatchStatsCard event={event} flat />
           <BriefingCard event={event} flat />
