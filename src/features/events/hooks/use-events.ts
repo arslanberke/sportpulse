@@ -24,6 +24,7 @@ import {
 } from '@/services/events';
 import { FINAL_STATUSES } from '@/services/providers/api-sports-fixture';
 import { fetchBoxScore } from '@/services/providers/espn-boxscore';
+import { fetchTennisSets } from '@/services/providers/espn-tennis';
 import type { SportEvent, UserFollow } from '@/types';
 
 const HOUR_MS = 3_600_000;
@@ -370,6 +371,21 @@ export function useEventBoxScore(event: SportEvent | null) {
     queryKey: ['event-boxscore', event?.id],
     queryFn: () => fetchBoxScore(league!, espnId!),
     enabled: Boolean(league && espnId) && started,
+    staleTime: 20_000,
+    refetchInterval: (query) => (query.state.data?.live ? 30_000 : false),
+  });
+}
+
+/** Tenis macinin set skorlari (ESPN panosu). Mac surerken 30 sn'de bir yenilenir. */
+export function useTennisSets(event: SportEvent | null) {
+  const espnId = event?.externalIds.espn;
+  const tour = event?.leagueName?.toUpperCase().includes('WTA') ? 'wta' : 'atp';
+  const startsAt = event ? new Date(event.startsAt).getTime() : 0;
+  const started = useMemo(() => new Date().getTime() >= startsAt, [startsAt]);
+  return useQuery({
+    queryKey: ['event-tennis-sets', event?.id],
+    queryFn: () => fetchTennisSets(tour, espnId!, event!.startsAt, event!.homeTeamName),
+    enabled: event?.sportId === 'tennis' && Boolean(event?.parentEventId && espnId) && started,
     staleTime: 20_000,
     refetchInterval: (query) => (query.state.data?.live ? 30_000 : false),
   });
