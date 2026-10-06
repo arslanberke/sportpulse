@@ -320,15 +320,38 @@ interface EspnFinal {
   espnId: string;
   homeScore: number | null;
   awayScore: number | null;
+  /** Tenis: ESPN'in ev/deplasman sirasi bizim basliktaki siradan farkli olabiliyor. */
+  awayName?: string | null;
+}
+
+/** Tamamlanan setler; yarim kalan set (sakatlanarak cekilme) sayilmaz. */
+function tennisSetsWon(home: number[], away: number[]): [number, number] {
+  let h = 0;
+  let a = 0;
+  for (let i = 0; i < Math.min(home.length, away.length); i++) {
+    const [x, y] = [home[i], away[i]];
+    const done = Math.max(x, y) >= 7 || (Math.max(x, y) >= 6 && Math.abs(x - y) >= 2);
+    if (!done) continue;
+    if (x > y) h++;
+    else a++;
+  }
+  return [h, a];
 }
 
 function espnFinal(comp: Record<string, unknown>, sport: EspnLiveEntry['sport']): EspnFinal | null {
-  if (sport !== 'football' && sport !== 'basketball') return null;
+  if (sport !== 'football' && sport !== 'basketball' && sport !== 'tennis') return null;
   const statusType = espnObj(espnObj(comp.status).type);
   if (espnText(statusType.state) !== 'post' || statusType.completed !== true) return null;
   const espnId = espnText(comp.id);
   if (!espnId) return null;
-  return { espnId, homeScore: espnCompetitor(comp, 'home').score, awayScore: espnCompetitor(comp, 'away').score };
+  const home = espnCompetitor(comp, 'home');
+  const away = espnCompetitor(comp, 'away');
+  if (sport === 'tennis') {
+    if (home.lines.length === 0 || away.lines.length === 0) return null;
+    const [homeSets, awaySets] = tennisSetsWon(home.lines, away.lines);
+    return { espnId, homeScore: homeSets, awayScore: awaySets, awayName: away.name };
+  }
+  return { espnId, homeScore: home.score, awayScore: away.score };
 }
 
 interface EspnBoardResult {
@@ -388,13 +411,21 @@ async function persistEspnFinals(supabase: ReturnType<typeof createClient>, fina
   const byId = new Map(finals.map((f) => [f.espnId, f]));
   const { data } = await supabase
     .from('events')
-    .select('id, external_ids')
+    .select('id, title, external_ids')
     .in('external_ids->>espn', [...byId.keys()])
     .is('merged_into_event_id', null)
     .or('result_status.is.null,result_status.neq.finished');
-  const rows = ((data ?? []) as { id: string; external_ids: Record<string, unknown> | null }[]).flatMap((row) => {
+  type Row = { id: string; title: string | null; external_ids: Record<string, unknown> | null };
+  const rows = ((data ?? []) as Row[]).flatMap((row) => {
     const final = byId.get(String(row.external_ids?.espn ?? ''));
-    return final ? [{ id: row.id, home_score: final.homeScore, away_score: final.awayScore, result_status: 'finished' }] : [];
+    if (!final) return [];
+    const swapped = Boolean(final.awayName && row.title?.startsWith(final.awayName));
+    return [{
+      id: row.id,
+      home_score: swapped ? final.awayScore : final.homeScore,
+      away_score: swapped ? final.homeScore : final.awayScore,
+      result_status: 'finished',
+    }];
   });
   if (rows.length > 0) await supabase.rpc('set_event_results', { p_rows: rows });
 }

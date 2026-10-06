@@ -146,7 +146,8 @@ export async function fetchEvents(params: {
       ...(params.favoriteTeamIds ?? []),
     ]),
   ];
-  if (sportIds.length === 0 && leagueIds.length === 0 && teamIds.length === 0) return [];
+  const favoriteIds = params.favoritePlayerIds ?? [];
+  if (sportIds.length === 0 && leagueIds.length === 0 && teamIds.length === 0 && favoriteIds.length === 0) return [];
 
   const clauses: string[] = [];
   if (sportIds.length > 0) clauses.push(`sport_id.in.(${sportIds.join(',')})`);
@@ -155,12 +156,15 @@ export async function fetchEvents(params: {
     clauses.push(`home_team_id.in.(${teamIds.join(',')})`);
     clauses.push(`away_team_id.in.(${teamIds.join(',')})`);
   }
+  if (favoriteIds.length > 0) {
+    clauses.push(`home_player_id.in.(${favoriteIds.join(',')})`);
+    clauses.push(`away_player_id.in.(${favoriteIds.join(',')})`);
+  }
 
   // Kura maclari listeye girmez: bir tenis turnuvasi yuzlerce karsilasma demek
   // (Toronto 217) ve bunlar takip edilen futbol maclarini bogar. Liste
   // turnuvanin kendisini gosteriyor, kura turnuvanin icinde. Istisna yildizlanan
   // sporcular: onlarin maclari listede gorunuyor.
-  const favoriteIds = params.favoritePlayerIds ?? [];
   const bracketClauses = ['parent_event_id.is.null'];
   if (favoriteIds.length > 0) {
     bracketClauses.push(`home_player_id.in.(${favoriteIds.join(',')})`);
