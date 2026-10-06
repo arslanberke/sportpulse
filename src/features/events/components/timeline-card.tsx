@@ -5,6 +5,7 @@ import { Pressable, Text, View } from 'react-native';
 
 import { useLogoTint } from '@/constants/logo-tint';
 import { FAVORITE_COLOR, useThemeColors } from '@/constants/theme';
+import { isEventOver } from '@/features/events/lib/event-duration';
 import { isFavoriteEvent, useFavorites } from '@/features/follows/hooks/use-favorites';
 import { formatDayTime, formatTime } from '@/lib/dates';
 import { useI18n } from '@/lib/i18n';
@@ -83,7 +84,7 @@ function ScoreStack({ home, away, muted }: { home: string | null; away: string |
  */
 export function TimelineCard({
   event,
-  live,
+  live: liveFeed,
   dayLabel,
   first = false,
 }: {
@@ -100,7 +101,12 @@ export function TimelineCard({
   const { favoriteTeamIds, favoritePlayerIds } = useFavorites();
   const favorite = isFavoriteEvent(event, favoriteTeamIds, favoritePlayerIds);
   const matchup = Boolean(event.homeTeamName && event.awayTeamName);
-  const finished = !live && event.homeScore != null && event.awayScore != null;
+  const hasScore = event.homeScore != null && event.awayScore != null;
+  // Canli akis henuz yoksa veritabanindaki ara skor (or. "1st_half") canli gosterilir.
+  const inPlay = !liveFeed && hasScore && event.resultStatus != null && event.resultStatus !== 'finished' && !isEventOver(event);
+  const live: TimelineLive | undefined = liveFeed
+    ?? (inPlay ? { home: String(event.homeScore), away: String(event.awayScore), detail: null } : undefined);
+  const finished = !live && hasScore;
   const accent = live ? colors.live : favorite ? FAVORITE_COLOR : null;
   const channelNames = (event.channels ?? []).map((c) => c.name).join(', ');
   const scheduled = event.status === 'scheduled';
