@@ -324,14 +324,19 @@ interface EspnFinal {
   awayName?: string | null;
 }
 
-/** Tamamlanan setler; yarim kalan set (sakatlanarak cekilme) sayilmaz. */
-function tennisSetsWon(home: number[], away: number[]): [number, number] {
+/**
+ * Kazanilan setler. ESPN biten macta son seti bazen eksik veriyor (7-5 5-3),
+ * o yuzden yalnizca cekilmede yarim kalan son set sayilmaz.
+ */
+function tennisSetsWon(home: number[], away: number[], retired: boolean): [number, number] {
   let h = 0;
   let a = 0;
-  for (let i = 0; i < Math.min(home.length, away.length); i++) {
+  const sets = Math.min(home.length, away.length);
+  for (let i = 0; i < sets; i++) {
     const [x, y] = [home[i], away[i]];
+    if (x === y) continue;
     const done = Math.max(x, y) >= 7 || (Math.max(x, y) >= 6 && Math.abs(x - y) >= 2);
-    if (!done) continue;
+    if (retired && i === sets - 1 && !done) continue;
     if (x > y) h++;
     else a++;
   }
@@ -348,7 +353,7 @@ function espnFinal(comp: Record<string, unknown>, sport: EspnLiveEntry['sport'])
   const away = espnCompetitor(comp, 'away');
   if (sport === 'tennis') {
     if (home.lines.length === 0 || away.lines.length === 0) return null;
-    const [homeSets, awaySets] = tennisSetsWon(home.lines, away.lines);
+    const [homeSets, awaySets] = tennisSetsWon(home.lines, away.lines, espnText(statusType.name) === 'STATUS_RETIRED');
     return { espnId, homeScore: homeSets, awayScore: awaySets, awayName: away.name };
   }
   return { espnId, homeScore: home.score, awayScore: away.score };
