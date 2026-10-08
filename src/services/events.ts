@@ -219,6 +219,34 @@ export async function fetchTeamEvents(params: {
 }
 
 /**
+ * Bir ligin kendi sayfasi icin maclari: gecmis gunlerin sonuclari ve onumuzdeki
+ * gunlerin fiksturu tek sorguda. Takip listesinden bagimsizdir.
+ */
+export async function fetchLeagueEvents(params: {
+  leagueId: string;
+  pastDays: number;
+  days: number;
+}): Promise<SportEvent[]> {
+  const now = Date.now();
+  const from = new Date(now - params.pastDays * 86_400_000);
+  const to = new Date(now + params.days * 86_400_000);
+  const { data, error } = await supabase
+    .from('events')
+    .select(
+      'id, sport_id, league_id, home_team_id, away_team_id, parent_event_id, home_player_id, away_player_id, title, starts_at, ends_at, status, home_score, away_score, result_status, image_url, venue, venue_image_url, importance, external_ids, leagues (name, artwork_url, logo_url), home_team:teams!home_team_id (name, logo_url), away_team:teams!away_team_id (name, logo_url), home_player:players!home_player_id (name, country_flag_url), away_player:players!away_player_id (name, country_flag_url)',
+    )
+    .eq('league_id', params.leagueId)
+    .is('parent_event_id', null)
+    // Birlestirilmis kopyalar (migration 0069) listelenmez.
+    .is('merged_into_event_id', null)
+    .gte('starts_at', from.toISOString())
+    .lt('starts_at', to.toISOString())
+    .order('starts_at');
+  if (error) throw error;
+  return dedupeEvents((data as unknown as EventRow[]).map(mapRow));
+}
+
+/**
  * Bir yarismanin sirada bekleyen ilk etkinligi.
  *
  * Sema sezon tarihi tutmadigi icin "lig ne zaman basliyor" sorusu ancak
