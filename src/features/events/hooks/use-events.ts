@@ -19,6 +19,7 @@ import {
     fetchEventStandings,
     fetchEventStats,
     fetchEvents,
+    fetchLeagueEvents,
     fetchLiveScores,
     fetchTeamEvents,
 } from '@/services/events';
@@ -120,6 +121,42 @@ export function useTeamEvents(teamId: string | undefined, days = 120) {
     queryFn: () => fetchTeamEvents({ teamId: teamId!, days }),
     enabled: Boolean(teamId),
     staleTime: 5 * 60_000,
+  });
+
+  const eventIds = (eventsQuery.data ?? []).flatMap((e) => [e.id, ...(e.duplicateIds ?? [])]);
+  const { data: eventBroadcasts } = useQuery({
+    queryKey: ['event-broadcasts', eventIds.join(','), profile?.countryCode],
+    queryFn: () =>
+      fetchEventBroadcasts({ eventIds, countryCode: profile!.countryCode }),
+    enabled: Boolean(profile) && eventIds.length > 0,
+  });
+
+  const events: SportEvent[] = useMemo(
+    () =>
+      (eventsQuery.data ?? []).map((event) => ({
+        ...event,
+        channels: resolveEventChannels(event, eventBroadcasts, leagueChannels, coveredDays),
+      })),
+    [eventsQuery.data, eventBroadcasts, leagueChannels, coveredDays],
+  );
+
+  return { ...eventsQuery, events };
+}
+
+/**
+ * Lig sayfasinin maclari: son gunlerin sonuclari ve onumuzdeki fikstur, kanal
+ * bilgisi hafta listesindeki gibi eklenmis. Takip listesinden bagimsiz.
+ */
+export function useLeagueEvents(leagueId: string | undefined, pastDays = 30, days = 14) {
+  const { data: profile } = useProfile();
+  const { data: leagueChannels } = useLeagueChannels(profile?.countryCode);
+  const { data: coveredDays } = useBroadcastCoverage(profile?.countryCode);
+
+  const eventsQuery = useQuery({
+    queryKey: ['league-events', leagueId, pastDays, days],
+    queryFn: () => fetchLeagueEvents({ leagueId: leagueId!, pastDays, days }),
+    enabled: Boolean(leagueId),
+    staleTime: 60_000,
   });
 
   const eventIds = (eventsQuery.data ?? []).flatMap((e) => [e.id, ...(e.duplicateIds ?? [])]);

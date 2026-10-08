@@ -11,7 +11,7 @@ import {
     fetchTeams,
     searchCatalog
 } from '@/services/catalog';
-import { fetchTeamTables } from '@/services/standings';
+import { fetchLeagueTables, fetchTeamTables } from '@/services/standings';
 
 const CATALOG_STALE_MS = 60 * 60 * 1000; // the catalog changes rarely
 /** Below this a search matches almost everything, so it isn't worth a round trip. */
@@ -64,6 +64,17 @@ export function useTeamTables(teamId: string | undefined) {
     queryKey: ['team-tables', teamId],
     queryFn: () => fetchTeamTables(teamId!),
     enabled: Boolean(teamId),
+    staleTime: 60 * 60 * 1000,
+    retry: false,
+  });
+}
+
+/** Lig sayfasinin puan durumu; sekme acilinca istenir, bir saat tutulur. */
+export function useLeagueTables(leagueId: string | undefined) {
+  return useQuery({
+    queryKey: ['league-tables', leagueId],
+    queryFn: () => fetchLeagueTables(leagueId!),
+    enabled: Boolean(leagueId),
     staleTime: 60 * 60 * 1000,
     retry: false,
   });
