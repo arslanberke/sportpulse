@@ -21,10 +21,21 @@ test('missing standings crests are filled without replacing provider crests', ()
     { team: 'Beşiktaş', teamLogoUrl: 'provider.png' },
   ] }];
   const teams = [
-    { name: 'Amed SFK', logoUrl: 'amed.png' },
-    { name: 'Beşiktaş JK', logoUrl: 'catalog.png' },
+    { id: 'amed', name: 'Amed SFK', logoUrl: 'amed.png' },
+    { id: 'bjk', name: 'Beşiktaş JK', logoUrl: 'catalog.png' },
   ];
   const rows = enrichTableLogos(groups, teams)[0].rows;
   assert.equal(rows[0].teamLogoUrl, 'amed.png');
   assert.equal(rows[1].teamLogoUrl, 'provider.png');
+});
+
+test('standings rows carry the catalog team id so they can open the team page', () => {
+  const groups = [{ name: '', rows: [
+    { team: 'LA Clippers', teamLogoUrl: null },
+    { team: 'Unknown Club', teamLogoUrl: null },
+  ] }];
+  const teams = [{ id: 'lac', name: 'LA Clippers', logoUrl: null }];
+  const rows = enrichTableLogos(groups, teams)[0].rows;
+  assert.equal(rows[0].teamId, 'lac');
+  assert.equal(rows[1].teamId, null);
 });

@@ -21,13 +21,17 @@ export function dedupeClubTeams(teams: Team[]): Team[] {
 }
 
 export function enrichTableLogos(groups: LeagueTableGroup[], teams: Team[]): LeagueTableGroup[] {
-  const logos = new Map<string, string>();
-  for (const team of teams) if (team.logoUrl) logos.set(clubKey(team.name), team.logoUrl);
+  const byKey = new Map<string, Team>();
+  for (const team of teams) byKey.set(clubKey(team.name), team);
   return groups.map(group => ({
     ...group,
-    rows: group.rows.map(row => ({
-      ...row,
-      teamLogoUrl: row.teamLogoUrl ?? logos.get(clubKey(row.team)) ?? null,
-    })),
+    rows: group.rows.map(row => {
+      const team = byKey.get(clubKey(row.team));
+      return {
+        ...row,
+        teamId: row.teamId ?? team?.id ?? null,
+        teamLogoUrl: row.teamLogoUrl ?? team?.logoUrl ?? null,
+      };
+    }),
   }));
 }
