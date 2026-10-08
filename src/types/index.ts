@@ -243,6 +243,8 @@ export interface LeagueStandings {
 export interface LeagueTableRow {
   rank: number;
   team: string;
+  /** Catalog team id when the row matches a club we know; opens its page. */
+  teamId?: string | null;
   teamLogoUrl: string | null;
   played: number;
   wins: number;

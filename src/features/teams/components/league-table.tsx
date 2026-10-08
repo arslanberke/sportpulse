@@ -1,6 +1,7 @@
 import { Image } from 'expo-image';
+import { useRouter } from 'expo-router';
 import { Fragment } from 'react';
-import { Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { useThemeColors } from '@/constants/theme';
 import { useI18n, type Translate } from '@/lib/i18n';
@@ -77,6 +78,7 @@ export function LeagueTableBody({
 }) {
   const { t } = useI18n();
   const colors = useThemeColors();
+  const router = useRouter();
   const columns = columnsFor(table.sportId, t);
   const needles = highlightTeams.map(fold).filter((n): n is string => n !== null);
 
@@ -108,11 +110,16 @@ export function LeagueTableBody({
                 {group.rows.map((row) => {
                   const folded = fold(row.team);
                   const mine = folded !== null && needles.includes(folded);
+                  const teamId = row.teamId ?? null;
                   return (
-                    <View
+                    <Pressable
                       key={`${row.team}-${row.rank}`}
-                      className="min-h-[34px] flex-row items-center border-b border-line px-1"
+                      className="min-h-[34px] flex-row items-center border-b border-line px-1 active:opacity-60"
                       style={mine ? { backgroundColor: `${colors.primary}14` } : undefined}
+                      disabled={teamId === null}
+                      onPress={() => {
+                        if (teamId) router.push(`/team/${teamId}`);
+                      }}
                     >
                       <Text className="w-5 text-xs font-semibold text-ink-secondary">
                         {row.rank}
@@ -146,7 +153,7 @@ export function LeagueTableBody({
                           {column.value(row)}
                         </Text>
                       ))}
-                    </View>
+                    </Pressable>
                   );
                 })}
               </View>
