@@ -13,6 +13,7 @@
 // logic lives at `src/services/providers/api-sports-live.ts`.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { euroleagueStatusDetail, fetchEuroleagueLive, type EuroleagueGame } from '../../../src/services/providers/euroleague-live.ts';
 import { f1SessionOver, fetchF1LiveSession } from '../../../src/services/providers/f1-livetiming.ts';
 import { PROVIDER_USER_AGENT } from '../../../src/services/providers/log.ts';
 
@@ -410,6 +411,17 @@ async function fetchEspnLive(): Promise<EspnBoardResult> {
   return { live, finals: boards.flatMap((b) => b.finals) };
 }
 
+interface ResultRow {
+  id: string;
+  home_score: number | null;
+  away_score: number | null;
+  result_status: 'finished';
+}
+
+async function persistResultRows(supabase: ReturnType<typeof createClient>, rows: ResultRow[]): Promise<void> {
+  if (rows.length > 0) await supabase.rpc('set_event_results', { p_rows: rows });
+}
+
 /** Biten ESPN maclarinin sonucunu, henuz finished yazilmamis kayitlara yazar. */
 async function persistEspnFinals(supabase: ReturnType<typeof createClient>, finals: EspnFinal[]): Promise<void> {
   if (finals.length === 0) return;
@@ -421,7 +433,7 @@ async function persistEspnFinals(supabase: ReturnType<typeof createClient>, fina
     .is('merged_into_event_id', null)
     .or('result_status.is.null,result_status.neq.finished');
   type Row = { id: string; title: string | null; external_ids: Record<string, unknown> | null };
-  const rows = ((data ?? []) as Row[]).flatMap((row) => {
+  const rows = ((data ?? []) as Row[]).flatMap((row): ResultRow[] => {
     const final = byId.get(String(row.external_ids?.espn ?? ''));
     if (!final) return [];
     const swapped = Boolean(final.awayName && row.title?.startsWith(final.awayName));
@@ -432,7 +444,86 @@ async function persistEspnFinals(supabase: ReturnType<typeof createClient>, fina
       result_status: 'finished',
     }];
   });
-  if (rows.length > 0) await supabase.rpc('set_event_results', { p_rows: rows });
+  await persistResultRows(supabase, rows);
+}
+
+interface EuroleagueBoardResult {
+  live: EspnLiveEntry[];
+  finals: ResultRow[];
+}
+
+/**
+ * EuroLeague'in kendi canli verisi (ESPN panosu bu sezon bos). Kulup kodu
+ * `teams.external_ids.euroleague` ile bizim takima, takim cifti + saat de
+ * bizim maca baglanir; kayit istemciye bizim takim adlariyla gider ki ad
+ * esitligiyle eslessin. Biten maclarin sonucu dogrudan mac kimligiyle yazilir.
+ */
+async function fetchEuroleagueBoard(supabase: ReturnType<typeof createClient>): Promise<EuroleagueBoardResult> {
+  const { live, finals } = await fetchEuroleagueLive();
+  const games: EuroleagueGame[] = [...live, ...finals];
+  if (games.length === 0) return { live: [], finals: [] };
+  const codes = [...new Set(games.flatMap((g) => [g.homeCode, g.awayCode]))];
+  type TeamRow = { id: string; name: string; external_ids: Record<string, unknown> | null };
+  const { data: teamData } = await supabase
+    .from('teams')
+    .select('id, name, external_ids')
+    .eq('sport_id', 'basketball')
+    .in('external_ids->>euroleague', codes)
+    .is('merged_into_team_id', null);
+  const byCode = new Map(((teamData ?? []) as TeamRow[]).map((t) => [String(t.external_ids?.euroleague ?? ''), t]));
+  if (byCode.size === 0) return { live: [], finals: [] };
+  const starts = games.map((g) => Date.parse(g.utcDate)).filter(Number.isFinite);
+  type EventRow = { id: string; title: string | null; home_team_id: string | null; away_team_id: string | null; result_status: string | null };
+  const { data: eventData } = await supabase
+    .from('events')
+    .select('id, title, home_team_id, away_team_id, result_status')
+    .eq('sport_id', 'basketball')
+    .is('merged_into_event_id', null)
+    .gte('starts_at', new Date(Math.min(...starts) - 3_600_000).toISOString())
+    .lte('starts_at', new Date(Math.max(...starts) + 3_600_000).toISOString())
+    .in('home_team_id', [...byCode.values()].map((t) => t.id));
+  const events = (eventData ?? []) as EventRow[];
+  const resolve = (g: EuroleagueGame) => {
+    const home = byCode.get(g.homeCode);
+    const away = byCode.get(g.awayCode);
+    if (!home || !away) return null;
+    const straight = events.find((e) => e.home_team_id === home.id && e.away_team_id === away.id);
+    if (straight) return { event: straight, home, away, swapped: false };
+    const swapped = events.find((e) => e.home_team_id === away.id && e.away_team_id === home.id);
+    return swapped ? { event: swapped, home: away, away: home, swapped: true } : null;
+  };
+  const out: EspnLiveEntry[] = [];
+  for (const g of live) {
+    const hit = resolve(g);
+    if (!hit) continue;
+    const h = g.header;
+    out.push({
+      id: `${g.season}_${g.code}`,
+      sport: 'basketball',
+      series: 'euroleague',
+      name: hit.event.title ?? `${hit.home.name} vs ${hit.away.name}`,
+      statusDetail: euroleagueStatusDetail(h),
+      home: hit.home.name,
+      away: hit.away.name,
+      homeScore: hit.swapped ? h.awayScore : h.homeScore,
+      awayScore: hit.swapped ? h.homeScore : h.awayScore,
+      homeLines: hit.swapped ? h.awayLines : h.homeLines,
+      awayLines: hit.swapped ? h.homeLines : h.awayLines,
+      startsAt: g.utcDate,
+    });
+  }
+  const rows: ResultRow[] = [];
+  for (const g of finals) {
+    const hit = resolve(g);
+    if (!hit || hit.event.result_status === 'finished') continue;
+    rows.push({
+      id: hit.event.id,
+      home_score: hit.swapped ? g.awayScore : g.homeScore,
+      away_score: hit.swapped ? g.homeScore : g.awayScore,
+      result_status: 'finished',
+    });
+  }
+  return { live: out, finals: rows };
 }
 
 function runInBackground(task: Promise<unknown>): void {
@@ -507,9 +598,10 @@ Deno.serve(async (request) => {
   const apiKey = Deno.env.get('API_SPORTS_FOOTBALL_KEY');
   const bsdKey = Deno.env.get('API_BSD_FOOTBALL_KEY');
   const callApiSports = Boolean(apiKey) && now - previous.apisportsTriedAt >= APISPORTS_INTERVAL_MS;
-  const [bsdLive, espnBoards, footballResult] = await Promise.all([
+  const [bsdLive, espnBoards, euroleague, footballResult] = await Promise.all([
     bsdKey ? fetchBsdLive(bsdKey).catch(() => [] as EspnLiveEntry[]) : Promise.resolve([] as EspnLiveEntry[]),
     fetchEspnLive().catch((): EspnBoardResult => ({ live: [], finals: [] })),
+    fetchEuroleagueBoard(supabase).catch((): EuroleagueBoardResult => ({ live: [], finals: [] })),
     callApiSports
       ? fetchLiveScores(apiKey!).then((scores) => {
           // Canli-kurtarma yazimi (dizide 40+ sirali RPC) yaniti bloklamasin:
@@ -521,11 +613,12 @@ Deno.serve(async (request) => {
   ]);
 
   runInBackground(persistEspnFinals(supabase, espnBoards.finals).catch(() => {}));
+  runInBackground(persistResultRows(supabase, euroleague.finals).catch(() => {}));
 
   const apiOk = Array.isArray(footballResult);
   const next: CachePayload = {
     scores: apiOk ? footballResult : previous.scores,
-    espn: [...bsdLive, ...espnBoards.live],
+    espn: [...bsdLive, ...espnBoards.live, ...euroleague.live],
     apisportsAt: apiOk ? now : previous.apisportsAt,
     apisportsTriedAt: callApiSports ? now : previous.apisportsTriedAt,
   };
