@@ -91,6 +91,8 @@ export interface SessionEntry {
   team: string | null; // constructor / manufacturer
   photoUrl?: string | null; // driver/rider headshot
   teamLogoUrl?: string | null; // constructor/team logo
+  /** Championship points scored in this session (race/sprint only). */
+  points?: number | null;
 }
 
 /** Results for a single motorsport session (Qualifying, Race, ...). */

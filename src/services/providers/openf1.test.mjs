@@ -64,3 +64,26 @@ test('SessionInfo moves only its own session to the official times', async () =>
   assert.equal(race.endsAtUtc, '2026-10-04T09:00:00.000Z');
   assert.equal(quali.startsAtUtc, '2026-10-03T08:00:00Z');
 });
+
+test('race classification carries championship points; other sessions none', () => {
+  const positions = [
+    { date: '2026-10-04T08:50:00Z', driver_number: 1, position: 1 },
+    { date: '2026-10-04T08:50:00Z', driver_number: 3, position: 2 },
+    { date: '2026-10-04T08:50:00Z', driver_number: 5, position: 11 },
+  ];
+  const drivers = [
+    { driver_number: 1, first_name: 'Lando', last_name: 'Norris', team_name: 'McLaren' },
+    { driver_number: 3, first_name: 'Max', last_name: 'Verstappen', team_name: 'Red Bull Racing' },
+    { driver_number: 5, first_name: 'Gabriel', last_name: 'Bortoleto', team_name: 'Audi' },
+  ];
+  const results = [
+    { driver_number: 1, points: 25 },
+    { driver_number: 3, points: 18 },
+  ];
+  const race = openF1Classification(sessions[1], positions, drivers, results);
+  assert.deepEqual(race.entries.map((e) => e.points), [25, 18, 0]);
+  const quali = openF1Classification(sessions[0], positions, drivers, results);
+  assert.equal('points' in quali.entries[0], false);
+  const noResults = openF1Classification(sessions[1], positions, drivers, []);
+  assert.equal('points' in noResults.entries[0], false);
+});

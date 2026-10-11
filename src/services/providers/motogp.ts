@@ -41,7 +41,11 @@ interface ClassificationRow {
   position: number | null;
   rider?: { full_name?: string; legacy_id?: number };
   team?: { name?: string };
+  points?: number | null;
 }
+
+/** Session types whose classification awards championship points. */
+const POINTS_SESSIONS = new Set(['RAC', 'SPR']);
 
 async function getJson<T>(url: string): Promise<T | null> {
   try {
@@ -118,6 +122,7 @@ export async function fetchMotoGpResults(params: {
     fetchMotoGpRiderPhotos(target.getUTCFullYear()),
   ]);
   const rows = data?.classification ?? [];
+  const scoring = POINTS_SESSIONS.has(session.type);
   const entries: SessionEntry[] = rows
     .filter((r): r is ClassificationRow & { position: number } => r.position != null)
     .map((r) => {
@@ -132,6 +137,7 @@ export async function fetchMotoGpResults(params: {
         team: r.team?.name ?? null,
         photoUrl: photo,
         teamLogoUrl: null,
+        ...(scoring ? { points: typeof r.points === 'number' ? r.points : 0 } : {}),
       };
     })
     .filter((e) => e.name.length > 0)

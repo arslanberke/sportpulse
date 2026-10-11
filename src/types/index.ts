@@ -186,6 +186,8 @@ export interface SessionEntry {
   team: string | null;
   photoUrl?: string | null;
   teamLogoUrl?: string | null;
+  /** Championship points scored in this session (race/sprint only). */
+  points?: number | null;
 }
 
 /** Results for a single motorsport session (Qualifying, Race, ...). */

@@ -65,6 +65,9 @@ export function MotorsportDetail({
   const [allStandings, setAllStandings] = useState(false);
 
   const hasResults = Boolean(results && results.entries.length > 0);
+  const hasPoints = Boolean(
+    results && !results.live && results.entries.some((e) => e.points != null),
+  );
   const hasStandings = Boolean(standings && standings.entries.length > 0);
   const tabs: { key: Tab; label: string }[] = [
     ...(hasResults
@@ -211,7 +214,9 @@ export function MotorsportDetail({
               {t(results.live ? "event.liveOrder" : "event.results")}
             </Text>
             <Text className="text-xs text-ink-tertiary">
-              {t("event.motorsport.entries", { count: results.entries.length })}
+              {hasPoints
+                ? t("event.motorsport.points")
+                : t("event.motorsport.entries", { count: results.entries.length })}
             </Text>
           </View>
           {results.entries.map((entry, i) => (
@@ -222,6 +227,7 @@ export function MotorsportDetail({
               team={entry.team}
               photoUrl={entry.photoUrl}
               teamLogoUrl={entry.teamLogoUrl}
+              points={hasPoints ? (entry.points ?? 0) : undefined}
               highlight={entry.position <= 3}
               last={i === results.entries.length - 1}
               fullBody={fullBody}
