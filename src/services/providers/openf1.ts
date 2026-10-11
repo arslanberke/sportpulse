@@ -26,6 +26,14 @@ interface OpenF1Position {
   position: number;
 }
 
+export interface OpenF1SessionResult {
+  driver_number: number;
+  points: number | null;
+}
+
+/** Sessions whose classification awards championship points. */
+const POINTS_SESSIONS = new Set(['Race', 'Sprint']);
+
 interface OpenF1Driver {
   driver_number: number;
   first_name: string | null;
@@ -115,7 +123,14 @@ export function openF1Classification(
   session: OpenF1Session,
   positions: OpenF1Position[],
   drivers: OpenF1Driver[],
+  results: OpenF1SessionResult[] = [],
 ): SessionResults | null {
+  const points = new Map<number, number>();
+  if (POINTS_SESSIONS.has(session.session_name)) {
+    for (const r of results) {
+      if (typeof r.points === 'number' && Number.isFinite(r.points)) points.set(r.driver_number, r.points);
+    }
+  }
   const last = new Map<number, OpenF1Position>();
   for (const p of positions) {
     const prev = last.get(p.driver_number);
@@ -134,6 +149,7 @@ export function openF1Classification(
         team,
         photoUrl: f1DriverPhoto(name),
         teamLogoUrl: f1TeamLogo(team),
+        ...(points.size > 0 ? { points: points.get(p.driver_number) ?? 0 } : {}),
       }];
     })
     .sort((a, b) => a.position - b.position);
@@ -148,12 +164,15 @@ export function openF1Classification(
 /** Final classification of a session that has ended; null before that. */
 export async function fetchOpenF1Results(session: OpenF1Session): Promise<SessionResults | null> {
   if (Date.now() < Date.parse(session.date_end)) return null;
-  const [positions, drivers] = await Promise.all([
+  const [positions, drivers, results] = await Promise.all([
     getJson<OpenF1Position[]>(`position?session_key=${session.session_key}`),
     getJson<OpenF1Driver[]>(`drivers?session_key=${session.session_key}`),
+    POINTS_SESSIONS.has(session.session_name)
+      ? getJson<OpenF1SessionResult[]>(`session_result?session_key=${session.session_key}`)
+      : Promise.resolve(null),
   ]);
   if (!Array.isArray(positions) || !Array.isArray(drivers)) return null;
-  return openF1Classification(session, positions, drivers);
+  return openF1Classification(session, positions, drivers, Array.isArray(results) ? results : []);
 }
 
 /**

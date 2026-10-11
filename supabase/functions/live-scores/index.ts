@@ -188,7 +188,19 @@ const BSD_BASE = 'https://sports.bzzoiro.com/api/v2';
  * free API-Sports plan excludes from live=all). Entries join the `espn`
  * payload array with series 'bsd'; the field name predates the second source.
  */
-async function fetchBsdLive(key: string): Promise<EspnLiveEntry[]> {
+/** BSD canli penceresinde 'finished' gorunen mac: sonucu hemen yazilir. */
+interface BsdFinal {
+  bsdId: string;
+  homeScore: number;
+  awayScore: number;
+}
+
+interface BsdLiveResult {
+  live: EspnLiveEntry[];
+  finals: BsdFinal[];
+}
+
+async function fetchBsdLive(key: string): Promise<BsdLiveResult> {
   const response = await fetch(`${BSD_BASE}/events/live/?limit=300`, {
     headers: { Authorization: `Token ${key}` },
     signal: AbortSignal.timeout(10_000),
@@ -198,10 +210,19 @@ async function fetchBsdLive(key: string): Promise<EspnLiveEntry[]> {
   const events = Array.isArray(body.events) ? body.events.map(espnObj) : [];
   const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : null);
   const out: EspnLiveEntry[] = [];
+  const finals: BsdFinal[] = [];
   for (const e of events) {
     const status = espnText(e.status);
     // 'finished'/'delayed' still sit in the live window — only truly running
-    // matches mark an event live.
+    // matches mark an event live. Finished ones carry the final score, so the
+    // result is written now instead of waiting for the half-hourly sync.
+    if (status === 'finished') {
+      const homeScore = num(e.home_score);
+      const awayScore = num(e.away_score);
+      const bsdId = String(e.id ?? '');
+      if (bsdId && homeScore !== null && awayScore !== null) finals.push({ bsdId, homeScore, awayScore });
+      continue;
+    }
     if (status !== 'inprogress' && status !== 'penalties') continue;
     const period = espnText(e.period);
     const minute = num(e.current_minute);
@@ -227,7 +248,7 @@ async function fetchBsdLive(key: string): Promise<EspnLiveEntry[]> {
       startsAt: espnText(e.event_date) ?? '',
     });
   }
-  return out;
+  return { live: out, finals };
 }
 
 const ESPN_BASE = 'https://site.api.espn.com/apis/site/v2/sports';
@@ -422,6 +443,26 @@ async function persistResultRows(supabase: ReturnType<typeof createClient>, rows
   if (rows.length > 0) await supabase.rpc('set_event_results', { p_rows: rows });
 }
 
+/** BSD canli penceresinde biten maclarin sonucunu, henuz finished yazilmamis kayitlara yazar. */
+async function persistBsdFinals(supabase: ReturnType<typeof createClient>, finals: BsdFinal[]): Promise<void> {
+  if (finals.length === 0) return;
+  const byId = new Map(finals.map((f) => [f.bsdId, f]));
+  const { data } = await supabase
+    .from('events')
+    .select('id, external_ids')
+    .eq('sport_id', 'football')
+    .is('merged_into_event_id', null)
+    .in('external_ids->>bsd', [...byId.keys()])
+    .or('result_status.is.null,result_status.neq.finished');
+  const rows: ResultRow[] = [];
+  for (const row of (data ?? []) as { id: string; external_ids: Record<string, unknown> | null }[]) {
+    const final = byId.get(String(row.external_ids?.bsd ?? ''));
+    if (!final) continue;
+    rows.push({ id: row.id, home_score: final.homeScore, away_score: final.awayScore, result_status: 'finished' });
+  }
+  await persistResultRows(supabase, rows);
+}
+
 /** Biten ESPN maclarinin sonucunu, henuz finished yazilmamis kayitlara yazar. */
 async function persistEspnFinals(supabase: ReturnType<typeof createClient>, finals: EspnFinal[]): Promise<void> {
   if (finals.length === 0) return;
@@ -598,8 +639,10 @@ Deno.serve(async (request) => {
   const apiKey = Deno.env.get('API_SPORTS_FOOTBALL_KEY');
   const bsdKey = Deno.env.get('API_BSD_FOOTBALL_KEY');
   const callApiSports = Boolean(apiKey) && now - previous.apisportsTriedAt >= APISPORTS_INTERVAL_MS;
-  const [bsdLive, espnBoards, euroleague, footballResult] = await Promise.all([
-    bsdKey ? fetchBsdLive(bsdKey).catch(() => [] as EspnLiveEntry[]) : Promise.resolve([] as EspnLiveEntry[]),
+  const [bsd, espnBoards, euroleague, footballResult] = await Promise.all([
+    bsdKey
+      ? fetchBsdLive(bsdKey).catch((): BsdLiveResult => ({ live: [], finals: [] }))
+      : Promise.resolve<BsdLiveResult>({ live: [], finals: [] }),
     fetchEspnLive().catch((): EspnBoardResult => ({ live: [], finals: [] })),
     fetchEuroleagueBoard(supabase).catch((): EuroleagueBoardResult => ({ live: [], finals: [] })),
     callApiSports
@@ -612,13 +655,14 @@ Deno.serve(async (request) => {
       : Promise.resolve(null),
   ]);
 
+  runInBackground(persistBsdFinals(supabase, bsd.finals).catch(() => {}));
   runInBackground(persistEspnFinals(supabase, espnBoards.finals).catch(() => {}));
   runInBackground(persistResultRows(supabase, euroleague.finals).catch(() => {}));
 
   const apiOk = Array.isArray(footballResult);
   const next: CachePayload = {
     scores: apiOk ? footballResult : previous.scores,
-    espn: [...bsdLive, ...espnBoards.live, ...euroleague.live],
+    espn: [...bsd.live, ...espnBoards.live, ...euroleague.live],
     apisportsAt: apiOk ? now : previous.apisportsAt,
     apisportsTriedAt: callApiSports ? now : previous.apisportsTriedAt,
   };
