@@ -85,7 +85,11 @@ export function matchOpenF1Session(
   return best?.session ?? null;
 }
 
-async function getJson<T>(path: string): Promise<T | null> {
+const RATE_LIMIT_RETRY_MS = 1_200;
+const RATE_LIMIT_RETRIES = 2;
+
+/** Free tier allows only a few requests per second; 429s are retried after a pause. */
+async function getJson<T>(path: string, attempt = 0): Promise<T | null> {
   try {
     const res = await fetch(`${BASE}/${path}`, {
       headers: { 'User-Agent': PROVIDER_USER_AGENT },
@@ -93,6 +97,11 @@ async function getJson<T>(path: string): Promise<T | null> {
     });
     // 404 = "No results found" (session not published yet).
     if (res.status === 404) return null;
+    if (res.status === 429 && attempt < RATE_LIMIT_RETRIES) {
+      await res.body?.cancel();
+      await new Promise((r) => setTimeout(r, RATE_LIMIT_RETRY_MS * (attempt + 1)));
+      return getJson<T>(path, attempt + 1);
+    }
     if (!res.ok) return warnHttp('openf1', res, null);
     return (await res.json()) as T;
   } catch {
@@ -164,14 +173,14 @@ export function openF1Classification(
 /** Final classification of a session that has ended; null before that. */
 export async function fetchOpenF1Results(session: OpenF1Session): Promise<SessionResults | null> {
   if (Date.now() < Date.parse(session.date_end)) return null;
-  const [positions, drivers, results] = await Promise.all([
-    getJson<OpenF1Position[]>(`position?session_key=${session.session_key}`),
-    getJson<OpenF1Driver[]>(`drivers?session_key=${session.session_key}`),
-    POINTS_SESSIONS.has(session.session_name)
-      ? getJson<OpenF1SessionResult[]>(`session_result?session_key=${session.session_key}`)
-      : Promise.resolve(null),
-  ]);
-  if (!Array.isArray(positions) || !Array.isArray(drivers)) return null;
+  // Sequential on purpose: parallel calls trip OpenF1's per-second rate limit.
+  const positions = await getJson<OpenF1Position[]>(`position?session_key=${session.session_key}`);
+  if (!Array.isArray(positions)) return null;
+  const drivers = await getJson<OpenF1Driver[]>(`drivers?session_key=${session.session_key}`);
+  if (!Array.isArray(drivers)) return null;
+  const results = POINTS_SESSIONS.has(session.session_name)
+    ? await getJson<OpenF1SessionResult[]>(`session_result?session_key=${session.session_key}`)
+    : null;
   return openF1Classification(session, positions, drivers, Array.isArray(results) ? results : []);
 }
 
