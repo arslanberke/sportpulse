@@ -69,6 +69,36 @@ sync_native_project() {
   npx expo prebuild -p ios
 }
 
+# Gunluk surum her zaman en guncel kodla derlenmeli: expo-updates, gomulu
+# paketten daha eski tarihli guncellemeyi almaz, eski koddan derlenen surum de
+# telefonda eski hali gosterir. Calisma kopyasi temizse entegrasyon dalini
+# ceker; degilse uyarip mevcut kodla devam eder.
+RELEASE_BRANCH=devin/wip-follow-hierarchy-notifications
+
+pull_latest() {
+  if ! git diff --quiet || ! git diff --cached --quiet; then
+    echo "Uyari: kaydedilmemis degisiklik var, en guncel kod cekilmedi." >&2
+    return 0
+  fi
+  git fetch origin "$RELEASE_BRANCH" &&
+    git checkout "$RELEASE_BRANCH" &&
+    git merge --ff-only "origin/$RELEASE_BRANCH" ||
+    echo "Uyari: en guncel kod cekilemedi, mevcut kodla derleniyor." >&2
+}
+
+# Derlemeden sonra ayni kodu OTA olarak da yayinlar; boylece telefon gomulu
+# paket yerine yayinlanan guncellemeyi gosterir ve sonraki guncellemeler
+# sorunsuz gelir. EAS'a giris yoksa atlanir.
+publish_update() {
+  if ! npx -y eas-cli@24.8.0 whoami >/dev/null 2>&1; then
+    echo "Uyari: EAS girisi yok, guncelleme yayinlanmadi." >&2
+    return 0
+  fi
+  npx -y eas-cli@24.8.0 update --channel production --environment production \
+    --platform ios --message "Derleme sonrasi guncel hal" --non-interactive ||
+    echo "Uyari: guncelleme yayinlanamadi." >&2
+}
+
 case "${1:-start}" in
 start)
   shift || true
@@ -93,8 +123,14 @@ release)
   if [[ $# -eq 0 ]] && udid=$(attached_device) && [[ -n "$udid" ]]; then
     set -- "$udid"
   fi
+  pull_latest
+  npm install --no-audit --no-fund
   sync_native_project
-  exec npx expo run:ios --configuration Release --device "$@"
+  npx expo run:ios --configuration Release --device "$@"
+  publish_update
+  # pull_latest bu dosyayi degistirmis olabilir; bash kalan satirlari yeni
+  # dosyadan okumasin diye burada cikilir.
+  exit 0
   ;;
 launch)
   xcrun devicectl device process launch --terminate-existing \

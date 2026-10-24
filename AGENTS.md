@@ -217,8 +217,9 @@ hash'ler, klasor Mac'te var (prebuild ciktisi, git'te degil) bulutta yok, bu
 yuzden telefondaki derleme ile `eas update`'in runtime kimligi hicbir zaman
 tutmuyordu ve guncellemeler sessizce yok sayiliyordu.
 
-Yeniden derlemeden sonra (`npm run release:phone`) yeni bir `eas update`
-atilmali: expo-updates, gomulu paketten **daha eski** tarihli guncellemeyi
+`npm run release:phone` derlemeden once entegrasyon dalinin en guncel halini
+ceker (calisma kopyasi temizse) ve derlemeden sonra ayni kodu `eas update`
+ile yayinlar (EAS girisi varsa). Bunun nedeni: expo-updates, gomulu paketten **daha eski** tarihli guncellemeyi
 almaz. Derlemeden once yayinlanmis update sunucuda dursa bile telefon
 `NoUpdateAvailable` der ve gomulu surumde kalir.
 
