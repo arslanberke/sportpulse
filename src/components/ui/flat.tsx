@@ -153,7 +153,7 @@ export function StatStrip({ items }: { items: { value: string; label: string; co
           >
             {item.value}
           </Text>
-          <Text className="mt-0.5 text-[10.5px] text-ink-tertiary" numberOfLines={1}>
+          <Text className="mt-0.5 text-[11px] text-ink-tertiary" numberOfLines={1}>
             {item.label}
           </Text>
         </View>

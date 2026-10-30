@@ -114,7 +114,7 @@ export function LeagueTableBody({
                   return (
                     <Pressable
                       key={`${row.team}-${row.rank}`}
-                      className="min-h-[34px] flex-row items-center border-b border-line px-1 active:opacity-60"
+                      className="min-h-[44px] flex-row items-center border-b border-line px-1 active:opacity-60"
                       style={mine ? { backgroundColor: `${colors.primary}14` } : undefined}
                       disabled={teamId === null}
                       onPress={() => {

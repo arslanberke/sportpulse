@@ -59,7 +59,7 @@ function HeaderRow({ labels }: { labels: { text: string; wide?: boolean }[] }) {
       {labels.map((l) => (
         <Text
           key={l.text}
-          className={`${l.wide ? 'w-11' : 'w-9'} text-right text-[10px] font-semibold uppercase text-ink-tertiary`}
+          className={`${l.wide ? 'w-11' : 'w-9'} text-right text-[11px] font-semibold uppercase text-ink-tertiary`}
           numberOfLines={1}
         >
           {l.text}
@@ -207,7 +207,7 @@ export default function BasketballPlayerScreen() {
               <View className="flex-row items-center gap-2 border-b border-line pb-1.5">
                 <View className="flex-1" />
                 {[t('basketballPlayer.min'), ...statLabels.map((l) => l.text)].map((text) => (
-                  <Text key={text} className="w-9 text-right text-[10px] font-semibold uppercase text-ink-tertiary" numberOfLines={1}>
+                  <Text key={text} className="w-9 text-right text-[11px] font-semibold uppercase text-ink-tertiary" numberOfLines={1}>
                     {text}
                   </Text>
                 ))}
