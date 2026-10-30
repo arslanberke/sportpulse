@@ -171,7 +171,7 @@ export function LiveMatchCard({ event, index, flat = false }: { event: SportEven
           {isError ? t('event.matchCentreError') : t('event.noKeyMomentsYet')}
         </Text>
       )}
-      <Text className="mt-3 text-[10px] text-ink-tertiary">{t('event.matchCentreSource')}</Text>
+      <Text className="mt-3 text-[11px] text-ink-tertiary">{t('event.matchCentreSource')}</Text>
     </Card>
   );
 }

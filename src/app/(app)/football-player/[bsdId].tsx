@@ -162,11 +162,11 @@ function SeasonHeader() {
       <View className="h-5 w-5" />
       <View className="flex-1" />
       {labels.map((label) => (
-        <Text key={label} className="w-9 text-right text-[10px] font-semibold uppercase text-ink-tertiary" numberOfLines={1}>
+        <Text key={label} className="w-9 text-right text-[11px] font-semibold uppercase text-ink-tertiary" numberOfLines={1}>
           {label}
         </Text>
       ))}
-      <Text className="w-9 text-center text-[10px] font-semibold uppercase text-ink-tertiary">
+      <Text className="w-9 text-center text-[11px] font-semibold uppercase text-ink-tertiary">
         {t('footballPlayer.statRating')}
       </Text>
       <View className="w-3.5" />

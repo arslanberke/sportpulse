@@ -160,12 +160,12 @@ export function TimelineCard({
               </>
             ) : finished ? (
               <>
-                <Text className="text-[10px] font-bold uppercase tracking-wide text-ink-tertiary">{t('home.fullTimeShort')}</Text>
+                <Text className="text-[11px] font-bold uppercase tracking-wide text-ink-tertiary">{t('home.fullTimeShort')}</Text>
                 <ScoreStack home={String(event.homeScore)} away={String(event.awayScore)} muted />
               </>
             ) : (
               <View className="items-end">
-                {dayLabel && <Text className="text-[10px] font-bold uppercase tracking-wide text-ink-tertiary">{dayLabel}</Text>}
+                {dayLabel && <Text className="text-[11px] font-bold uppercase tracking-wide text-ink-tertiary">{dayLabel}</Text>}
                 <Text
                   className={`text-[14px] font-extrabold ${scheduled ? 'text-ink' : 'text-danger'}`}
                   style={{ fontVariant: ['tabular-nums'] }}
@@ -182,9 +182,9 @@ export function TimelineCard({
             {event.leagueBadgeUrl && (
               <Image source={{ uri: logoThumb(event.leagueBadgeUrl) }} style={{ width: 12, height: 12 }} contentFit="contain" allowDownscaling={false} tintColor={badgeTint} />
             )}
-            <Text className="shrink text-[10px] font-semibold text-ink-tertiary" numberOfLines={1}>{event.leagueName ?? ''}</Text>
+            <Text className="shrink text-[11px] font-semibold text-ink-tertiary" numberOfLines={1}>{event.leagueName ?? ''}</Text>
           </View>
-          <Text className="max-w-[50%] text-right text-[10px] font-semibold text-ink-tertiary" numberOfLines={1}>
+          <Text className="max-w-[50%] text-right text-[11px] font-semibold text-ink-tertiary" numberOfLines={1}>
             {channelNames || t('home.broadcastUnknown')}
           </Text>
         </View>
